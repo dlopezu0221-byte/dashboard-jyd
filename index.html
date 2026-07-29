@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Grupo Empresarial J&amp;D &mdash; Dashboard Ejecutivo</title>
+<style>
+:root{
+  --bg:#0B1120;--card:#141E35;--border:rgba(255,255,255,.07);
+  --gold:#F5B800;--text:#F1F5F9;--muted:#64748B;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);
+  font-family:'Segoe UI',system-ui,sans-serif}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;padding:24px;text-align:center}
+
+/* subtle grid background */
+body::before{content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0}
+
+.wrap{position:relative;z-index:1;max-width:480px;width:100%}
+
+.logo-ring{
+  width:80px;height:80px;border-radius:50%;
+  background:rgba(245,184,0,.08);
+  border:2px solid rgba(245,184,0,.25);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 28px;
+}
+.logo-ring svg{width:38px;height:38px;opacity:.9}
+
+.badge{
+  display:inline-block;
+  background:rgba(245,184,0,.1);color:var(--gold);
+  font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  padding:4px 14px;border-radius:20px;border:1px solid rgba(245,184,0,.25);
+  margin-bottom:18px;
+}
+
+h1{font-size:26px;font-weight:900;color:var(--text);line-height:1.2;margin-bottom:10px}
+h1 span{color:var(--gold)}
+
+.tagline{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:36px;max-width:340px;margin-left:auto;margin-right:auto}
+
+.access-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:24px 28px;
+  margin-bottom:28px;
+}
+.lock-icon{font-size:28px;margin-bottom:10px}
+.access-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px}
+.access-msg{font-size:12px;color:var(--muted);line-height:1.7}
+.access-msg strong{color:var(--text)}
+
+.divider{
+  display:flex;align-items:center;gap:12px;margin-bottom:22px;color:var(--muted);font-size:10px;
+}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.footer{font-size:10px;color:rgba(148,163,184,.45);line-height:1.8}
+.footer a{color:rgba(245,184,0,.4);text-decoration:none}
+
+/* glow pulse on lock */
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(245,184,0,.15)}
+  50%{box-shadow:0 0 0 10px rgba(245,184,0,0)}}
+.logo-ring{animation:pulse 3s ease-in-out infinite}
+
+@media(max-width:480px){
+  h1{font-size:22px}
+  .access-card{padding:20px 18px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="logo-ring">
+    <!-- J&D logo mark — simple monogram SVG, no external deps -->
+    <svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="J&D">
+      <text x="2" y="28" font-family="'Segoe UI',system-ui,sans-serif"
+            font-size="22" font-weight="900" fill="#F5B800" letter-spacing="-1">J&amp;D</text>
+    </svg>
+  </div>
+
+  <div class="badge">Grupo Empresarial J&amp;D</div>
+
+  <h1>Dashboard<br/><span>Ejecutivo Comercial</span></h1>
+
+  <p class="tagline">
+    Sistema de gestión y seguimiento comercial.<br/>
+    Información confidencial de uso exclusivo interno.
+  </p>
+
+  <div class="access-card">
+    <div class="lock-icon">🔒</div>
+    <div class="access-title">Acceso privado</div>
+    <div class="access-msg">
+      Ingrese mediante el <strong>enlace asignado</strong> a su perfil.<br/>
+      Si no tiene su enlace, comuníquese con el administrador<br/>del sistema.
+    </div>
+  </div>
+
+  <div class="divider">información confidencial</div>
+
+  <div class="footer">
+    &copy; 2026 Grupo Empresarial J&amp;D &nbsp;&middot;&nbsp; Uso interno exclusivo<br/>
+    Acceso no autorizado está prohibido
+  </div>
+
+</div>
+</body>
+</html>

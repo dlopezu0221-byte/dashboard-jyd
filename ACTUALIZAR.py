@@ -311,13 +311,38 @@ def recalc_top_est(top_est, aliados_entry, mes=MES):
             totals[model] = t
 
     ranked = sorted(totals.items(), key=lambda x: -x[1])
-    new_list = [{'model': m, 'total': round(t), 'rank': i+1}
-                for i, (m, t) in enumerate(ranked)]
+    # Formato correcto: {'modelo': m} — igual que meses anteriores
+    new_list = [{'modelo': m} for m, t in ranked]
 
     if top_est is None:
         return {mes: new_list}
     top_est[mes] = new_list
     return top_est
+
+def recalc_top20g(top20g, grupo_aliados, mes=MES):
+    """Recalcula TOP20G (top 20 modelos del grupo) desde ALIADOS grupo.
+    Formato: {'modelo': name, 'studio': display_name}"""
+    all_totals = {}  # (model, studio_display) → total
+    for ak, ainfo in grupo_aliados.items():
+        studio_name = ALIADOS_DISPLAY.get(ak, ak)
+        md = (ainfo.get('data') or {}).get(mes, {})
+        for model, days in (md.get('modelos') or {}).items():
+            t = sum(
+                sum((dv.get(p) or 0) for p in PLATS)
+                for dv in days.values() if dv
+            )
+            if t > 0:
+                key = (model, studio_name)
+                all_totals[key] = all_totals.get(key, 0) + t
+
+    ranked = sorted(all_totals.items(), key=lambda x: -x[1])[:20]
+    new_list = [{'modelo': m, 'studio': s} for (m, s), t in ranked]
+    print(f"    TOP20G: {len(new_list)} modelos | #1 → {new_list[0]['modelo'] if new_list else 'N/A'}")
+
+    if top20g is None:
+        return {mes: new_list}
+    top20g[mes] = new_list
+    return top20g
 
 # ═══════════════════════════════════════════════════════════════════
 # PASO 4 — TIMESTAMP
@@ -337,6 +362,25 @@ def inject_timestamp(html, ts_str):
 # ═══════════════════════════════════════════════════════════════════
 # MAPEOS ALIADOS KEY → CV STUDIOS (Excel col 2)
 # ═══════════════════════════════════════════════════════════════════
+# Nombres de display para TOP20G (aliados key → nombre visible)
+ALIADOS_DISPLAY = {
+    'Fornax Studios':    'Fornax Studios',
+    'agatha_studios_':   'Agatha Studio',
+    'goldonline':        'Gold Online',
+    'kama_studio':       'Kama Studio',
+    'the_Room_studios':  'The Room Studio',
+    'CyV Studios':       'CyV Studios',
+    'Studio Levi':       'Studios Levi',
+    'The Online Agency': 'The Online Agency',
+    'Elite Cam House':   'Elite Cam House',
+    'Studio RWB':        'Studios RWB',
+    'PrestigeCam':       'Prestige Cam',
+    'Atelier_glamour':   'Atelier Glamour',
+    'Dejavu Studio':     'Dejavu Studio',
+    'Dynasty_studio_':   'Dynasty Studio',
+    'piscis_studio':     'Piscis Studio',
+}
+
 GRUPO_MAP = {
     'Fornax Studios':    ['Fornax Studios'],
     'agatha_studios_':   ['Agatha Studio'],
@@ -485,9 +529,23 @@ def main():
         with open(DASHBOARDS['grupo'], 'r', encoding='utf-8') as f: g2 = f.read()
         g_aliados, _ = get_var(g2, 'ALIADOS')
         fx_entry = g_aliados.get('Fornax Studios', {})
+
         print('  Recalculando PERIODOS desde ALIADOS Fornax:')
         periodos = recalc_studio_periodos(periodos, fx_entry)
         html = set_var(html, 'PERIODOS', periodos, pq)
+
+        top_est_fx, te_q = get_var(html, 'TOP_EST')
+        if top_est_fx is not None:
+            top_est_fx = recalc_top_est(top_est_fx, fx_entry)
+            html = set_var(html, 'TOP_EST', top_est_fx, te_q)
+            print(f"  ✓ TOP_EST Fornax: {len((top_est_fx or {}).get(MES, []))} modelos")
+
+        top20g_fx, t20_q = get_var(html, 'TOP20G')
+        if top20g_fx is not None:
+            print('  Recalculando TOP20G:')
+            top20g_fx = recalc_top20g(top20g_fx, g_aliados)
+            html = set_var(html, 'TOP20G', top20g_fx, t20_q)
+
         html = inject_timestamp(html, ts_str)
         with open(DASHBOARDS['fornax'], 'w', encoding='utf-8') as f: f.write(html)
         print(f"  💾 fornax-studios345929/index.html")
@@ -502,9 +560,23 @@ def main():
         with open(DASHBOARDS['grupo'], 'r', encoding='utf-8') as f: g2 = f.read()
         g_aliados, _ = get_var(g2, 'ALIADOS')
         go_entry = g_aliados.get('goldonline', {})
+
         print('  Recalculando PERIODOS desde ALIADOS Gold Online:')
         periodos = recalc_studio_periodos(periodos, go_entry)
         html = set_var(html, 'PERIODOS', periodos, pq)
+
+        top_est_go, te_q = get_var(html, 'TOP_EST')
+        if top_est_go is not None:
+            top_est_go = recalc_top_est(top_est_go, go_entry)
+            html = set_var(html, 'TOP_EST', top_est_go, te_q)
+            print(f"  ✓ TOP_EST Gold: {len((top_est_go or {}).get(MES, []))} modelos")
+
+        top20g_go, t20_q = get_var(html, 'TOP20G')
+        if top20g_go is not None:
+            print('  Recalculando TOP20G:')
+            top20g_go = recalc_top20g(top20g_go, g_aliados)
+            html = set_var(html, 'TOP20G', top20g_go, t20_q)
+
         html = inject_timestamp(html, ts_str)
         with open(DASHBOARDS['gold'], 'w', encoding='utf-8') as f: f.write(html)
         print(f"  💾 goldonline078939/index.html")
@@ -522,8 +594,14 @@ def main():
             with open(DASHBOARDS['grupo'], 'r', encoding='utf-8') as f: g2 = f.read()
             e_aliados, _ = get_var(g2, 'ALIADOS')
         cy_entry = e_aliados.get('CyV Studios', {})
+
+        # Cargar grupo para TOP20G
+        with open(DASHBOARDS['grupo'], 'r', encoding='utf-8') as f: g3 = f.read()
+        g_aliados_cy, _ = get_var(g3, 'ALIADOS')
+
         print('  Recalculando PERIODOS desde ALIADOS CyV:')
         periodos = recalc_studio_periodos(periodos, cy_entry)
+        html = set_var(html, 'PERIODOS', periodos, pq)
 
         top_est_cy, te_q = get_var(html, 'TOP_EST')
         if top_est_cy is not None:
@@ -531,7 +609,12 @@ def main():
             html = set_var(html, 'TOP_EST', top_est_cy, te_q)
             print(f"  ✓ TOP_EST CyV: {len((top_est_cy or {}).get(MES, []))} modelos")
 
-        html = set_var(html, 'PERIODOS', periodos, pq)
+        top20g_cy, t20_q = get_var(html, 'TOP20G')
+        if top20g_cy is not None and g_aliados_cy is not None:
+            print('  Recalculando TOP20G:')
+            top20g_cy = recalc_top20g(top20g_cy, g_aliados_cy)
+            html = set_var(html, 'TOP20G', top20g_cy, t20_q)
+
         html = inject_timestamp(html, ts_str)
         with open(DASHBOARDS['cyv'], 'w', encoding='utf-8') as f: f.write(html)
         print(f"  💾 cyv-studios837357/index.html")

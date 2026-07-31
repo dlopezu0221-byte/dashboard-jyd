@@ -319,6 +319,38 @@ def recalc_top_est(top_est, aliados_entry, mes=MES):
     top_est[mes] = new_list
     return top_est
 
+def rebuild_estudio_from_excel(estudio, cv, cv_studio, last_day, mes=MES):
+    """Actualiza ESTUDIO.data[mes].modelos y .dias desde Excel (fuente de verdad).
+    cv_studio: nombre del estudio tal como aparece en col 2 del Excel.
+    """
+    md = (estudio.get('data') or {}).get(mes)
+    if not md:
+        print(f"  ⚠  ESTUDIO sin datos para mes '{mes}'")
+        return estudio
+
+    modelos = md.get('modelos') or {}
+    cleared = 0; updated = 0
+
+    # PASO A: borrar todos los datos diarios del mes
+    for model in list(modelos.keys()):
+        modelos[model] = {}
+        cleared += 1
+
+    # PASO B: reconstruir desde Excel
+    for model in list(modelos.keys()):
+        key = (model, cv_studio)
+        if key not in cv:
+            continue
+        for d, day_vals in cv[key].items():
+            entry = {p: (day_vals.get(p) if day_vals.get(p, 0) else None)
+                     for p in PLATS}
+            modelos[model][str(d)] = entry
+            updated += 1
+
+    md['dias'] = last_day
+    print(f"  ✓ ESTUDIO [{cv_studio}]: {cleared} limpiados, {updated} entradas | dias={last_day}")
+    return estudio
+
 def recalc_top20g(top20g, grupo_aliados, mes=MES):
     """Recalcula TOP20G (top 20 modelos del grupo) desde ALIADOS grupo.
     Formato: {'modelo': name, 'studio': display_name}"""
@@ -530,6 +562,11 @@ def main():
         g_aliados, _ = get_var(g2, 'ALIADOS')
         fx_entry = g_aliados.get('Fornax Studios', {})
 
+        estudio_fx, es_q = get_var(html, 'ESTUDIO')
+        if estudio_fx is not None:
+            estudio_fx = rebuild_estudio_from_excel(estudio_fx, cv, 'Fornax Studios', last_day_excel)
+            html = set_var(html, 'ESTUDIO', estudio_fx, es_q)
+
         print('  Recalculando PERIODOS desde ALIADOS Fornax:')
         periodos = recalc_studio_periodos(periodos, fx_entry)
         html = set_var(html, 'PERIODOS', periodos, pq)
@@ -560,6 +597,11 @@ def main():
         with open(DASHBOARDS['grupo'], 'r', encoding='utf-8') as f: g2 = f.read()
         g_aliados, _ = get_var(g2, 'ALIADOS')
         go_entry = g_aliados.get('goldonline', {})
+
+        estudio_go, es_q = get_var(html, 'ESTUDIO')
+        if estudio_go is not None:
+            estudio_go = rebuild_estudio_from_excel(estudio_go, cv, 'Gold Online', last_day_excel)
+            html = set_var(html, 'ESTUDIO', estudio_go, es_q)
 
         print('  Recalculando PERIODOS desde ALIADOS Gold Online:')
         periodos = recalc_studio_periodos(periodos, go_entry)
@@ -598,6 +640,11 @@ def main():
         # Cargar grupo para TOP20G
         with open(DASHBOARDS['grupo'], 'r', encoding='utf-8') as f: g3 = f.read()
         g_aliados_cy, _ = get_var(g3, 'ALIADOS')
+
+        estudio_cy, es_q = get_var(html, 'ESTUDIO')
+        if estudio_cy is not None:
+            estudio_cy = rebuild_estudio_from_excel(estudio_cy, cv, 'CyV Studios', last_day_excel)
+            html = set_var(html, 'ESTUDIO', estudio_cy, es_q)
 
         print('  Recalculando PERIODOS desde ALIADOS CyV:')
         periodos = recalc_studio_periodos(periodos, cy_entry)

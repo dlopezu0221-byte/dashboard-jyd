@@ -3,24 +3,26 @@
 """
 ACTUALIZAR.py — Actualizador dashboards Grupo J&D
 ==================================================
-Lee el Excel "Cómo Vamos" (hoja JULIO), actualiza los dashboards con:
-  - Nuevos datos diarios desde el Excel (días disponibles)
-  - ALIADOS.dias = último día con datos en ALIADOS (preserva datos históricos)
-  - GRUPO_PERIODOS / PERIODOS / EXEC_PERIODOS recalculados desde ALIADOS
-  - Timestamp de generación en todos los dashboards
+RECONSTRUYE desde cero los datos diarios del ALIADOS cada vez que se ejecuta.
+
+ESTRUCTURA VERIFICADA del Excel LOCAL (fuente de verdad):
+  - Col 1 : nombre modelo
+  - Col 2 : studio
+  - Cols 3-7   : P1 (F4F, SC, CB, CAM, STR)
+  - Cols 8-12  : P2
+  - Cols 13-17 : TOTAL MES
+  - Col 18 : nombre modelo (repetido)
+  - Cols 19+   : datos diarios (5 plataformas por día)
+    → día 31 : cols 19-23  (F4F, SC, CB, CAM, STR)
+    → día 30 : cols 24-28
+    → día 1  : cols 169-173
+  Fórmula: col_F4F(d) = 19 + (31-d)*5
 
 Uso: python ACTUALIZAR.py
-
-NOTAS:
-  - NO inventa datos: solo usa lo que está en el Excel o en ALIADOS
-  - NO hace commit/push (debe ser autorizado manualmente)
-  - Fórmula de columnas diarias: col_F4F(d) = 16 + (31-d)*4
-    Plataformas por día: F4F(+0), SC(+1), CB(+2), CAM(+3) — sin STR en diario
 """
 
 import openpyxl, re, base64, json, os
 from datetime import datetime
-from collections import defaultdict
 
 # ═══════════════════════════════════════════════════════════════════
 # RUTAS
@@ -38,12 +40,21 @@ DASHBOARDS = {
 }
 
 MES    = 'Julio'
+# Todas las plataformas (tal como están en el ALIADOS de los HTML)
 PLATS  = ['F4F', 'SC', 'CB', 'CAM', 'STR']
-PLATS4 = ['F4F', 'SC', 'CB', 'CAM']          # sólo estos en columnas diarias
 
+# ═══════════════════════════════════════════════════════════════════
+# FÓRMULA VERIFICADA contra el Excel LOCAL (fuente de verdad)
+# ═══════════════════════════════════════════════════════════════════
 def day_col(d):
-    """Columna F4F para el día d en la hoja JULIO (4 plats/día, inicio col 16)."""
-    return 16 + (31 - d) * 4
+    """
+    Columna F4F para el día d en el Excel LOCAL (5 plats/día, inicio col 19).
+    Verificado:
+      day_col(31) = 19  → col 19 row4='Flirt4free'   ✓
+      day_col(30) = 24  → col 24 row3=30              ✓
+      day_col(1)  = 169 → Isa Raven col 169 = 4578    ✓
+    """
+    return 19 + (31 - d) * 5
 
 # ═══════════════════════════════════════════════════════════════════
 # HELPERS BASE64
@@ -73,34 +84,73 @@ def set_var(html, varname, data, quote):
     return result
 
 # ═══════════════════════════════════════════════════════════════════
-# PASO 1 — LEER EXCEL (sólo para datos NUEVOS no inventar)
+# PASO 1 — LEER EXCEL: FUENTE DE VERDAD
 # ═══════════════════════════════════════════════════════════════════
 def read_cv_excel(path, sheet='JULIO'):
+    """
+    Lee el Excel LOCAL y extrae datos diarios.
+    - 5 plataformas por día (F4F, SC, CB, CAM, STR)
+    - Fórmula: day_col(d) = 19 + (31-d)*5
+    - SOLO registra valores explícitamente > 0
+    - NO inventa ni interpola datos
+    - USA iter_rows(values_only=True) para lectura en RAM (evita acceso
+      celda-a-celda sobre mount de red que causaba timeout de 45s).
+    """
     print(f"\n📂 Leyendo Excel: {os.path.basename(path)}")
     wb = openpyxl.load_workbook(path, data_only=True)
     if sheet not in wb.sheetnames:
-        print(f"  ⚠  Hoja '{sheet}' no encontrada. Hojas disponibles: {wb.sheetnames}")
+        print(f"  ⚠  Hoja '{sheet}' no encontrada. Hojas: {wb.sheetnames}")
         return {}, 0
     ws = wb[sheet]
 
-    cv = {}   # (model, studio) → {day → {plat → float}}
+    # Cargar TODO el sheet en RAM de una sola pasada secuencial
+    # data[r][c] → valor (0-indexed); equivale a ws.cell(r+1, c+1).value
+    data = tuple(ws.iter_rows(values_only=True))
+    MAX_COL = ws.max_column
+    print(f"  📋 Hoja en RAM: {len(data)} filas × {MAX_COL} columnas")
+
+    # Verificar estructura (fila 3 = encabezado días, fila 4 = plataformas)
+    h_day  = data[2][18]  # row 3, col 19 → índices [2][18]
+    h_plat = data[3][18]  # row 4, col 19
+    ok = (str(h_day) == '31' and 'lirt' in str(h_plat or ''))
+    print(f"  📋 Col 19: día={h_day!r}, plat={h_plat!r}  {'✅' if ok else '❌ ADVERTENCIA: estructura inesperada'}")
+
+    cv = {}            # (model, studio) → {day(int) → {plat → float|None}}
     last_day_excel = 0
 
-    for r in range(5, ws.max_row + 1):
-        model  = str(ws.cell(r, 1).value or '').strip()
-        studio = str(ws.cell(r, 2).value or '').strip()
+    # Estudios a ignorar (resúmenes, totales, plataformas)
+    IGNORAR_STUDIOS = {
+        'CAMSODA', 'CAMSODA POR QUINCENA', 'CHATURBATE', 'FLIRT4FREE',
+        'STREAMATE', 'STREAMATE POR QUINCENA', 'STRIPCHAT', 'STRIPCHAT POR QUINCENA',
+        'TOTAL', 'TOTALES', 'CAMSODA por quincena', 'STREAMATE por quincena',
+        'STRIPCHAT por quincena',
+    }
+
+    for ri in range(4, len(data)):        # fila 5+ → índice 4+
+        row    = data[ri]
+        model  = str(row[0] or '').strip()  # col 1 → índice 0
+        studio = str(row[1] or '').strip()  # col 2 → índice 1
         if not model or not studio:
             continue
+        if studio.upper() in {s.upper() for s in IGNORAR_STUDIOS}:
+            continue
+        if model.upper() in {'TOTAL', 'TOTALES', 'MODELO'}:
+            continue
+
         entry = {}
         for d in range(1, 32):
-            c0 = day_col(d)
-            if c0 > ws.max_column:
+            c0 = day_col(d)           # 1-indexed column
+            if c0 > MAX_COL:
                 break
             day_data = {}
             has = False
-            for pi, p in enumerate(PLATS4):
-                v = ws.cell(r, c0 + pi).value
-                if v and isinstance(v, (int, float)) and float(v) > 0:
+            for pi, p in enumerate(PLATS):
+                ci = c0 + pi - 1      # 0-indexed
+                if ci >= len(row):
+                    day_data[p] = None
+                    continue
+                v = row[ci]
+                if isinstance(v, (int, float)) and float(v) > 0:
                     day_data[p] = float(v)
                     has = True
                     last_day_excel = max(last_day_excel, d)
@@ -113,62 +163,65 @@ def read_cv_excel(path, sheet='JULIO'):
             cv[key] = entry
 
     print(f"  📅 Último día con datos en Excel: {last_day_excel}")
-    print(f"  👥 Modelos encontrados: {len(cv)}")
+    print(f"  👥 Modelos con datos diarios: {len(cv)}")
     return cv, last_day_excel
 
 # ═══════════════════════════════════════════════════════════════════
-# PASO 2 — DETERMINAR ÚLTIMO DÍA REAL DEL ALIADOS
+# PASO 2 — REBUILD ALIADOS DESDE CERO
 # ═══════════════════════════════════════════════════════════════════
-def aliados_last_day(aliados, mes=MES):
-    """Devuelve el día más alto con algún dato en cualquier modelo del ALIADOS."""
-    last = 0
-    for ak, ainfo in aliados.items():
-        md = (ainfo.get('data') or {}).get(mes, {})
-        for model, days in (md.get('modelos') or {}).items():
-            for dk, dv in days.items():
-                if dv and any(dv.values()):
-                    try:
-                        last = max(last, int(dk))
-                    except (ValueError, TypeError):
-                        pass
-    return last
+def rebuild_aliados_from_excel(aliados, cv, key_map, mes=MES):
+    """
+    RECONSTRUYE completamente los datos diarios del ALIADOS:
+    1. BORRA todos los datos diarios del mes en curso
+    2. Reconstruye SOLO desde Excel (fuente de verdad)
+    3. días sin dato → {} (vacío, no inventado)
+    4. dias = 31 (muestra el mes completo)
 
-# ═══════════════════════════════════════════════════════════════════
-# PASO 3 — ACTUALIZAR ALIADOS con nuevos datos Excel
-#  (sólo SOBREESCRIBE si Excel tiene dato; no borra días existentes)
-# ═══════════════════════════════════════════════════════════════════
-def update_aliados_from_excel(aliados, cv, key_map, last_day, mes=MES):
-    """
     key_map: {aliados_key → [cv_studio_name, ...]}
-    Actualiza días 1..last_day desde Excel si el modelo aparece ahí.
-    Preserva días con datos que no están en Excel (datos históricos).
-    Siempre fija dias = last_day.
     """
+    cleared = 0
     updated = 0
+
     for ak, ainfo in aliados.items():
         cv_studios = key_map.get(ak)
         if cv_studios is None:
-            continue  # no mapeado
+            continue
         md = (ainfo.get('data') or {}).get(mes)
         if not md:
             continue
-        modelos = md.get('modelos') or {}
-        for model in modelos:
+        modelos = md.get('modelos')
+        if modelos is None:
+            continue
+
+        # ── PASO A: borrar TODOS los datos diarios del mes ──
+        for model in list(modelos.keys()):
+            modelos[model] = {}
+            cleared += 1
+
+        # ── PASO B: reconstruir desde Excel ──
+        for model in list(modelos.keys()):
+            found = False
             for studio in cv_studios:
                 key = (model, studio)
                 if key not in cv:
                     continue
+                found = True
                 for d, day_vals in cv[key].items():
-                    entry = {p: (day_vals.get(p) if day_vals.get(p, 0) else None) for p in PLATS}
+                    entry = {p: (day_vals.get(p) if day_vals.get(p, 0) else None)
+                             for p in PLATS}
                     modelos[model][str(d)] = entry
                     updated += 1
-                break  # encontrado en primer studio
-        md['dias'] = last_day
-    print(f"  ✓ Excel→ALIADOS: {updated} entradas actualizadas")
+                break
+
+        # dias = 31 (mes completo; días sin datos quedan vacíos)
+        md['dias'] = 31
+
+    print(f"  🗑  Modelos limpiados: {cleared}")
+    print(f"  ✓  Entradas reconstruidas desde Excel: {updated}")
     return aliados
 
 # ═══════════════════════════════════════════════════════════════════
-# PASO 4 — RECALCULAR PERIODOS DESDE ALIADOS
+# PASO 3 — RECALCULAR PERIODOS DESDE ALIADOS
 # ═══════════════════════════════════════════════════════════════════
 def parse_day_from_date(date_str):
     """'27/07/2026' → 27 (para julio)."""
@@ -179,44 +232,9 @@ def parse_day_from_date(date_str):
     except Exception:
         return 0
 
-def recalc_periods(periods, aliados_mods, mes=MES):
-    """
-    periods: [{label, start, end, models, total, unit, has_activity}, ...]
-    aliados_mods: dict {model → {day → {plat → val}}}  (todos los modelos del scope)
-    Recalcula el ÚLTIMO período (el más reciente).
-    """
-    if not periods:
-        return periods
-    last = periods[-1]
-    d_from = parse_day_from_date(last.get('start', ''))
-    d_to   = parse_day_from_date(last.get('end',   ''))
-    if d_from == 0:
-        return periods
-
-    for plat in PLATS:
-        new_models = {}
-        for model, days in aliados_mods.items():
-            t = 0.0
-            for d in range(d_from, d_to + 1):
-                dv = days.get(str(d)) or days.get(d)
-                t += (dv.get(plat) or 0) if dv else 0
-            if t > 0:
-                new_models[model] = t
-        if new_models:
-            # Update only the periods for this specific platform
-            # We'll do this per-platform in the caller
-            pass
-
-    # Per-platform in GRUPO_PERIODOS / PERIODOS the structure is nested
-    return periods  # handled in caller
-
 def recalc_gp_last(gp, aliados, aliados_key=None, mes=MES):
-    """
-    Recalcula el ÚLTIMO periodo de cada plataforma en GRUPO_PERIODOS.
-    Suma sobre TODOS los aliados (o el aliado específico si se da).
-    """
-    # Collect all modelos from all aliados (for Grupo scope)
-    all_mods = {}  # model → {day → {plat → val}}
+    """Recalcula el ÚLTIMO periodo de cada plataforma en GRUPO_PERIODOS/EXEC_PERIODOS."""
+    all_mods = {}
     scope = aliados if aliados_key is None else {aliados_key: aliados[aliados_key]}
     for ak, ainfo in scope.items():
         md = (ainfo.get('data') or {}).get(mes, {})
@@ -245,9 +263,8 @@ def recalc_gp_last(gp, aliados, aliados_key=None, mes=MES):
                 t += (dv.get(plat_key) or 0) if dv else 0
             if t > 0:
                 new_models[model] = t
-        if new_models or last.get('models'):
-            last['models'] = new_models if new_models else last.get('models', {})
-            last['total']  = sum(new_models.values()) if new_models else last.get('total', 0)
+        last['models'] = new_models if new_models else last.get('models', {})
+        last['total']  = sum(new_models.values()) if new_models else last.get('total', 0)
     return gp
 
 def recalc_studio_periodos(periodos, aliados_entry, mes=MES):
@@ -279,8 +296,31 @@ def recalc_studio_periodos(periodos, aliados_entry, mes=MES):
             print(f"    {plat_name}: {last.get('label')} → {last['total']:.0f}")
     return periodos
 
+def recalc_top_est(top_est, aliados_entry, mes=MES):
+    """Recalcula TOP_EST (ranking de modelos del estudio) desde ALIADOS."""
+    md = (aliados_entry.get('data') or {}).get(mes, {})
+    all_mods = md.get('modelos') or {}
+
+    totals = {}
+    for model, days in all_mods.items():
+        t = sum(
+            sum((dv.get(p) or 0) for p in PLATS)
+            for dv in days.values() if dv
+        )
+        if t > 0:
+            totals[model] = t
+
+    ranked = sorted(totals.items(), key=lambda x: -x[1])
+    new_list = [{'model': m, 'total': round(t), 'rank': i+1}
+                for i, (m, t) in enumerate(ranked)]
+
+    if top_est is None:
+        return {mes: new_list}
+    top_est[mes] = new_list
+    return top_est
+
 # ═══════════════════════════════════════════════════════════════════
-# PASO 5 — TIMESTAMP
+# PASO 4 — TIMESTAMP
 # ═══════════════════════════════════════════════════════════════════
 def inject_timestamp(html, ts_str):
     badge = f'<span class="nav-update">Última actualización: {ts_str}</span>'
@@ -295,57 +335,57 @@ def inject_timestamp(html, ts_str):
     return html
 
 # ═══════════════════════════════════════════════════════════════════
-# MAPEOS ALIADOS KEY → CV STUDIOS
+# MAPEOS ALIADOS KEY → CV STUDIOS (Excel col 2)
 # ═══════════════════════════════════════════════════════════════════
 GRUPO_MAP = {
-    'Fornax Studios':   ['Fornax Studios'],
-    'agatha_studios_':  ['Agatha Studio'],
-    'goldonline':       ['Gold Online'],
-    'kama_studio':      ['Kama Studio', 'GrupoJ&D'],
-    'the_Room_studios': ['The Room Studio'],
-    'CyV Studios':      ['CyV Studios'],
-    'Studio Levi':      ['Studios Levi'],
-    'The Online Agency':['The Online Agency'],
-    'Elite Cam House':  ['Elite Cam House'],
-    'Studio RWB':       ['Studios RWB'],
-    'PrestigeCam':      ['Prestige Cam'],
-    'Atelier_glamour':  ['Atelier Glamour'],
-    'Dejavu Studio':    ['Dejavu Studio'],
-    'Dynasty_studio_':  [],
-    'piscis_studio':    ['Piscis Studio'],
+    'Fornax Studios':    ['Fornax Studios'],
+    'agatha_studios_':   ['Agatha Studio'],
+    'goldonline':        ['Gold Online'],
+    'kama_studio':       ['Kama Studio', 'GrupoJ&D'],
+    'the_Room_studios':  ['The Room Studio', 'The Room Studios'],
+    'CyV Studios':       ['CyV Studios'],
+    'Studio Levi':       ['Studios Levi'],
+    'The Online Agency': ['The Online Agency'],
+    'Elite Cam House':   ['Elite Cam House'],
+    'Studio RWB':        ['Studios RWB'],
+    'PrestigeCam':       ['Prestige Cam'],
+    'Atelier_glamour':   ['Atelier Glamour'],
+    'Dejavu Studio':     ['Dejavu Studio'],
+    'Dynasty_studio_':   [],
+    'piscis_studio':     ['Piscis Studio'],
 }
 
 ERIKA_MAP = {
-    'CyV Studios':      ['CyV Studios'],
-    'Studio Levi':      ['Studios Levi'],
-    'The Online Agency':['The Online Agency'],
-    'Elite Cam House':  ['Elite Cam House'],
-    'Studio RWB':       ['Studios RWB'],
-    'PrestigeCam':      ['Prestige Cam'],
-    'Dulce Luna':       ['Fornax Studios'],
-    'Liam Terrier':     ['Fornax Studios'],
-    'Zac Levis':        ['Gold Online'],
-    'Joel Souza':       ['Erika Noguera'],
-    'William Gardener': ['Erika Noguera'],
+    'CyV Studios':       ['CyV Studios'],
+    'Studio Levi':       ['Studios Levi'],
+    'The Online Agency': ['The Online Agency'],
+    'Elite Cam House':   ['Elite Cam House'],
+    'Studio RWB':        ['Studios RWB'],
+    'PrestigeCam':       ['Prestige Cam'],
+    'Dulce Luna':        ['Fornax Studios'],
+    'Liam Terrier':      ['Fornax Studios'],
+    'Zac Levis':         ['Gold Online'],
+    'Joel Souza':        ['Erika Noguera'],
+    'William Gardener':  ['Erika Noguera'],
 }
 
 FABIO_MAP = {
-    'Atelier_glamour':  ['Atelier Glamour'],
-    'Dejavu Studio':    ['Dejavu Studio'],
-    'Dynasty_studio_':  [],
-    'piscis_studio':    ['Piscis Studio'],
-    'Alice Steel':      ['Fabio Robleo'],
-    'Eli Cortes':       ['Fabio Robleo'],
-    'Evelyn Lovers':    ['Fabio Robleo'],
-    'Jack Miller':      ['Fabio Robleo'],
-    'Maximus Clark':    ['Fabio Robleo'],
-    'Amanda Bond':      ['Fabio Robleo'],
-    'Yessie Jacobs':    ['Fabio Robleo'],
-    'Ana Black':        ['Fabio Robleo'],
-    'Amadeus Studio':   ['Amadeus Studio'],
-    'Black Card':       ['Black Card'],
-    'Iridium Studio':   [],
-    'Studio JGM':       ['Studio JGM'],
+    'Atelier_glamour':   ['Atelier Glamour'],
+    'Dejavu Studio':     ['Dejavu Studio'],
+    'Dynasty_studio_':   [],
+    'piscis_studio':     ['Piscis Studio'],
+    'Alice Steel':       ['Fabio Robledo'],   # corregido: Robledo (no Robleo)
+    'Eli Cortes':        ['Fabio Robledo'],
+    'Evelyn Lovers':     ['Fabio Robledo'],
+    'Jack Miller':       ['Fabio Robledo'],
+    'Maximus Clark':     ['Fabio Robledo'],
+    'Amanda Bond':       ['Fabio Robledo'],
+    'Yessie Jacobs':     ['Fabio Robledo'],
+    'Ana Black':         ['Fabio Robledo'],
+    'Amadeus Studio':    ['Amadeus Studio'],
+    'Black Card':        ['Black Card'],
+    'Iridium Studio':    [],
+    'Studio JGM':        ['Studio JGM'],
 }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -354,86 +394,94 @@ FABIO_MAP = {
 def main():
     now = datetime.now()
     ts_str = now.strftime('%d/%m/%Y — %H:%M')
-    print('=' * 60)
+    print('=' * 65)
     print(f'  ACTUALIZADOR J&D — {ts_str}')
-    print('=' * 60)
+    print(f'  MODO: REBUILD COMPLETO (limpia + reconstruye desde Excel)')
+    print(f'  Fórmula: day_col(d) = 19 + (31-d)*5  [5 plats/día]')
+    print('=' * 65)
 
-    # Leer Excel
+    # ── Leer Excel (fuente de verdad) ──
     cv, last_day_excel = read_cv_excel(CV_PATH)
+    if last_day_excel == 0:
+        print("⚠  No hay datos diarios en el Excel. Verificar ruta y estructura.")
+        return
 
-    def process(name, dash_path, al_varname, gp_varname, extra_vars=None):
-        print(f'\n▶  {name}')
-        with open(dash_path, 'r', encoding='utf-8') as f:
+    def load_dash(path, al_varname):
+        with open(path, 'r', encoding='utf-8') as f:
             html = f.read()
         aliados, al_q = get_var(html, al_varname)
         if aliados is None:
-            print(f"  ⚠  No se encontró {al_varname}"); return
+            print(f"  ⚠  No se encontró {al_varname}")
+        return html, aliados, al_q
 
-        # Determinar last_day: máximo de Excel y de lo que ya hay en ALIADOS
-        al_last = aliados_last_day(aliados)
-        last_day = max(last_day_excel, al_last)
-        print(f"  📅 last_day Excel={last_day_excel} ALIADOS={al_last} → usando {last_day}")
+    def save_dash(path, html):
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(html)
+        print(f"  💾 {os.path.relpath(path, SCRIPT_DIR)}")
 
-        return html, aliados, al_q, last_day
-
-    # ── GRUPO ──
-    result = process('GRUPO EMPRESARIAL', DASHBOARDS['grupo'], 'ALIADOS', 'GRUPO_PERIODOS')
-    if result:
-        html, aliados, al_q, last_day = result
-        key_map = GRUPO_MAP
-        aliados = update_aliados_from_excel(aliados, cv, key_map, last_day)
+    # ════════════════════════════════════════════════════════════
+    # GRUPO EMPRESARIAL
+    # ════════════════════════════════════════════════════════════
+    print(f'\n▶  GRUPO EMPRESARIAL')
+    html, aliados, al_q = load_dash(DASHBOARDS['grupo'], 'ALIADOS')
+    if aliados is not None:
+        aliados = rebuild_aliados_from_excel(aliados, cv, GRUPO_MAP)
 
         gp, gp_q = get_var(html, 'GRUPO_PERIODOS')
-        gp = recalc_gp_last(gp, aliados)
-        for plat in ['Stripchat','Chaturbate','CamSoda','Streamate','F4F']:
-            last = (gp.get(plat) or [{}])[-1]
-            if last.get('total'):
-                print(f"  ✓ GP {plat}: {last.get('label')} → {last.get('total'):.0f}")
+        if gp:
+            gp = recalc_gp_last(gp, aliados)
+            for plat in ['F4F', 'Stripchat', 'Chaturbate', 'CamSoda', 'Streamate']:
+                last = (gp.get(plat) or [{}])[-1]
+                if last.get('total'):
+                    print(f"  ✓ GP {plat}: {last.get('label')} → {last.get('total'):.0f}")
 
         html = set_var(html, 'ALIADOS',        aliados, al_q)
         html = set_var(html, 'GRUPO_PERIODOS', gp,      gp_q)
         html = inject_timestamp(html, ts_str)
-        with open(DASHBOARDS['grupo'], 'w', encoding='utf-8') as f: f.write(html)
-        print(f"  💾 grupo579780/index.html")
+        save_dash(DASHBOARDS['grupo'], html)
 
-    # ── ERIKA ──
-    result = process('ERIKA NOGUERA', DASHBOARDS['erika'], 'ALIADOS', 'EXEC_PERIODOS')
-    if result:
-        html, aliados, al_q, last_day = result
-        aliados = update_aliados_from_excel(aliados, cv, ERIKA_MAP, last_day)
+    # ════════════════════════════════════════════════════════════
+    # ERIKA NOGUERA
+    # ════════════════════════════════════════════════════════════
+    print(f'\n▶  ERIKA NOGUERA')
+    html, aliados, al_q = load_dash(DASHBOARDS['erika'], 'ALIADOS')
+    if aliados is not None:
+        aliados = rebuild_aliados_from_excel(aliados, cv, ERIKA_MAP)
 
-        ep, ep_q   = get_var(html, 'EXEC_PERIODOS')
-        gp, gp_q   = get_var(html, 'GRUPO_PERIODOS')
-        ep = recalc_gp_last(ep, aliados)
+        ep, ep_q = get_var(html, 'EXEC_PERIODOS')
+        gp, gp_q = get_var(html, 'GRUPO_PERIODOS')
+        if ep: ep = recalc_gp_last(ep, aliados)
         if gp: gp = recalc_gp_last(gp, aliados)
 
         html = set_var(html, 'ALIADOS',       aliados, al_q)
-        html = set_var(html, 'EXEC_PERIODOS', ep,      ep_q)
+        if ep: html = set_var(html, 'EXEC_PERIODOS', ep, ep_q)
         if gp: html = set_var(html, 'GRUPO_PERIODOS', gp, gp_q)
         html = inject_timestamp(html, ts_str)
-        with open(DASHBOARDS['erika'], 'w', encoding='utf-8') as f: f.write(html)
-        print(f"  💾 erika868527/index.html")
+        save_dash(DASHBOARDS['erika'], html)
 
-    # ── FABIO ──
-    result = process('FABIO ROBLEDO', DASHBOARDS['fabio'], 'ALIADOS', 'EXEC_PERIODOS')
-    if result:
-        html, aliados, al_q, last_day = result
-        aliados = update_aliados_from_excel(aliados, cv, FABIO_MAP, last_day)
+    # ════════════════════════════════════════════════════════════
+    # FABIO ROBLEDO
+    # ════════════════════════════════════════════════════════════
+    print(f'\n▶  FABIO ROBLEDO')
+    html, aliados, al_q = load_dash(DASHBOARDS['fabio'], 'ALIADOS')
+    if aliados is not None:
+        aliados = rebuild_aliados_from_excel(aliados, cv, FABIO_MAP)
 
         ep, ep_q = get_var(html, 'EXEC_PERIODOS')
-        ep = recalc_gp_last(ep, aliados)
-        html = set_var(html, 'ALIADOS',       aliados, al_q)
-        html = set_var(html, 'EXEC_PERIODOS', ep,      ep_q)
-        html = inject_timestamp(html, ts_str)
-        with open(DASHBOARDS['fabio'], 'w', encoding='utf-8') as f: f.write(html)
-        print(f"  💾 fabio473013/index.html")
+        if ep: ep = recalc_gp_last(ep, aliados)
 
-    # ── FORNAX STUDIO ──
-    print('\n▶  FORNAX STUDIOS (dashboard estudio)')
+        html = set_var(html, 'ALIADOS',       aliados, al_q)
+        if ep: html = set_var(html, 'EXEC_PERIODOS', ep, ep_q)
+        html = inject_timestamp(html, ts_str)
+        save_dash(DASHBOARDS['fabio'], html)
+
+    # ════════════════════════════════════════════════════════════
+    # FORNAX STUDIOS (dashboard de estudio)
+    # ════════════════════════════════════════════════════════════
+    print(f'\n▶  FORNAX STUDIOS (estudio)')
     with open(DASHBOARDS['fornax'], 'r', encoding='utf-8') as f: html = f.read()
     periodos, pq = get_var(html, 'PERIODOS')
     if periodos:
-        # Para studio dashboard, usar datos del ALIADOS Grupo para Fornax Studios
         with open(DASHBOARDS['grupo'], 'r', encoding='utf-8') as f: g2 = f.read()
         g_aliados, _ = get_var(g2, 'ALIADOS')
         fx_entry = g_aliados.get('Fornax Studios', {})
@@ -444,8 +492,10 @@ def main():
         with open(DASHBOARDS['fornax'], 'w', encoding='utf-8') as f: f.write(html)
         print(f"  💾 fornax-studios345929/index.html")
 
-    # ── GOLD ONLINE STUDIO ──
-    print('\n▶  GOLD ONLINE (dashboard estudio)')
+    # ════════════════════════════════════════════════════════════
+    # GOLD ONLINE (dashboard de estudio)
+    # ════════════════════════════════════════════════════════════
+    print(f'\n▶  GOLD ONLINE (estudio)')
     with open(DASHBOARDS['gold'], 'r', encoding='utf-8') as f: html = f.read()
     periodos, pq = get_var(html, 'PERIODOS')
     if periodos:
@@ -459,8 +509,10 @@ def main():
         with open(DASHBOARDS['gold'], 'w', encoding='utf-8') as f: f.write(html)
         print(f"  💾 goldonline078939/index.html")
 
-    # ── CYV STUDIO ──
-    print('\n▶  CYV STUDIOS (dashboard estudio)')
+    # ════════════════════════════════════════════════════════════
+    # CYV STUDIOS (dashboard de estudio)
+    # ════════════════════════════════════════════════════════════
+    print(f'\n▶  CYV STUDIOS (estudio)')
     with open(DASHBOARDS['cyv'], 'r', encoding='utf-8') as f: html = f.read()
     periodos, pq = get_var(html, 'PERIODOS')
     if periodos:
@@ -472,21 +524,23 @@ def main():
         cy_entry = e_aliados.get('CyV Studios', {})
         print('  Recalculando PERIODOS desde ALIADOS CyV:')
         periodos = recalc_studio_periodos(periodos, cy_entry)
+
         top_est_cy, te_q = get_var(html, 'TOP_EST')
         if top_est_cy is not None:
             top_est_cy = recalc_top_est(top_est_cy, cy_entry)
             html = set_var(html, 'TOP_EST', top_est_cy, te_q)
-            print(f"  ✓ TOP_EST CyV: {len(top_est_cy.get(MES,[]))} modelos")
+            print(f"  ✓ TOP_EST CyV: {len((top_est_cy or {}).get(MES, []))} modelos")
+
         html = set_var(html, 'PERIODOS', periodos, pq)
         html = inject_timestamp(html, ts_str)
         with open(DASHBOARDS['cyv'], 'w', encoding='utf-8') as f: f.write(html)
         print(f"  💾 cyv-studios837357/index.html")
 
-    print(f'\n{"=" * 60}')
-    print(f'  ✅ Actualización completada — timestamp: {ts_str}')
-    print(f'  📌 días con datos en Excel: {last_day_excel}')
-    print(f'  ⚠  SC/CB días 29-30: requieren actualización en Excel')
-    print(f'{"=" * 60}\n')
+    print(f'\n{"=" * 65}')
+    print(f'  ✅ Rebuild completado — {ts_str}')
+    print(f'  📅 Excel LOCAL: último día con datos = {last_day_excel}')
+    print(f'  ⚠  NO se ha hecho commit/push. Revisar antes de publicar.')
+    print(f'{"=" * 65}\n')
 
 if __name__ == '__main__':
     main()

@@ -30,7 +30,7 @@ echo [3/5] (paso reservado para futuros cambios)
 
 echo.
 echo [4/5] Haciendo commit...
-git commit -m "Actualizacion datos al 29 de julio"
+git commit -m "Actualizacion datos al 30 de julio"
 
 echo.
 echo [5/5] Publicando en GitHub...

@@ -182,7 +182,10 @@ def read_cv_sheet(wb, sheet):
                     day_data[p] = None; continue
                 v = row[ci]
                 if isinstance(v, (int, float)) and float(v) > 0:
-                    day_data[p] = float(v); has = True
+                    val = float(v)
+                    if p == 'STR':          # Streamate: USD → créditos (÷ 0.05 = × 20)
+                        val = val / 0.05
+                    day_data[p] = val; has = True
                     last_day_excel = max(last_day_excel, d)
                 else:
                     day_data[p] = None

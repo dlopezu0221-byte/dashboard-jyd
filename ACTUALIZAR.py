@@ -159,14 +159,24 @@ def read_cv_sheet(wb, sheet):
         'STREAMATE','STREAMATE POR QUINCENA','STRIPCHAT','STRIPCHAT POR QUINCENA',
         'TOTAL','TOTALES','CAMSODA POR QUINCENA','STREAMATE POR QUINCENA','STRIPCHAT POR QUINCENA',
     }
-    cv = {}; last_day_excel = 0
+    cv = {}; last_day_excel = 0; filas_sin_nombre = []
     for ri in range(4, len(data)):
         row    = data[ri]
         model  = str(row[0] or '').strip()
         studio = str(row[1] or '').strip()
-        if not model or not studio:
+        if not studio:
             continue
         if studio.upper() in IGNORAR_STUDIOS or studio.upper() in {s.upper() for s in IGNORAR_STUDIOS}:
+            continue
+        # Detectar filas con studio pero sin nombre de modelo que tengan producción
+        if not model:
+            tiene_prod = any(
+                isinstance(row[day_col(d) + pi - 1], (int, float)) and float(row[day_col(d) + pi - 1] or 0) > 0
+                for d in range(1, 32) for pi in range(5)
+                if day_col(d) + pi - 1 < len(row)
+            )
+            if tiene_prod:
+                filas_sin_nombre.append(f"    ⚠  [{sheet}] fila {ri+1}: studio={studio!r} tiene producción pero nombre vacío — completar en Excel")
             continue
         if model.upper() in {'TOTAL','TOTALES','MODELO'}:
             continue
@@ -194,6 +204,10 @@ def read_cv_sheet(wb, sheet):
         if entry:
             cv[(model, studio)] = entry
     print(f"  📅 Último día: {last_day_excel} | Modelos: {len(cv)}")
+    if filas_sin_nombre:
+        print(f"  ⚠  FILAS CON PRODUCCIÓN PERO SIN NOMBRE — completar en Excel:")
+        for msg in filas_sin_nombre:
+            print(msg)
     return cv, last_day_excel
 
 
@@ -392,9 +406,12 @@ def build_studio_periodos(cal, aliados_entry):
 # ═══════════════════════════════════════════════════════════════════
 # REBUILD ALIADOS
 # ═══════════════════════════════════════════════════════════════════
-def rebuild_aliados_from_excel(aliados, cv, key_map, mes, last_day):
-    """Reconstruye datos diarios del ALIADOS para el mes. Crea el mes si no existe."""
-    cleared = 0; updated = 0
+def rebuild_aliados_from_excel(aliados, cv, key_map, mes, last_day, detect_new=True):
+    """Reconstruye datos diarios del ALIADOS para el mes. Crea el mes si no existe.
+    detect_new=True  → detecta e incorpora modelos nuevos del Excel (GRUPO_MAP)
+    detect_new=False → solo actualiza modelos existentes (ERIKA_MAP / FABIO_MAP,
+                        donde cada ALIADOS key es un modelo individual, no un estudio)."""
+    cleared = 0; updated = 0; nuevos = 0
     for ak, ainfo in aliados.items():
         cv_studios = key_map.get(ak)
         if cv_studios is None:
@@ -409,8 +426,10 @@ def rebuild_aliados_from_excel(aliados, cv, key_map, mes, last_day):
         modelos = md.get('modelos')
         if modelos is None:
             continue
+        # Limpiar datos diarios de modelos existentes
         for model in list(modelos.keys()):
             modelos[model] = {}; cleared += 1
+        # Reconstruir datos de modelos existentes
         for model in list(modelos.keys()):
             for studio in cv_studios:
                 key = (model, studio)
@@ -420,8 +439,22 @@ def rebuild_aliados_from_excel(aliados, cv, key_map, mes, last_day):
                     entry = {p: (day_vals.get(p) if day_vals.get(p, 0) else None) for p in PLATS}
                     modelos[model][str(d)] = entry; updated += 1
                 break
+        # ── DETECCIÓN AUTOMÁTICA DE MODELOS NUEVOS (solo GRUPO_MAP) ─
+        if detect_new:
+            for (model, studio), day_entries in cv.items():
+                if studio not in cv_studios:
+                    continue
+                if model in modelos:
+                    continue  # ya existe
+                modelos[model] = {}
+                for d, day_vals in day_entries.items():
+                    entry = {p: (day_vals.get(p) if day_vals.get(p, 0) else None) for p in PLATS}
+                    modelos[model][str(d)] = entry; updated += 1
+                print(f"  🆕 [{mes}] Nuevo modelo → ALIADOS[{ak}]: '{model}'")
+                nuevos += 1
+        # ────────────────────────────────────────────────────────────
         md['dias'] = last_day
-    print(f"  🗑  [{mes}] Limpiados: {cleared} | Reconstruidos: {updated}")
+    print(f"  🗑  [{mes}] Limpiados: {cleared} | Reconstruidos: {updated} | Nuevos: {nuevos}")
     return aliados
 
 
@@ -429,7 +462,8 @@ def rebuild_aliados_from_excel(aliados, cv, key_map, mes, last_day):
 # REBUILD ESTUDIO
 # ═══════════════════════════════════════════════════════════════════
 def rebuild_estudio_from_excel(estudio, cv, cv_studio, last_day, mes=MES):
-    """Actualiza ESTUDIO.data[mes] desde Excel. Crea el mes si no existe."""
+    """Actualiza ESTUDIO.data[mes] desde Excel. Crea el mes si no existe.
+    Incorpora automáticamente modelos nuevos detectados en 'Cómo Vamos'."""
     data = estudio.setdefault('data', {})
     if mes not in data:
         ref_mods = list((data.get(MES, {}).get('modelos') or {}).keys())
@@ -438,9 +472,11 @@ def rebuild_estudio_from_excel(estudio, cv, cv_studio, last_day, mes=MES):
 
     md      = data[mes]
     modelos = md.get('modelos') or {}
-    cl = 0; up = 0
+    cl = 0; up = 0; nuevos = 0
+    # Limpiar datos diarios de modelos existentes
     for model in list(modelos.keys()):
         modelos[model] = {}; cl += 1
+    # Reconstruir datos de modelos existentes
     for model in list(modelos.keys()):
         key = (model, cv_studio)
         if key not in cv:
@@ -448,8 +484,22 @@ def rebuild_estudio_from_excel(estudio, cv, cv_studio, last_day, mes=MES):
         for d, day_vals in cv[key].items():
             entry = {p: (day_vals.get(p) if day_vals.get(p, 0) else None) for p in PLATS}
             modelos[model][str(d)] = entry; up += 1
+    # ── DETECCIÓN AUTOMÁTICA DE MODELOS NUEVOS ──────────────────────
+    for (model, studio), day_entries in cv.items():
+        if studio != cv_studio:
+            continue
+        if model in modelos:
+            continue  # ya existe
+        modelos[model] = {}
+        for d, day_vals in day_entries.items():
+            entry = {p: (day_vals.get(p) if day_vals.get(p, 0) else None) for p in PLATS}
+            modelos[model][str(d)] = entry; up += 1
+        print(f"  🆕 [{mes}] Nuevo modelo incorporado → ESTUDIO[{cv_studio}]: '{model}'")
+        nuevos += 1
+    # ────────────────────────────────────────────────────────────────
+    md['modelos'] = modelos
     md['dias'] = last_day
-    print(f"  ✓ ESTUDIO [{cv_studio}] {mes}: {cl} limpiados, {up} entradas | dias={last_day}")
+    print(f"  ✓ ESTUDIO [{cv_studio}] {mes}: {cl} limpiados, {up} entradas | nuevos={nuevos} | dias={last_day}")
     return estudio
 
 
@@ -470,6 +520,34 @@ def recalc_top_est(top_est, aliados_entry, mes=MES):
         return {mes: new_list}
     top_est[mes] = new_list
     return top_est
+
+PLAT_JS = {'F4F': 'f4f', 'SC': 'sc', 'CB': 'cb', 'CAM': 'cam', 'STR': 'str'}
+
+def recalc_top_eje(top_eje, aliados, mes):
+    """Recalcula TOP_EJE de un ejecutivo desde su ALIADOS para el mes dado."""
+    totals = {}
+    for ak, ainfo in aliados.items():
+        md = (ainfo.get('data') or {}).get(mes, {})
+        for model, days in (md.get('modelos') or {}).items():
+            pt = {p: 0.0 for p in PLATS}
+            for dv in days.values():
+                if dv:
+                    for p in PLATS:
+                        pt[p] += (dv.get(p) or 0)
+            total = sum(pt.values())
+            if total > 0:
+                # Si el modelo aparece en varios ALIADOS-keys, tomar el mayor total
+                if model not in totals or totals[model]['total'] < total:
+                    entry = {'modelo': model, 'studio': ak, 'total': total}
+                    for p in PLATS:
+                        entry[PLAT_JS[p]] = pt[p]
+                    totals[model] = entry
+    ranked = sorted(totals.values(), key=lambda x: -x['total'])
+    print(f"    TOP_EJE [{mes}]: {len(ranked)} | #1={ranked[0]['modelo'] if ranked else '—'}")
+    if top_eje is None:
+        return {mes: ranked}
+    top_eje[mes] = ranked
+    return top_eje
 
 ALIADOS_DISPLAY = {
     'Fornax Studios':    'Fornax Studios',
@@ -646,8 +724,8 @@ def main():
     print(f'\n▶  ERIKA NOGUERA')
     html, aliados_e, al_q = load_dash(DASHBOARDS['erika'], 'ALIADOS')
     if aliados_e is not None:
-        aliados_e = rebuild_aliados_from_excel(aliados_e, cv_jul, ERIKA_MAP, MES,     last_day_jul)
-        aliados_e = rebuild_aliados_from_excel(aliados_e, cv_ago, ERIKA_MAP, MES_AGO, last_day_ago)
+        aliados_e = rebuild_aliados_from_excel(aliados_e, cv_jul, ERIKA_MAP, MES,     last_day_jul, detect_new=False)
+        aliados_e = rebuild_aliados_from_excel(aliados_e, cv_ago, ERIKA_MAP, MES_AGO, last_day_ago, detect_new=False)
 
         ep, ep_q = get_var(html, 'EXEC_PERIODOS')
         gp, gp_q = get_var(html, 'GRUPO_PERIODOS')
@@ -664,6 +742,22 @@ def main():
             gp_new  = build_grupo_periodos(cal, g_aliados or aliados_e, gp_meta)
             html = set_var(html, 'GRUPO_PERIODOS', gp_new, gp_q)
 
+        # TOP_EJE — ranking propio Erika desde su ALIADOS
+        top_eje_e, te_q_e = get_var(html, 'TOP_EJE')
+        for m in meses_activos:
+            top_eje_e = recalc_top_eje(top_eje_e, aliados_e, m)
+        if top_eje_e is not None:
+            html = set_var(html, 'TOP_EJE', top_eje_e, te_q_e)
+
+        # TOP20 — copia del top20 del grupo (ya actualizado)
+        top20_e, t20_q_e = get_var(html, 'TOP20')
+        if top20_e is not None:
+            with open(DASHBOARDS['grupo'], 'r', encoding='utf-8') as _gf:
+                _g_html = _gf.read()
+            top20g_src, _ = get_var(_g_html, 'TOP20')
+            if top20g_src is not None:
+                html = set_var(html, 'TOP20', top20g_src, t20_q_e)
+
         html = set_var(html, 'ALIADOS', aliados_e, al_q)
         html = patch_meses_dmes(html, meses_activos)
         html = inject_timestamp(html, ts_str)
@@ -675,14 +769,30 @@ def main():
     print(f'\n▶  FABIO ROBLEDO')
     html, aliados_f, al_q = load_dash(DASHBOARDS['fabio'], 'ALIADOS')
     if aliados_f is not None:
-        aliados_f = rebuild_aliados_from_excel(aliados_f, cv_jul, FABIO_MAP, MES,     last_day_jul)
-        aliados_f = rebuild_aliados_from_excel(aliados_f, cv_ago, FABIO_MAP, MES_AGO, last_day_ago)
+        aliados_f = rebuild_aliados_from_excel(aliados_f, cv_jul, FABIO_MAP, MES,     last_day_jul, detect_new=False)
+        aliados_f = rebuild_aliados_from_excel(aliados_f, cv_ago, FABIO_MAP, MES_AGO, last_day_ago, detect_new=False)
 
         ep, ep_q = get_var(html, 'EXEC_PERIODOS')
         if ep is not None:
             ep_meta = ep.get('_meta')
             ep_new  = build_grupo_periodos(cal, aliados_f, ep_meta)
             html = set_var(html, 'EXEC_PERIODOS', ep_new, ep_q)
+
+        # TOP_EJE — ranking propio Fabio desde su ALIADOS
+        top_eje_f, te_q_f = get_var(html, 'TOP_EJE')
+        for m in meses_activos:
+            top_eje_f = recalc_top_eje(top_eje_f, aliados_f, m)
+        if top_eje_f is not None:
+            html = set_var(html, 'TOP_EJE', top_eje_f, te_q_f)
+
+        # TOP20 — copia del top20 del grupo (ya actualizado)
+        top20_f, t20_q_f = get_var(html, 'TOP20')
+        if top20_f is not None:
+            with open(DASHBOARDS['grupo'], 'r', encoding='utf-8') as _gf:
+                _g_html = _gf.read()
+            top20g_src, _ = get_var(_g_html, 'TOP20')
+            if top20g_src is not None:
+                html = set_var(html, 'TOP20', top20g_src, t20_q_f)
 
         html = set_var(html, 'ALIADOS', aliados_f, al_q)
         html = patch_meses_dmes(html, meses_activos)
@@ -743,6 +853,60 @@ def main():
     update_studio('fornax', 'Fornax Studios', 'Fornax Studios')
     update_studio('gold',   'Gold Online',    'goldonline')
     update_studio('cyv',    'CyV Studios',    'CyV Studios')
+
+    # ── Auditoría de modelos: Excel vs Dashboard ──────────────────
+    print(f'\n{"─" * 65}')
+    print(f'  📋 AUDITORÍA DE MODELOS — comparación Excel vs Dashboard')
+    print(f'{"─" * 65}')
+
+    def _audit_studio(label, cv_combined, cv_studios, dash_modelos_ago):
+        """Compara modelos en Excel (cualquier mes) vs dashboard."""
+        excel_models = {m for (m, s), _ in cv_combined.items() if s in cv_studios}
+        dash_models  = set(dash_modelos_ago.keys())
+        nuevos_det   = excel_models - dash_models
+        solo_dash    = dash_models - excel_models
+        ok = len(nuevos_det) == 0
+        estado = "✅" if ok else f"⚠ {len(nuevos_det)} nuevo(s)"
+        print(f"  {estado}  {label}: Excel={len(excel_models)} | Dashboard={len(dash_models)}", end="")
+        if nuevos_det:
+            print(f"\n        🆕 Incorporados: {sorted(nuevos_det)}")
+        else:
+            print()
+        if solo_dash:
+            print(f"        ℹ️  Solo en dashboard (sin prod en Excel): {sorted(solo_dash)[:5]}")
+
+    # cv combinado (julio + agosto)
+    cv_combined_all = {}
+    for k, v in cv_jul.items(): cv_combined_all[k] = v
+    for k, v in cv_ago.items(): cv_combined_all[k] = v
+
+    # GRUPO — por ALIADOS key
+    with open(DASHBOARDS['grupo'], 'r', encoding='utf-8') as f: _gh = f.read()
+    import re as _re, base64 as _b64, json as _json
+    def _gv(h, v):
+        for q in ['"', "'"]:
+            m = _re.search(rf"var {v}\s*=\s*_b64dec\({q}([^{q}]+){q}\)", h)
+            if m:
+                try: return _json.loads(_b64.b64decode(m.group(1)).decode())
+                except: pass
+        return None
+    g_al = _gv(_gh, 'ALIADOS') or {}
+    for ak, cv_studs in GRUPO_MAP.items():
+        if not cv_studs: continue
+        dm = (g_al.get(ak, {}).get('data') or {}).get(MES_AGO, {}).get('modelos') or {}
+        _audit_studio(ak, cv_combined_all, set(cv_studs), dm)
+
+    # Estudios individuales
+    for studio_label, cv_studio_name in [('Fornax Studios','Fornax Studios'),
+                                          ('Gold Online','Gold Online'),
+                                          ('CyV Studios','CyV Studios')]:
+        dash_key = {'Fornax Studios':'fornax','Gold Online':'gold','CyV Studios':'cyv'}[studio_label]
+        with open(DASHBOARDS[dash_key], 'r', encoding='utf-8') as f: _sh = f.read()
+        s_est = _gv(_sh, 'ESTUDIO') or {}
+        dm2 = (s_est.get('data') or {}).get(MES_AGO, {}).get('modelos') or {}
+        _audit_studio(studio_label, cv_combined_all, {cv_studio_name}, dm2)
+
+    print(f'{"─" * 65}')
 
     # ── Resumen ───────────────────────────────────────────────────
     print(f'\n{"=" * 65}')

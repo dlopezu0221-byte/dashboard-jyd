@@ -352,6 +352,39 @@ def build_data():
                 print(f"   ⚠️  '{sname}': no encontrada")
                 periodos[mes][qid] = None
 
+    # ── Corrección histórica de monitor ──────────────────────────────────────────
+    # Hasta el 15 de julio (inclusive) la monitora era María Isabel Serna Pareja.
+    # A partir del 16 de julio es Juliana Lara Navarro.
+    # El Excel registra "Juliana Lara Navarro" en todos los períodos, por lo que
+    # corregimos en post-proceso los períodos anteriores a Julio Q2.
+    _JULIANA = "Juliana Lara Navarro"
+    _MARIA   = "María Isabel Serna Pareja"
+    _PERIODOS_MARIA = {
+        "Enero":   ["q1","q2"],
+        "Febrero": ["q1","q2"],
+        "Marzo":   ["q1","q2"],
+        "Abril":   ["q1","q2"],
+        "Mayo":    ["q1","q2"],
+        "Junio":   ["q1","q2"],
+        "Julio":   ["q1"],          # Solo Q1 (1-15); Q2 (16-31) ya es Juliana
+    }
+    corr_count = 0
+    for mes, qids in _PERIODOS_MARIA.items():
+        for qid in qids:
+            p = periodos.get(mes, {}).get(qid)
+            if not p:
+                continue
+            for m in p.get("modelos", []):
+                if m.get("monitor") == _JULIANA:
+                    m["monitor"] = _MARIA
+                    corr_count += 1
+            # Corregir también la clave en mon_com si existe
+            if _JULIANA in p.get("mon_com", {}):
+                p["mon_com"][_MARIA] = p["mon_com"].pop(_JULIANA)
+    if corr_count:
+        print(f"   ✅ Corrección histórica: {corr_count} asignaciones "
+              f"'{_JULIANA}' → '{_MARIA}' (Ene–Jul Q1)")
+
     print("\n📊 Construyendo TOP 20 Grupo desde ALIADOS...")
     t20_grupo = build_top20_grupo()
     for mes, qs in t20_grupo.items():

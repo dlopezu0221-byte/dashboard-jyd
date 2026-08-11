@@ -908,12 +908,35 @@ def main():
 
     print(f'{"─" * 65}')
 
+    # ── Regenerar Dashboard de Monitores ─────────────────────────
+    print(f'\n{"─" * 65}')
+    print(f'  📊 Regenerando Dashboard de Monitores...')
+    import subprocess, sys
+    monitores_py = os.path.join(SCRIPT_DIR, 'MONITORES.py')
+    if os.path.exists(monitores_py):
+        result = subprocess.run(
+            [sys.executable, monitores_py],
+            capture_output=True, text=True, encoding='utf-8'
+        )
+        if result.returncode == 0:
+            # Mostrar solo las líneas clave del output
+            for line in result.stdout.splitlines():
+                if any(x in line for x in ['✅','⚠','❌','Dashboard','Meses','Tamaño']):
+                    print(f'  {line.strip()}')
+        else:
+            print(f'  ⚠  Error en MONITORES.py:')
+            for line in (result.stderr or result.stdout).splitlines()[:8]:
+                print(f'     {line}')
+    else:
+        print(f'  ⚠  MONITORES.py no encontrado en {SCRIPT_DIR}')
+
     # ── Resumen ───────────────────────────────────────────────────
     print(f'\n{"=" * 65}')
     print(f'  ✅ Rebuild completado — {ts_str}')
     print(f'  📅 JULIO días 1–{last_day_jul} | AGOSTO días 1–{last_day_ago}')
     print(f'  📆 Periodos CPP desde CALENDARIO MAESTRO')
     print(f'  🗓  MESES activos: {" | ".join(meses_activos)}')
+    print(f'  📊 Dashboard Monitores: monitores/index.html')
     print(f'  ⚠  NO commit/push — esperar validación')
     print(f'{"=" * 65}\n')
 

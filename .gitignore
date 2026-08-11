@@ -1,0 +1,12 @@
+# Backups temporales
+*.broken_backup
+*.bak
+~$*
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Archivos de Office temporales
+~$*.docx
+~$*.xlsx

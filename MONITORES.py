@@ -22,9 +22,10 @@ os.makedirs(OUT_DIR, exist_ok=True)
 
 # ── FECHAS ─────────────────────────────────────────────────────────────────────
 HOY    = date.today()
-CORTE  = HOY - timedelta(days=1)
-HOY_STR   = HOY.strftime("%d/%m/%Y")
-CORTE_STR = CORTE.strftime("%d/%m/%Y")
+CORTE  = HOY - timedelta(days=1)           # día vencido — datos de ayer
+GEN_DT = datetime.now()
+HOY_STR   = GEN_DT.strftime("%d/%m/%Y — %H:%M")  # fecha + hora real de generación
+CORTE_STR = CORTE.strftime("%d/%m/%Y")            # fecha de corte de datos
 
 # ── QUINCENA SHEETS (nombres exactos en Excel) ────────────────────────────────
 QUINCENAS = {

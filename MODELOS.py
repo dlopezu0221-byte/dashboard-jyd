@@ -32,6 +32,47 @@ MAX_BONO_CYCLE = 85  # Jul Q1(0)+Q2(8)+AgoQ1(12)+Q2(18)+SepQ1(22)+Q2(25)
 # RE histórico por modelo: {modelo: {mes: re_valor}}
 # Cuando el RE de un modelo cambió durante el año, se registra aquí el valor anterior.
 # Para meses no listados se usa el RE actual de BASE DE DATOS (profile['re']).
+# PINs de acceso por modelo — NO modificar sin actualizar CODIGOS_ACCESO_MODELOS_PRIVADO.csv
+MODEL_PINS = {
+    'aisha-collin':       ('770487', 'mdl_aisha_collin'),
+    'angeline-smith':     ('216739', 'mdl_angeline_smith'),
+    'antonella-cooper':   ('126225', 'mdl_antonella_cooper'),
+    'arianna-kylee':      ('877572', 'mdl_arianna_kylee'),
+    'camila-bustamante':  ('388389', 'mdl_camila_bustamante'),
+    'canela-jhonson':     ('356787', 'mdl_canela_jhonson'),
+    'cynthia-adams':      ('334053', 'mdl_cynthia_adams'),
+    'dahiana-walcott':    ('246316', 'mdl_dahiana_walcott'),
+    'danna-diamond':      ('872246', 'mdl_danna_diamond'),
+    'dulce-luna':         ('207473', 'mdl_dulce_luna'),
+    'emilly-beaumont':    ('809570', 'mdl_emilly_beaumont'),
+    'erza-elric':         ('876646', 'mdl_erza_elric'),
+    'isa-raven':          ('671858', 'mdl_isa_raven'),
+    'isabella-winkler':   ('191161', 'mdl_isabella_winkler'),
+    'jack-kum':           ('719176', 'mdl_jack_kum'),
+    'juli-saenz':         ('542417', 'mdl_juli_saenz'),
+    'katherine-bond':     ('133326', 'mdl_katherine_bond'),
+    'katt-souza':         ('131244', 'mdl_katt_souza'),
+    'koban-and-damian':   ('198246', 'mdl_koban_and_damian'),
+    'leorico':            ('329258', 'mdl_leorico'),
+    'liam-terrier':       ('343962', 'mdl_liam_terrier'),
+    'lucia-brown':        ('629903', 'mdl_lucia_brown'),
+    'maddy-parisi':       ('731262', 'mdl_maddy_parisi'),
+    'maximo-marcelo':     ('127824', 'mdl_maximo_marcelo'),
+    'melany-oconner':     ('688508', 'mdl_melany_oconner'),
+    'mia-monrroe':        ('308496', 'mdl_mia_monrroe'),
+    'mioku-doll':         ('850800', 'mdl_mioku_doll'),
+    'naty-roxx':          ('781453', 'mdl_naty_roxx'),
+    'nicolas-dwayne':     ('835392', 'mdl_nicolas_dwayne'),
+    'nicolle-lopez':      ('671412', 'mdl_nicolle_lopez'),
+    'sarah-delucca':      ('539898', 'mdl_sarah_delucca'),
+    'sofia-blaze':        ('331148', 'mdl_sofia_blaze'),
+    'sophi-duval':        ('571029', 'mdl_sophi_duval'),
+    'vanesa-foxy':        ('717889', 'mdl_vanesa_foxy'),
+    'wheeler-green':      ('391704', 'mdl_wheeler_green'),
+    'william-gardener':   ('948749', 'mdl_william_gardener'),
+    'zeus-strong':        ('106814', 'mdl_zeus_strong'),
+}
+
 PRIMER_SEMESTRE = {'ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO'}
 HISTORICAL_RE = {
     'Emilly Beaumont':  {m: 22000 for m in PRIMER_SEMESTRE},
@@ -42,6 +83,53 @@ HISTORICAL_RE = {
 LOGO_B64 = "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"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
+
+def inject_pin(html, slug):
+    """Inyecta protección por PIN al inicio del <body>. Idempotente."""
+    if slug not in MODEL_PINS:
+        return html
+    pin, storage_key = MODEL_PINS[slug]
+    if f"sessionStorage.getItem('{storage_key}')" in html:
+        return html  # ya tiene PIN
+    script = f"""<script>
+// ── ACCESO PROTEGIDO — Dashboard Individual ──────────────────────────────────
+(function() {{
+  var _AUTH = false;
+  try {{ _AUTH = sessionStorage.getItem('{storage_key}') === 'ok_{pin}'; }} catch(e) {{}}
+  if (_AUTH) return;
+  document.body.style.display = 'none';
+  var overlay = document.createElement('div');
+  overlay.id = '_pin_overlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#0F172A;display:flex;align-items:center;justify-content:center;z-index:99999;font-family:Arial,sans-serif';
+  overlay.innerHTML = [
+    '<div style="background:#1E293B;border:1px solid #334155;border-radius:16px;padding:40px 32px;width:320px;max-width:90vw;text-align:center;box-shadow:0 25px 50px rgba(0,0,0,.6)">',
+    '<div style="font-size:32px;margin-bottom:12px">\\uD83D\\uDD10</div>',
+    '<div style="color:#F1F5F9;font-size:18px;font-weight:700;margin-bottom:6px">Dashboard Privado</div>',
+    '<div style="color:#64748B;font-size:13px;margin-bottom:24px">Ingresa tu c\\u00F3digo de acceso</div>',
+    '<input id="_pin_inp" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="\\u2022 \\u2022 \\u2022 \\u2022 \\u2022 \\u2022" style="width:100%;box-sizing:border-box;background:#0F172A;border:1px solid #334155;border-radius:8px;color:#F1F5F9;font-size:22px;letter-spacing:6px;padding:12px;text-align:center;outline:none;margin-bottom:12px">',
+    '<div id="_pin_err" style="display:none;color:#EF4444;font-size:12px;margin-bottom:10px">C\\u00F3digo incorrecto. Intenta de nuevo.</div>',
+    '<button id="_pin_btn" style="width:100%;background:#3B82F6;color:#fff;border:none;border-radius:8px;padding:13px;font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation">Ingresar</button>',
+    '<div style="color:#475569;font-size:11px;margin-top:20px">Grupo Empresarial J&D \\u00B7 Acceso restringido</div>',
+    '</div>'
+  ].join('');
+  document.body.parentNode.insertBefore(overlay, document.body);
+  function _check() {{
+    var val = (document.getElementById('_pin_inp').value || '').trim();
+    if (val === '{pin}') {{
+      try {{ sessionStorage.setItem('{storage_key}', 'ok_{pin}'); }} catch(e) {{}}
+      document.getElementById('_pin_overlay').remove();
+      document.body.style.display = '';
+    }} else {{
+      document.getElementById('_pin_err').style.display = 'block';
+      document.getElementById('_pin_inp').value = '';
+    }}
+  }}
+  document.getElementById('_pin_btn').addEventListener('click', _check);
+  document.getElementById('_pin_inp').addEventListener('keydown', function(e) {{ if (e.key === 'Enter') _check(); }});
+}})();
+// ── FIN ACCESO PROTEGIDO ──────────────────────────────────────────────────────
+</script>"""
+    return html.replace('<body>\n<nav', script + '\n<body>\n<nav', 1)
 
 def fmt(n):
     if n is None: return "0"
@@ -790,7 +878,7 @@ def _fmt_fecha_es(d):
         s = s.replace(en, es)
     return s
 
-def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes, prev_mes, data_cutoff=None):
+def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes, prev_mes, data_cutoff=None, gen_dt=None):
     model = profile['nombre']
     nombre_real = profile['nombre_real']
     nivel = profile['nivel']
@@ -812,8 +900,11 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
     # ── Fechas ──────────────────────────────────────────────────────────────
     if data_cutoff is None:
         data_cutoff = today - timedelta(days=1)
+    if gen_dt is None:
+        gen_dt = datetime.now()
     today_str       = _fmt_fecha_es(today)       # fecha de generación del informe
-    data_cutoff_str = _fmt_fecha_es(data_cutoff) # fecha hasta la que llegan los datos
+    data_cutoff_str = _fmt_fecha_es(data_cutoff) # fecha hasta la que llegan los datos (ayer)
+    gen_time_str    = gen_dt.strftime('%d/%m/%Y – %H:%M')  # hora real de generación
 
     closed_meses = [m for m in MESES if m in monthly_all and m != current_mes]
     total_closed = sum(monthly_all[m]['total'] for m in closed_meses)
@@ -930,9 +1021,9 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
     <span style="color:#94A3B8;font-size:10px">&nbsp;·&nbsp; {slug_upper}</span>
   </div>
   <div style="display:flex;align-items:center;gap:14px">
-    <div class="timestamp-badge"><div style="font-size:10px;color:#64748B;text-align:right;line-height:1.4">
-      <span style="display:block;font-weight:600;color:#94A3B8">Última actualización</span>
-      {today.strftime('%d/%m/%Y')} – 23:59</div></div>
+    <div class="timestamp-badge"><div style="font-size:10px;color:#64748B;text-align:right;line-height:1.6">
+      <span style="display:block;font-weight:600;color:#94A3B8">Actualizado: {gen_time_str}</span>
+      <span style="display:block;color:#64748B">Datos al: {data_cutoff_str}</span></div></div>
     <div class="nav-links" style="display:none" id="nav-links-desktop">
       <a href="#resumen">Resumen</a>
       <a href="#evolucion">Evolución</a>
@@ -1520,7 +1611,8 @@ if(nl && window.innerWidth>=900) nl.style.display='flex';
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main(model_targets=None):
-    today = date.today()
+    today  = date.today()
+    gen_dt = datetime.now()  # hora exacta de generación del informe
     print(f"\n{'='*60}")
     print(f"  MODELOS.py — Dashboards individuales")
     print(f"  Fecha: {today.strftime('%d/%m/%Y')} · Fuente: Fornax2.xlsx")
@@ -1632,13 +1724,14 @@ def main(model_targets=None):
         daily = read_daily(wb, current_mes, model_name)
 
         # Generate HTML
-        html = build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes, prev_mes, data_cutoff)
+        html = build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes, prev_mes, data_cutoff, gen_dt)
 
         # Save
         slug = slugify(model_name)
         out_dir = os.path.join(SCRIPT_DIR, 'modelos', slug)
         os.makedirs(out_dir, exist_ok=True)
         out_path = os.path.join(out_dir, 'index.html')
+        html = inject_pin(html, slug)  # protección PIN — siempre al final
         with open(out_path, 'w', encoding='utf-8') as f:
             f.write(html)
 

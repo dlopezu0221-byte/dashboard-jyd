@@ -155,6 +155,44 @@ nav .nav-brand{display:flex;align-items:center;gap:6px}
 .timestamp-badge{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 10px}
 </style>
 </head>
+<script>
+// ── ACCESO PROTEGIDO — Dashboard Individual ──────────────────────────────────
+(function() {
+  var _AUTH = false;
+  try { _AUTH = sessionStorage.getItem('mdl_dahiana_walcott') === 'ok_246316'; } catch(e) {}
+  if (_AUTH) return;
+  document.body.style.display = 'none';
+  var overlay = document.createElement('div');
+  overlay.id = '_pin_overlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#0F172A;display:flex;align-items:center;justify-content:center;z-index:99999;font-family:Arial,sans-serif';
+  overlay.innerHTML = [
+    '<div style="background:#1E293B;border:1px solid #334155;border-radius:16px;padding:40px 32px;width:320px;max-width:90vw;text-align:center;box-shadow:0 25px 50px rgba(0,0,0,.6)">',
+    '<div style="font-size:32px;margin-bottom:12px">\uD83D\uDD10</div>',
+    '<div style="color:#F1F5F9;font-size:18px;font-weight:700;margin-bottom:6px">Dashboard Privado</div>',
+    '<div style="color:#64748B;font-size:13px;margin-bottom:24px">Ingresa tu c\u00F3digo de acceso</div>',
+    '<input id="_pin_inp" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="\u2022 \u2022 \u2022 \u2022 \u2022 \u2022" style="width:100%;box-sizing:border-box;background:#0F172A;border:1px solid #334155;border-radius:8px;color:#F1F5F9;font-size:22px;letter-spacing:6px;padding:12px;text-align:center;outline:none;margin-bottom:12px">',
+    '<div id="_pin_err" style="display:none;color:#EF4444;font-size:12px;margin-bottom:10px">C\u00F3digo incorrecto. Intenta de nuevo.</div>',
+    '<button id="_pin_btn" style="width:100%;background:#3B82F6;color:#fff;border:none;border-radius:8px;padding:13px;font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation">Ingresar</button>',
+    '<div style="color:#475569;font-size:11px;margin-top:20px">Grupo Empresarial J&D \u00B7 Acceso restringido</div>',
+    '</div>'
+  ].join('');
+  document.body.parentNode.insertBefore(overlay, document.body);
+  function _check() {
+    var val = (document.getElementById('_pin_inp').value || '').trim();
+    if (val === '246316') {
+      try { sessionStorage.setItem('mdl_dahiana_walcott', 'ok_246316'); } catch(e) {}
+      document.getElementById('_pin_overlay').remove();
+      document.body.style.display = '';
+    } else {
+      document.getElementById('_pin_err').style.display = 'block';
+      document.getElementById('_pin_inp').value = '';
+    }
+  }
+  document.getElementById('_pin_btn').addEventListener('click', _check);
+  document.getElementById('_pin_inp').addEventListener('keydown', function(e) { if (e.key === 'Enter') _check(); });
+})();
+// ── FIN ACCESO PROTEGIDO ──────────────────────────────────────────────────────
+</script>
 <body>
 <nav>
   <div class="nav-brand">
@@ -162,9 +200,9 @@ nav .nav-brand{display:flex;align-items:center;gap:6px}
     <span style="color:#94A3B8;font-size:10px">&nbsp;·&nbsp; DAHIANA WALCOTT</span>
   </div>
   <div style="display:flex;align-items:center;gap:14px">
-    <div class="timestamp-badge"><div style="font-size:10px;color:#64748B;text-align:right;line-height:1.4">
-      <span style="display:block;font-weight:600;color:#94A3B8">Última actualización</span>
-      12/08/2026 – 23:59</div></div>
+    <div class="timestamp-badge"><div style="font-size:10px;color:#64748B;text-align:right;line-height:1.6">
+      <span style="display:block;font-weight:600;color:#94A3B8">Actualizado: 12/08/2026 – 07:07</span>
+      <span style="display:block;color:#64748B">Datos al: 11 de agosto de 2026</span></div></div>
     <div class="nav-links" style="display:none" id="nav-links-desktop">
       <a href="#resumen">Resumen</a>
       <a href="#evolucion">Evolución</a>

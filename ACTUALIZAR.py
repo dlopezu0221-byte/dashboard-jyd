@@ -20,7 +20,7 @@ NO commit/push hasta validación del usuario.
 """
 
 import openpyxl, re, base64, json, os
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CV_PATH = os.path.join(SCRIPT_DIR, '..', 'Centro de Gestión Estratégica Grupo J&D',
@@ -121,12 +121,18 @@ def patch_meses_dmes(html, meses_list):
 # ═══════════════════════════════════════════════════════════════════
 # TIMESTAMP
 # ═══════════════════════════════════════════════════════════════════
-def inject_timestamp(html, ts_str):
-    badge = f'<span class="nav-update">Última actualización: {ts_str}</span>'
-    css   = '.nav-update{display:block;font-size:9px;color:var(--muted);margin-top:1px}'
+def inject_timestamp(html, ts_str, cutoff_str=None):
+    cutoff_line = f'<span style="display:block">Datos al: {cutoff_str}</span>' if cutoff_str else ''
+    badge = (
+        f'<span class="nav-update">'
+        f'<span style="display:block">Actualizado: {ts_str}</span>'
+        f'{cutoff_line}'
+        f'</span>'
+    )
+    css   = '.nav-update{display:block;font-size:9px;color:var(--muted);margin-top:1px;line-height:1.6;text-align:right}'
     if '.nav-update' not in html:
         html = html.replace('</style>', css + '\n</style>', 1)
-    existing = re.search(r'<span class="nav-update">.*?</span>', html)
+    existing = re.search(r'<span class="nav-update">.*?</span>', html, re.DOTALL)
     if existing:
         html = html[:existing.start()] + badge + html[existing.end():]
     else:
@@ -705,8 +711,9 @@ FABIO_MAP = {
 # MAIN
 # ═══════════════════════════════════════════════════════════════════
 def main():
-    now    = datetime.now()
-    ts_str = now.strftime('%d/%m/%Y — %H:%M')
+    now         = datetime.now()
+    ts_str      = now.strftime('%d/%m/%Y — %H:%M')
+    cutoff_str  = (now - timedelta(days=1)).strftime('%d/%m/%Y')  # día vencido
     meses_activos = ALL_MESES  # Enero → Agosto
 
     print('=' * 65)
@@ -779,7 +786,7 @@ def main():
         if top20g is not None:
             html = set_var(html, 'TOP20', top20g, t20_q)
         html = patch_meses_dmes(html, meses_activos)
-        html = inject_timestamp(html, ts_str)
+        html = inject_timestamp(html, ts_str, cutoff_str)
         save_dash(DASHBOARDS['grupo'], html)
 
     # ════════════════════════════════════════════════════════════
@@ -824,7 +831,7 @@ def main():
 
         html = set_var(html, 'ALIADOS', aliados_e, al_q)
         html = patch_meses_dmes(html, meses_activos)
-        html = inject_timestamp(html, ts_str)
+        html = inject_timestamp(html, ts_str, cutoff_str)
         save_dash(DASHBOARDS['erika'], html)
 
     # ════════════════════════════════════════════════════════════
@@ -860,7 +867,7 @@ def main():
 
         html = set_var(html, 'ALIADOS', aliados_f, al_q)
         html = patch_meses_dmes(html, meses_activos)
-        html = inject_timestamp(html, ts_str)
+        html = inject_timestamp(html, ts_str, cutoff_str)
         save_dash(DASHBOARDS['fabio'], html)
 
     # ── Leer grupo actualizado (para TOP20G en estudios) ──────────
@@ -909,7 +916,7 @@ def main():
                 html = set_var(html, 'TOP20G', top20g, t20_q)
 
         html = patch_meses_dmes(html, meses_activos)
-        html = inject_timestamp(html, ts_str)
+        html = inject_timestamp(html, ts_str, cutoff_str)
         with open(DASHBOARDS[dash_key], 'w', encoding='utf-8') as f:
             f.write(html)
         print(f"  💾 {dash_key}")

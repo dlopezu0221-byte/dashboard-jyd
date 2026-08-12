@@ -100,8 +100,9 @@ def read_profile(wb, model_name):
     for r in rows(wb, 'Base de datos modelos'):
         if not r: continue
         if len(r) >= 12 and r[3] == model_name:
-            studio_raw = r[17] if len(r) > 17 else None
-            studio = str(studio_raw).strip() if studio_raw and str(studio_raw).strip() not in ('', 'None') else 'Fornax Studios'
+            # Todos los modelos de este dashboard pertenecen a Fornax Studios.
+            # Col R contiene el aliado/referidor, NO el estudio del modelo.
+            studio = 'Fornax Studios'
             ingreso = ''
             if len(r) > 6 and r[6]:
                 try:

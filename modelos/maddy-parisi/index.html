@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Dashboard — Maddy Parisi | Karl Jack</title>
+<title>Dashboard — Maddy Parisi | Fornax Studios</title>
 <style>
 :root{--bg:#0B1120;--card:#141E35;--card2:#1A2747;--border:rgba(255,255,255,0.07);
   --gold:#F5B800;--gold-light:#FDD85D;--blue:#3B82F6;--green:#22C55E;--red:#EF4444;
@@ -156,73 +156,9 @@ nav .nav-brand{display:flex;align-items:center;gap:6px}
 </style>
 </head>
 <body>
-<script>
-// ── ACCESO PROTEGIDO — Dashboard Individual ─────────────────────────────────
-(function() {
-  var _AUTH = false;
-  try { _AUTH = sessionStorage.getItem('mdl_maddy_parisi') === 'ok_731262'; } catch(e) {}
-  if (_AUTH) return;
-
-  document.body.style.display = 'none';
-
-  var overlay = document.createElement('div');
-  overlay.id = '_pin_overlay';
-  overlay.innerHTML = [
-    '<div style="min-height:100vh;background:#0f1117;display:flex;flex-direction:column;',
-    'align-items:center;justify-content:center;padding:20px;',
-    'font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif">',
-    '<div style="background:#161b27;border:1px solid #2a3452;border-radius:16px;padding:36px 32px;',
-    'width:100%;max-width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)">',
-    '<div style="width:52px;height:52px;background:linear-gradient(135deg,#6366f1,#a855f7);',
-    'border-radius:13px;display:flex;align-items:center;justify-content:center;',
-    'font-size:22px;margin:0 auto 18px">⭐</div>',
-    '<div style="color:#e8eaf0;font-size:17px;font-weight:700;margin-bottom:4px">Dashboard Personal</div>',
-    '<div style="color:#5a6480;font-size:12px;margin-bottom:26px">Fornax Studios · Acceso restringido</div>',
-    '<input id="_pin_inp" type="password" maxlength="6" placeholder="Código de acceso" ',
-    'inputmode="numeric" pattern="[0-9]*" ',
-    'style="width:100%;background:#1e2535;border:1px solid #2a3452;border-radius:9px;',
-    'color:#e8eaf0;padding:13px 16px;font-size:20px;outline:none;text-align:center;',
-    'letter-spacing:8px;font-family:monospace;box-sizing:border-box;margin-bottom:12px">',
-    '<button id="_pin_btn" ',
-    'style="width:100%;background:linear-gradient(135deg,#6366f1,#4f46e5);border:none;',
-    'border-radius:9px;color:#fff;padding:13px;font-size:14px;font-weight:600;',
-    'cursor:pointer;letter-spacing:.3px;touch-action:manipulation">Ingresar</button>',
-    '<div id="_pin_err" style="display:none;margin-top:12px;color:#ef4444;font-size:12px;',
-    'background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);',
-    'border-radius:7px;padding:8px 12px">❌ Código incorrecto. Intenta de nuevo.</div>',
-    '</div></div>'
-  ].join('');
-  document.body.parentNode.insertBefore(overlay, document.body);
-
-  setTimeout(function() { var i=document.getElementById('_pin_inp'); if(i) i.focus(); }, 80);
-
-  function _check() {
-    var val = (document.getElementById('_pin_inp').value || '').trim();
-    if (val === '731262') {
-      try { sessionStorage.setItem('mdl_maddy_parisi', 'ok_731262'); } catch(e) {}
-      document.getElementById('_pin_overlay').remove();
-      document.body.style.display = '';
-    } else {
-      document.getElementById('_pin_err').style.display = 'block';
-      document.getElementById('_pin_inp').value = '';
-      var i=document.getElementById('_pin_inp'); if(i) i.focus();
-    }
-  }
-
-  document.getElementById('_pin_btn').addEventListener('click', _check);
-  document.getElementById('_pin_inp').addEventListener('keydown', function(e) {
-    if (document.getElementById('_pin_err').style.display !== 'none') {
-      document.getElementById('_pin_err').style.display = 'none';
-    }
-    if (e.key === 'Enter') _check();
-  });
-})();
-// ── FIN ACCESO PROTEGIDO ──────────────────────────────────────────────────────
-</script>
-
 <nav>
   <div class="nav-brand">
-    <img src="data:image/png;base64,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" alt="Karl Jack" style="height:48px;vertical-align:middle;margin-right:8px">
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFcAAAAtCAYAAADbcffLAAAI00lEQVR4nO2abYydRRXHf+e5u1u27VJo3da6bS0l1qJgRDGNFgtowkvANkLEpmpisqIBAV9iSBTFaIRIidUoviRgiMakkPKBpCQao7WWFxGhsVEDUm1LKyCCxDZ933vv3w9zZu/c2efuvZveGqj3JE/muTPnnDnznzNnzsxzoUc96lGPetSjk4CsrFJSkbXJzOolfOZ847xmVuu2ka9VKgW3jCRVsqq6manL9pxU1ASupIqZ1SR9GFgLVIE+4HlgU8Iv4DTgPGA2MAJUgBeAT5nZAUnWAz8hSX1e3qpmusfrLeEtJM2WdJakNZIec97hnPf/lfpa1B8CasBhYBD4j4PVJ6kK4DH4FX+eAu6VdCnBq3tEa3ALwjIff8xMCmt9HLzEOwtCDP5FbOuFhNbgdkQJgDVoxOzjtuokoeMCN6cc2CRVg5DOTdmbEx0dyad9lqWPk/F3KtMpdQxuNKJso8oHHfNkBzsNIxVapHBpzuwZS3yvRx2SCjOrZ+FIaZ3rbuqzbDW5jaT6EzvG9Wb1MMnEZTZ0DG4EZKwdYwTA3+cA892gZ81sv9dPGHAKSqIjZh9zgOfNbH+W4sVwNF4n6Q3AgOvcHScq3ysSG19PSCv7gJqZPVWmN5FX3lb2G8IMdUIzJc2TNOJlfOZ6OZiAVpf0Rkl3ARsd3CXAJknrJA37gCtxpiUNS3pE0iZJF7qOZZJuANYTcuwXJX3C+T8u6XFJ90la4pvtWyRdA3wb+DuwQ9IfJH3U24sUBEnLJd0NXAbMIOTqn5X0pKT1kuY7n0n6nqTfS/qdpM1Jn1Fn4b/n+hlhfGWMU5LnfsVz1iNePiFpraSbJY1Ker+kVQ7WlyXNTzo6V9KLLvfeRPelXrdT0hVZfwvVoP2ue5WkRT64IUm3S9rp/Lck/A+57kskDXn7qKSjCc9yrx9wfddLeknSebkX+VijnW/yuivVTM9IGlRwkMKfuW7XEu/DcsU5uIe8XN/OtV3hYkn/cpnNUaekfn/f6m37JC1Qw3MXeF9j+aRkfazw8iZJVUnHFBxgacITJ/kh56lJutfrTvHyh5I+5u/9Dk5s+1oyMaOJ3o2S6gkmX4zyXq6WtDBiAZ2HhWjAQDJT6VPxePMjYJgQlx5U4wIoxqJfA3XgVOCOLEYVhLhXB/ZGvcnEVczskYS3AvQTDjz/dH4DCu/3t85TALNcrurlOuBnzlclbJxHFMLbNYSY/TjwaOKBX3LeAUJMvkXSW81sTNK1wHYz2ysPEVMBN+6cdTNregiW1SS9A7jEDagBD0eZBNwtDnYdWC1pxOvTJWTAQLqLm5m8j4ES2wqgP929/f1AwhNBjfp2RdlE9yLgTmA7sMbMlvvmFveSHcAGwoRVgVOAWyV9BNhtZrudb9yOTsGdjKKO97nxFeAosNPrU3BfIYBXIxyrr/D6/MatVT7bKgct40915hdU/Q5qVWG/uBhYAXzXzC4zs/ucL3qh3Mu/ALxM8N5jwGpgxMx+7jqbMqBugBsHtpLG3a7RnOZFnn3A/qTfd3eh/3Z2NVcG7xpTyFDWETKaPWa2wcy2p+EoWZl1gpe/BHyf5tvBqx34mrJNrBvgRpqejyO+JLniHmAPDa9qmzd3mQoPAVcB24DrgbVm9rRvvIWHu5gqzkhkI3h3Ery3QliB7wRG4wQ0ddZFww9lv9PryZgVLAIWuVHQ5eN3O3KPHQXuBxYAN5nZHl/SVc+v48Z4JnCR2x037IqZvQzcQQA3hrzbJc0OrA3v7Qa4UdlW7yg+1RKeWYRMIcbOJ7rQfycU07NlhIymTtgXtjgYaSyPQN4ALPQ6c6+uSno7wZEeI8TeMeB04Fr33vFY3wrcqVywRMM209ispgFL1Dinx6R6luuOfFsyHZ3SVC+A4jjPpLGci6St4mEgxuMFwChhf4AQTuoKx/mLCRP0SQKwheu7UeGoXo+5ditw+10gT6UmkHdaMbNtwE8JS92A8+NSouENV7q+PuBuM/uLq6lnTzuKuWY7/siT3kXEie0HLjezmpkd87ImaT5wFyGbOehjPCZpJiGj+A4hNf0TcJuP5SgwF/ime+/ErzBqnNCu81NI3csfpO0lcuaxakjh7C1J/5A0LeEZkvSCt21wT4n9jaiZlnp9kfUTDxVXJ7yHPd5FO6LOmxOeX3rdXIVjrxROYYcl/VjSByRd5XZ8y9urCncVSJrj+qJd0dMHJT2b2X52me0pUBVJ35C0S9JeSV+fDNwo5+UMhSPkc5IeVvjGdq6kByT9TdLnfCIsmZSKpBsl7XBjz2gBbpSZKel+t+3Pkk7L2k0hf93oPPckOj7k40rpj5K+Kmm6pHdJOuj1Ox3wC3LQkvJtCsf6XQoOdVvEatKPiArnZiNcxbX9wqDmq7/pwHsIcatCONFsjXpS3kQ+flYaK7vzLelvgLBEW6Z0zlP3zSjGzlOBcwgh499m9kwms4xwzbkP+GvUn9ucjXea66uY2ZF2huenpo5IydJs0d6n/MZoiv3F1dUBz4SlWSaX6iuzrU190aqtnec23axPhZTc6NPYOGvZzMcbfyUytOsz85gJK6BsDCSfihLboLHZpXYUCX9HmczxYPWqoSTWzVb4ipDGe1P55U4q/z/7P0U3T2il5MtmsULu2LRcJV0k6ZxYn8jM9vAxmIPhMXMxIcm/IBtHBXhdrs9/ny3p9MRzY32fpDPkd7HdpBMGbhLbPgh8hvCHkry/EcKJLZf5PDCP8HepAW+LE3IhcL7bnm9kA8Ayf08ncRWwFFgpaV7W10rg09G+bnr2ifTc+EX2N4TT2womHkaeI9yf5jRIwwujTBz0sOvbBszM5ArC97Cc3gw8SDg8DHlcjPY9CvzK7esqnUhw40YznQDIgZJgfxRYk/yO7Q8AlxP+5Fd1ECIYWwir4SzgSa+LcseApxNdMQT8BLgOGAJ2ZZvPMGEFHWTi5L/6SeHo2Kqtv0V9V2/M2qSHZd7+2qEWue1kf76eVEZlX1g7kJmKfT3qUY961KMe9ahHJ5b+C3JMSIByJtokAAAAAElFTkSuQmCC" alt="Fornax Studios" style="height:48px;vertical-align:middle;margin-right:8px">
     <span style="color:#94A3B8;font-size:10px">&nbsp;·&nbsp; MADDY PARISI</span>
   </div>
   <div style="display:flex;align-items:center;gap:14px">
@@ -258,10 +194,10 @@ nav .nav-brand{display:flex;align-items:center;gap:6px}
   <!-- HERO -->
   <section class="hero" id="inicio">
     <div>
-      <div class="hero-badge">⭐ Nivel Órbita · Karl Jack</div>
+      <div class="hero-badge">⭐ Nivel Órbita · Fornax Studios</div>
       <h1>Maddy Parisi</h1>
       <p class="hero-sub">Lilly Katherine Tabima Hernandez &nbsp;·&nbsp; Satélite &nbsp;·&nbsp; Flirt4Free, Stripchat, Chaturbate</p>
-      <p class="hero-intro">Este espacio reúne tu evolución, tus logros y los resultados que has construido dentro de Karl Jack. Informe generado el <strong>12 de agosto de 2026</strong> · Datos con corte al <strong>11 de agosto de 2026</strong>. Julio completamente cerrado · Agosto en progreso.</p>
+      <p class="hero-intro">Este espacio reúne tu evolución, tus logros y los resultados que has construido dentro de Fornax Studios. Informe generado el <strong>12 de agosto de 2026</strong> · Datos con corte al <strong>11 de agosto de 2026</strong>. Julio completamente cerrado · Agosto en progreso.</p>
       <div class="hero-tags">
         <span class="tag tag-platform">Flirt4Free, Stripchat, Chaturbate</span>
         <span class="tag tag-modality">Modalidad Satélite</span>
@@ -765,7 +701,7 @@ nav .nav-brand{display:flex;align-items:center;gap:6px}
 </main>
 
 <footer>
-  Karl Jack · Grupo Empresarial J&amp;D · Documento de uso interno — Confidencial<br/>
+  Fornax Studios · Grupo Empresarial J&amp;D · Documento de uso interno — Confidencial<br/>
   Actualizado al 12 de agosto de 2026 · Última actualización: 12/08/2026 – 23:59 · Fuente: Cómo Vamos Fornax Studios · Maddy Parisi
 </footer>
 

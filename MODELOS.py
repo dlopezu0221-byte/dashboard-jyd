@@ -129,7 +129,7 @@ def inject_pin(html, slug):
 }})();
 // ── FIN ACCESO PROTEGIDO ──────────────────────────────────────────────────────
 </script>"""
-    return html.replace('<body>\n<nav', script + '\n<body>\n<nav', 1)
+    return html.replace('<body>\n<nav', '<body>\n' + script + '\n<nav', 1)
 
 def fmt(n):
     if n is None: return "0"

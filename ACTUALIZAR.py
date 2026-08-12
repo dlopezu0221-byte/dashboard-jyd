@@ -122,21 +122,35 @@ def patch_meses_dmes(html, meses_list):
 # TIMESTAMP
 # ═══════════════════════════════════════════════════════════════════
 def inject_timestamp(html, ts_str, cutoff_str=None):
-    cutoff_line = f'<span style="display:block">Datos al: {cutoff_str}</span>' if cutoff_str else ''
-    badge = (
-        f'<span class="nav-update">'
-        f'<span style="display:block">Actualizado: {ts_str}</span>'
-        f'{cutoff_line}'
-        f'</span>'
-    )
+    cutoff_line = f'<br>Datos al: {cutoff_str}' if cutoff_str else ''
+    badge = f'<span class="nav-update">Actualizado: {ts_str}{cutoff_line}</span>'
     css   = '.nav-update{display:block;font-size:9px;color:var(--muted);margin-top:1px;line-height:1.6;text-align:right}'
     if '.nav-update' not in html:
         html = html.replace('</style>', css + '\n</style>', 1)
-    existing = re.search(r'<span class="nav-update">.*?</span>', html, re.DOTALL)
-    if existing:
-        html = html[:existing.start()] + badge + html[existing.end():]
-    else:
-        html = html.replace('</div></nav>', badge + '</div></nav>', 1)
+
+    # Limpieza robusta: eliminar nav-update spans con contenido anidado
+    # (conteo de profundidad para manejar spans dentro de spans)
+    while '<span class="nav-update">' in html:
+        start = html.find('<span class="nav-update">')
+        depth, pos = 0, start
+        while pos < len(html):
+            if html[pos:pos+5] == '<span':
+                depth += 1; pos += 5
+            elif html[pos:pos+7] == '</span>':
+                depth -= 1
+                if depth == 0:
+                    html = html[:start] + html[pos+7:]; break
+                pos += 7
+            else:
+                pos += 1
+        else:
+            break  # evitar loop infinito si el HTML está malformado
+
+    # Eliminar residuos sueltos de "Datos al:" que quedaron fuera del span
+    html = re.sub(r'<span[^>]*>Datos al:[^<]*</span>', '', html)
+
+    # Insertar el nuevo badge una sola vez
+    html = html.replace('</div></nav>', badge + '</div></nav>', 1)
     return html
 
 

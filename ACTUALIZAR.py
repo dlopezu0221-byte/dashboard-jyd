@@ -504,6 +504,48 @@ def rebuild_estudio_from_excel(estudio, cv, cv_studio, last_day, mes=MES):
 
 
 # ═══════════════════════════════════════════════════════════════════
+# CORRECCIÓN ALIADOS INDIVIDUALES EN GRUPO
+# ═══════════════════════════════════════════════════════════════════
+# Para cada aliado individual de Fabio en el GRUPO dashboard,
+# mantener SOLO el modelo cuyo nombre coincide con la clave.
+# Esto evita que detect_new=True agregue todos los modelos de Fabio
+# a cada clave individual.
+GRUPO_INDIVIDUAL_PARTNERS = {
+    'Alice Steel':   'Fabio Robledo',
+    'Eli Cortes':    'Fabio Robledo',
+    'Evelyn Lovers': 'Fabio Robledo',
+    'Jack Miller':   'Fabio Robledo',
+    'Maximus Clark': 'Fabio Robledo',
+    'Amanda Bond':   'Fabio Robledo',
+    'Yessie Jacobs': 'Fabio Robledo',
+    'Ana Black':     'Fabio Robledo',
+}
+
+def fix_grupo_individual_partners(aliados, cv_jul, last_day_jul, cv_ago, last_day_ago):
+    """
+    Reconstruye las claves individuales de Fabio en el GRUPO ALIADOS:
+    cada clave (Alice Steel, Eli Cortes, ...) recibe SOLO su propio modelo
+    con datos reales del Excel (cv), descartando todos los demás modelos.
+    """
+    for partner, cv_studio in GRUPO_INDIVIDUAL_PARTNERS.items():
+        if partner not in aliados:
+            continue
+        if 'data' not in aliados[partner]:
+            aliados[partner]['data'] = {}
+        # Procesar Julio y Agosto
+        for mes, cv, last_day in [('Julio', cv_jul, last_day_jul), ('Agosto', cv_ago, last_day_ago)]:
+            partner_data = cv.get((partner, cv_studio), {})
+            day_entries = {}
+            for d in range(1, last_day + 1):
+                if d in partner_data and any(v for v in partner_data[d].values() if v):
+                    day_entries[str(d)] = partner_data[d]
+            # Reemplazar completamente los modelos de este mes con solo el propio
+            aliados[partner]['data'][mes] = {'modelos': {partner: day_entries} if day_entries else {}}
+    print(f"  ✅ fix_grupo_individual_partners: {len(GRUPO_INDIVIDUAL_PARTNERS)} claves corregidas")
+    return aliados
+
+
+# ═══════════════════════════════════════════════════════════════════
 # TOP_EST y TOP20G
 # ═══════════════════════════════════════════════════════════════════
 def recalc_top_est(top_est, aliados_entry, mes=MES):
@@ -565,6 +607,19 @@ ALIADOS_DISPLAY = {
     'Dejavu Studio':     'Dejavu Studio',
     'Dynasty_studio_':   'Dynasty Studio',
     'piscis_studio':     'Piscis Studio',
+    # Aliados Fabio Robledo
+    'Amadeus Studio':    'Amadeus Studio',
+    'Black Card':        'Black Card',
+    'Studio JGM':        'Studio JGM',
+    'Iridium Studio':    'Iridium Studio',
+    'Alice Steel':       'Alice Steel',
+    'Eli Cortes':        'Eli Cortes',
+    'Evelyn Lovers':     'Evelyn Lovers',
+    'Jack Miller':       'Jack Miller',
+    'Maximus Clark':     'Maximus Clark',
+    'Amanda Bond':       'Amanda Bond',
+    'Yessie Jacobs':     'Yessie Jacobs',
+    'Ana Black':         'Ana Black',
 }
 
 def recalc_top20g(top20g, grupo_aliados, mes=MES):
@@ -604,6 +659,13 @@ GRUPO_MAP = {
     'Atelier_glamour':   ['Atelier Glamour'],
     'Dejavu Studio':     ['Dejavu Studio'],
     'Dynasty_studio_':   [],
+    # Estudios nuevos bajo Fabio Robledo
+    'Amadeus Studio':    ['Amadeus Studio'],
+    'Black Card':        ['Black Card'],
+    'Studio JGM':        ['Studio JGM'],
+    'Iridium Studio':    [],
+    # Nota: aliados individuales ('Alice Steel', 'Eli Cortes', etc.) son corregidos
+    # por fix_grupo_individual_partners() — NO agregar aquí con detect_new=True
     'piscis_studio':     ['Piscis Studio'],
 }
 ERIKA_MAP = {
@@ -692,6 +754,8 @@ def main():
         # Rebuild datos diarios
         aliados = rebuild_aliados_from_excel(aliados, cv_jul, GRUPO_MAP, MES,     last_day_jul)
         aliados = rebuild_aliados_from_excel(aliados, cv_ago, GRUPO_MAP, MES_AGO, last_day_ago)
+        # Corregir aliados individuales de Fabio: 1 modelo por clave, sin contaminación cruzada
+        aliados = fix_grupo_individual_partners(aliados, cv_jul, last_day_jul, cv_ago, last_day_ago)
 
         # Rebuild GRUPO_PERIODOS desde el calendario completo
         gp, gp_q = get_var(html, 'GRUPO_PERIODOS')

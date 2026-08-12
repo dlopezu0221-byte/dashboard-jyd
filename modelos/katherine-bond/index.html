@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Dashboard — Katherine Bond | Melissa Deusa</title>
+<style>
+:root{--bg:#0B1120;--card:#141E35;--card2:#1A2747;--border:rgba(255,255,255,0.07);
+  --gold:#F5B800;--gold-light:#FDD85D;--blue:#3B82F6;--green:#22C55E;--red:#EF4444;
+  --orange:#F59E0B;--text:#F1F5F9;--muted:#94A3B8;--nav-h:60px}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;font-size:15px}
+nav{position:sticky;top:0;z-index:100;background:rgba(11,17,32,0.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);height:var(--nav-h);display:flex;align-items:center;
+  justify-content:space-between;padding:0 24px}
+.nav-brand{font-size:13px;color:var(--muted);font-weight:500;letter-spacing:.05em;display:flex;align-items:center;gap:6px}
+.nav-links{display:flex;gap:6px}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:12px;padding:6px 12px;
+  border-radius:20px;transition:all .2s;white-space:nowrap}
+.nav-links a:hover{background:var(--card2);color:var(--text)}
+@media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}}
+.mobile-nav{display:none;position:sticky;top:var(--nav-h);z-index:99;
+  background:rgba(11,17,32,.97);border-bottom:1px solid var(--border);
+  overflow-x:auto;white-space:nowrap;padding:8px 16px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.mobile-nav::-webkit-scrollbar{display:none}
+.mobile-nav a{display:inline-block;color:var(--muted);text-decoration:none;font-size:12px;
+  font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid var(--border);margin-right:6px}
+@media(max-width:680px){.mobile-nav{display:block}}
+main{max-width:1100px;margin:0 auto;padding:0 20px 80px}
+section{padding:56px 0 0}
+.hero{padding:48px 0 0;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:start}
+@media(max-width:680px){.hero{grid-template-columns:1fr}}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,rgba(245,184,0,.15),rgba(245,184,0,.05));
+  border:1px solid rgba(245,184,0,.3);color:var(--gold);font-size:12px;font-weight:700;
+  padding:5px 14px;border-radius:20px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px}
+.hero-badge::before{content:'★';font-size:10px}
+.hero h1{font-size:clamp(36px,6vw,56px);font-weight:800;line-height:1.1;
+  background:linear-gradient(135deg,#fff 30%,var(--gold-light));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.hero-sub{color:var(--muted);font-size:14px;margin-bottom:20px}
+.hero-intro{font-size:16px;color:#CBD5E1;max-width:560px;line-height:1.7;margin-bottom:24px}
+.hero-tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{font-size:12px;font-weight:600;padding:4px 12px;border-radius:12px;border:1px solid var(--border)}
+.tag-platform{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:#93C5FD}
+.tag-modality{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.25);color:#86EFAC}
+.tag-status{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.25);color:#86EFAC}
+.hero-aside{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 24px;min-width:220px}
+.hero-aside-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px}
+.aside-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.aside-row:last-child{border-bottom:none}
+.aside-label{font-size:12px;color:var(--muted)}
+.aside-val{font-size:13px;font-weight:600;color:var(--text);text-align:right}
+.section-header{margin-bottom:24px}
+.section-header h2{font-size:22px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.section-header p{color:var(--muted);font-size:14px;max-width:600px}
+.section-divider{width:40px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--gold),transparent);margin:10px 0 4px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:transform .2s,border-color .2s}
+.kpi-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.15)}
+.kpi-card::after{content:'';position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg,var(--accent-color,var(--gold)),transparent 60%);opacity:.04;pointer-events:none}
+.kpi-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.kpi-value{font-size:28px;font-weight:800;color:var(--text);line-height:1;margin-bottom:4px}
+.kpi-sub{font-size:12px;color:var(--muted)}
+.kpi-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;margin-top:8px}
+.badge-up{background:rgba(34,197,94,.15);color:var(--green)}
+.badge-warn{background:rgba(245,158,11,.15);color:var(--orange)}
+.badge-down{background:rgba(239,68,68,.12);color:var(--red)}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px}
+.chart-card-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.chart-card-sub{font-size:12px;color:var(--muted);margin-bottom:20px}
+.chart-toggle{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.evol-radio{display:none;position:absolute}
+.toggle-btn{font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+#rb-monthly:checked~.chart-toggle label[for="rb-monthly"]{background:var(--gold);color:#000;border-color:var(--gold)}
+#rb-quincena:checked~.chart-toggle label[for="rb-quincena"]{background:var(--gold);color:#000;border-color:var(--gold)}
+#view-quincena{display:none}
+#rb-quincena:checked~#view-quincena{display:block}
+#rb-quincena:checked~#view-monthly{display:none}
+.re-timeline{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.re-block{flex:1 1 90px;min-width:80px;max-width:140px;border-radius:10px;padding:10px 12px;text-align:center}
+.re-block.achieved{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3)}
+.re-block.missed{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25)}
+.re-block.in-progress{background:rgba(245,184,0,.1);border:1px dashed rgba(245,184,0,.4)}
+.re-block.pending{background:rgba(148,163,184,.05);border:1px dashed rgba(148,163,184,.2)}
+.re-block-period{font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px}
+.re-block-credits{font-size:15px;font-weight:800}
+.re-block.achieved .re-block-credits{color:var(--green)}
+.re-block.missed .re-block-credits{color:var(--red)}
+.re-block.in-progress .re-block-credits{color:var(--gold)}
+.re-block.pending .re-block-credits{color:var(--muted)}
+.re-block-pct{font-size:11px;font-weight:600;margin-top:2px}
+.re-block.achieved .re-block-pct{color:rgba(34,197,94,.7)}
+.re-block.missed .re-block-pct{color:rgba(239,68,68,.7)}
+.re-block.in-progress .re-block-pct{color:rgba(245,184,0,.7)}
+.re-block-icon{font-size:16px;display:block;margin-bottom:2px}
+.re-stats{display:flex;gap:20px;margin-bottom:20px;flex-wrap:wrap}
+.re-stat{text-align:center}
+.re-stat-num{font-size:28px;font-weight:800}
+.re-stat-label{font-size:11px;color:var(--muted);font-weight:600}
+.highlight-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.highlight-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;transition:border-color .2s,transform .2s}
+.highlight-card:hover{transform:translateY(-2px);border-color:rgba(245,184,0,.3)}
+.highlight-emoji{font-size:24px;margin-bottom:10px;display:block}
+.highlight-title{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.highlight-value{font-size:20px;font-weight:800;color:var(--gold);margin-bottom:4px}
+.highlight-desc{font-size:12px;color:var(--muted);line-height:1.5}
+.list-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px}
+.list-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
+.list-item:last-child{border-bottom:none}
+.list-num{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+.num-green{background:rgba(34,197,94,.15);color:var(--green)}
+.num-gold{background:rgba(245,184,0,.15);color:var(--gold)}
+.num-blue{background:rgba(59,130,246,.15);color:var(--blue)}
+.list-content-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.list-content-desc{font-size:13px;color:var(--muted);line-height:1.6}
+.goal-card{background:linear-gradient(135deg,rgba(245,184,0,.1),rgba(245,184,0,.03));border:1px solid rgba(245,184,0,.25);border-radius:20px;padding:32px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center}
+@media(max-width:680px){.goal-card{grid-template-columns:1fr}}
+.goal-label{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.goal-title{font-size:26px;font-weight:800;color:var(--text);margin-bottom:12px}
+.goal-desc{font-size:14px;color:var(--muted);line-height:1.7}
+.goal-number{text-align:center;background:rgba(245,184,0,.1);border:2px solid rgba(245,184,0,.3);border-radius:16px;padding:20px 28px}
+.goal-number-val{font-size:36px;font-weight:900;color:var(--gold);display:block}
+.goal-number-label{font-size:11px;color:var(--muted);font-weight:600}
+.action-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.action-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;transition:transform .2s}
+.action-card:hover{transform:translateY(-2px)}
+.action-num{font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--gold);margin-bottom:10px}
+.action-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px}
+.action-desc{font-size:13px;color:var(--muted);line-height:1.6}
+.closing{background:linear-gradient(135deg,var(--card2),var(--card));border:1px solid var(--border);border-radius:20px;padding:40px;text-align:center;margin-top:56px}
+.closing-icon{font-size:36px;margin-bottom:16px;display:block}
+.closing h2{font-size:24px;font-weight:800;color:var(--text);margin-bottom:14px}
+.closing p{font-size:16px;color:var(--muted);max-width:560px;margin:0 auto;line-height:1.7}
+.tri-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.tri-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px}
+.tri-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+.tri-credits{font-size:24px;font-weight:800;color:var(--text);margin-bottom:4px}
+.tri-usd{font-size:14px;color:var(--muted);margin-bottom:8px}
+.tri-re{font-size:12px}
+.process-timeline{position:relative;padding-left:24px}
+.process-timeline::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:2px;background:linear-gradient(to bottom,var(--gold),rgba(245,184,0,.1));border-radius:1px}
+.timeline-item{position:relative;margin-bottom:28px}
+.timeline-dot{position:absolute;left:-29px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--gold);border:2px solid var(--bg);box-shadow:0 0 8px rgba(245,184,0,.4)}
+.timeline-period{font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px;text-transform:uppercase;letter-spacing:.08em}
+.timeline-text{font-size:13px;color:var(--muted);line-height:1.6}
+.timeline-type{font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;display:inline-block;margin-bottom:6px}
+.type-dato{background:rgba(59,130,246,.15);color:#93C5FD}
+.type-logro{background:rgba(34,197,94,.12);color:#86EFAC}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:680px){.two-col{grid-template-columns:1fr}}
+footer{text-align:center;padding:32px 20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:40px}
+nav .nav-brand{display:flex;align-items:center;gap:6px}
+.timestamp-badge{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 10px}
+</style>
+</head>
+<body>
+<script>
+// ── ACCESO PROTEGIDO — Dashboard Individual ─────────────────────────────────
+(function() {
+  var _AUTH = false;
+  try { _AUTH = sessionStorage.getItem('mdl_katherine_bond') === 'ok_133326'; } catch(e) {}
+  if (_AUTH) return;
+
+  document.body.style.display = 'none';
+
+  var overlay = document.createElement('div');
+  overlay.id = '_pin_overlay';
+  overlay.innerHTML = [
+    '<div style="min-height:100vh;background:#0f1117;display:flex;flex-direction:column;',
+    'align-items:center;justify-content:center;padding:20px;',
+    'font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif">',
+    '<div style="background:#161b27;border:1px solid #2a3452;border-radius:16px;padding:36px 32px;',
+    'width:100%;max-width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)">',
+    '<div style="width:52px;height:52px;background:linear-gradient(135deg,#6366f1,#a855f7);',
+    'border-radius:13px;display:flex;align-items:center;justify-content:center;',
+    'font-size:22px;margin:0 auto 18px">⭐</div>',
+    '<div style="color:#e8eaf0;font-size:17px;font-weight:700;margin-bottom:4px">Dashboard Personal</div>',
+    '<div style="color:#5a6480;font-size:12px;margin-bottom:26px">Fornax Studios · Acceso restringido</div>',
+    '<input id="_pin_inp" type="password" maxlength="6" placeholder="Código de acceso" ',
+    'inputmode="numeric" pattern="[0-9]*" ',
+    'style="width:100%;background:#1e2535;border:1px solid #2a3452;border-radius:9px;',
+    'color:#e8eaf0;padding:13px 16px;font-size:20px;outline:none;text-align:center;',
+    'letter-spacing:8px;font-family:monospace;box-sizing:border-box;margin-bottom:12px">',
+    '<button id="_pin_btn" ',
+    'style="width:100%;background:linear-gradient(135deg,#6366f1,#4f46e5);border:none;',
+    'border-radius:9px;color:#fff;padding:13px;font-size:14px;font-weight:600;',
+    'cursor:pointer;letter-spacing:.3px;touch-action:manipulation">Ingresar</button>',
+    '<div id="_pin_err" style="display:none;margin-top:12px;color:#ef4444;font-size:12px;',
+    'background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);',
+    'border-radius:7px;padding:8px 12px">❌ Código incorrecto. Intenta de nuevo.</div>',
+    '</div></div>'
+  ].join('');
+  document.body.parentNode.insertBefore(overlay, document.body);
+
+  setTimeout(function() { var i=document.getElementById('_pin_inp'); if(i) i.focus(); }, 80);
+
+  function _check() {
+    var val = (document.getElementById('_pin_inp').value || '').trim();
+    if (val === '133326') {
+      try { sessionStorage.setItem('mdl_katherine_bond', 'ok_133326'); } catch(e) {}
+      document.getElementById('_pin_overlay').remove();
+      document.body.style.display = '';
+    } else {
+      document.getElementById('_pin_err').style.display = 'block';
+      document.getElementById('_pin_inp').value = '';
+      var i=document.getElementById('_pin_inp'); if(i) i.focus();
+    }
+  }
+
+  document.getElementById('_pin_btn').addEventListener('click', _check);
+  document.getElementById('_pin_inp').addEventListener('keydown', function(e) {
+    if (document.getElementById('_pin_err').style.display !== 'none') {
+      document.getElementById('_pin_err').style.display = 'none';
+    }
+    if (e.key === 'Enter') _check();
+  });
+})();
+// ── FIN ACCESO PROTEGIDO ──────────────────────────────────────────────────────
+</script>
+
+<nav>
+  <div class="nav-brand">
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFcAAAAtCAYAAADbcffLAAAI00lEQVR4nO2abYydRRXHf+e5u1u27VJo3da6bS0l1qJgRDGNFgtowkvANkLEpmpisqIBAV9iSBTFaIRIidUoviRgiMakkPKBpCQao7WWFxGhsVEDUm1LKyCCxDZ933vv3w9zZu/c2efuvZveGqj3JE/muTPnnDnznzNnzsxzoUc96lGPetSjk4CsrFJSkbXJzOolfOZ847xmVuu2ka9VKgW3jCRVsqq6manL9pxU1ASupIqZ1SR9GFgLVIE+4HlgU8Iv4DTgPGA2MAJUgBeAT5nZAUnWAz8hSX1e3qpmusfrLeEtJM2WdJakNZIec97hnPf/lfpa1B8CasBhYBD4j4PVJ6kK4DH4FX+eAu6VdCnBq3tEa3ALwjIff8xMCmt9HLzEOwtCDP5FbOuFhNbgdkQJgDVoxOzjtuokoeMCN6cc2CRVg5DOTdmbEx0dyad9lqWPk/F3KtMpdQxuNKJso8oHHfNkBzsNIxVapHBpzuwZS3yvRx2SCjOrZ+FIaZ3rbuqzbDW5jaT6EzvG9Wb1MMnEZTZ0DG4EZKwdYwTA3+cA892gZ81sv9dPGHAKSqIjZh9zgOfNbH+W4sVwNF4n6Q3AgOvcHScq3ysSG19PSCv7gJqZPVWmN5FX3lb2G8IMdUIzJc2TNOJlfOZ6OZiAVpf0Rkl3ARsd3CXAJknrJA37gCtxpiUNS3pE0iZJF7qOZZJuANYTcuwXJX3C+T8u6XFJ90la4pvtWyRdA3wb+DuwQ9IfJH3U24sUBEnLJd0NXAbMIOTqn5X0pKT1kuY7n0n6nqTfS/qdpM1Jn1Fn4b/n+hlhfGWMU5LnfsVz1iNePiFpraSbJY1Ker+kVQ7WlyXNTzo6V9KLLvfeRPelXrdT0hVZfwvVoP2ue5WkRT64IUm3S9rp/Lck/A+57kskDXn7qKSjCc9yrx9wfddLeknSebkX+VijnW/yuivVTM9IGlRwkMKfuW7XEu/DcsU5uIe8XN/OtV3hYkn/cpnNUaekfn/f6m37JC1Qw3MXeF9j+aRkfazw8iZJVUnHFBxgacITJ/kh56lJutfrTvHyh5I+5u/9Dk5s+1oyMaOJ3o2S6gkmX4zyXq6WtDBiAZ2HhWjAQDJT6VPxePMjYJgQlx5U4wIoxqJfA3XgVOCOLEYVhLhXB/ZGvcnEVczskYS3AvQTDjz/dH4DCu/3t85TALNcrurlOuBnzlclbJxHFMLbNYSY/TjwaOKBX3LeAUJMvkXSW81sTNK1wHYz2ysPEVMBN+6cdTNregiW1SS9A7jEDagBD0eZBNwtDnYdWC1pxOvTJWTAQLqLm5m8j4ES2wqgP929/f1AwhNBjfp2RdlE9yLgTmA7sMbMlvvmFveSHcAGwoRVgVOAWyV9BNhtZrudb9yOTsGdjKKO97nxFeAosNPrU3BfIYBXIxyrr/D6/MatVT7bKgct40915hdU/Q5qVWG/uBhYAXzXzC4zs/ucL3qh3Mu/ALxM8N5jwGpgxMx+7jqbMqBugBsHtpLG3a7RnOZFnn3A/qTfd3eh/3Z2NVcG7xpTyFDWETKaPWa2wcy2p+EoWZl1gpe/BHyf5tvBqx34mrJNrBvgRpqejyO+JLniHmAPDa9qmzd3mQoPAVcB24DrgbVm9rRvvIWHu5gqzkhkI3h3Ery3QliB7wRG4wQ0ddZFww9lv9PryZgVLAIWuVHQ5eN3O3KPHQXuBxYAN5nZHl/SVc+v48Z4JnCR2x037IqZvQzcQQA3hrzbJc0OrA3v7Qa4UdlW7yg+1RKeWYRMIcbOJ7rQfycU07NlhIymTtgXtjgYaSyPQN4ALPQ6c6+uSno7wZEeI8TeMeB04Fr33vFY3wrcqVywRMM209ispgFL1Dinx6R6luuOfFsyHZ3SVC+A4jjPpLGci6St4mEgxuMFwChhf4AQTuoKx/mLCRP0SQKwheu7UeGoXo+5ditw+10gT6UmkHdaMbNtwE8JS92A8+NSouENV7q+PuBuM/uLq6lnTzuKuWY7/siT3kXEie0HLjezmpkd87ImaT5wFyGbOehjPCZpJiGj+A4hNf0TcJuP5SgwF/ime+/ErzBqnNCu81NI3csfpO0lcuaxakjh7C1J/5A0LeEZkvSCt21wT4n9jaiZlnp9kfUTDxVXJ7yHPd5FO6LOmxOeX3rdXIVjrxROYYcl/VjSByRd5XZ8y9urCncVSJrj+qJd0dMHJT2b2X52me0pUBVJ35C0S9JeSV+fDNwo5+UMhSPkc5IeVvjGdq6kByT9TdLnfCIsmZSKpBsl7XBjz2gBbpSZKel+t+3Pkk7L2k0hf93oPPckOj7k40rpj5K+Kmm6pHdJOuj1Ox3wC3LQkvJtCsf6XQoOdVvEatKPiArnZiNcxbX9wqDmq7/pwHsIcatCONFsjXpS3kQ+flYaK7vzLelvgLBEW6Z0zlP3zSjGzlOBcwgh499m9kwms4xwzbkP+GvUn9ucjXea66uY2ZF2huenpo5IydJs0d6n/MZoiv3F1dUBz4SlWSaX6iuzrU190aqtnec23axPhZTc6NPYOGvZzMcbfyUytOsz85gJK6BsDCSfihLboLHZpXYUCX9HmczxYPWqoSTWzVb4ipDGe1P55U4q/z/7P0U3T2il5MtmsULu2LRcJV0k6ZxYn8jM9vAxmIPhMXMxIcm/IBtHBXhdrs9/ny3p9MRzY32fpDPkd7HdpBMGbhLbPgh8hvCHkry/EcKJLZf5PDCP8HepAW+LE3IhcL7bnm9kA8Ayf08ncRWwFFgpaV7W10rg09G+bnr2ifTc+EX2N4TT2womHkaeI9yf5jRIwwujTBz0sOvbBszM5ArC97Cc3gw8SDg8DHlcjPY9CvzK7esqnUhw40YznQDIgZJgfxRYk/yO7Q8AlxP+5Fd1ECIYWwir4SzgSa+LcseApxNdMQT8BLgOGAJ2ZZvPMGEFHWTi5L/6SeHo2Kqtv0V9V2/M2qSHZd7+2qEWue1kf76eVEZlX1g7kJmKfT3qUY961KMe9ahHJ5b+C3JMSIByJtokAAAAAElFTkSuQmCC" alt="Melissa Deusa" style="height:48px;vertical-align:middle;margin-right:8px">
+    <span style="color:#94A3B8;font-size:10px">&nbsp;·&nbsp; KATHERINE BOND</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div class="timestamp-badge"><div style="font-size:10px;color:#64748B;text-align:right;line-height:1.4">
+      <span style="display:block;font-weight:600;color:#94A3B8">Última actualización</span>
+      12/08/2026 – 23:59</div></div>
+    <div class="nav-links" style="display:none" id="nav-links-desktop">
+      <a href="#resumen">Resumen</a>
+      <a href="#evolucion">Evolución</a>
+      <a href="#reto-estrella">Reto Estrella</a>
+      <a href="#top20">Top 20</a>
+      <a href="#evolucion-diaria">Agosto</a>
+      <a href="#bono-racha">Bono de Racha</a>
+      <a href="#mi-proceso">Mi Proceso</a>
+      <a href="#fortalezas">Fortalezas</a>
+      <a href="#meta">Mi Meta</a>
+    </div>
+  </div>
+</nav>
+<div class="mobile-nav">
+  <a href="#resumen">⚡ Resumen</a>
+  <a href="#evolucion">📈 Evolución</a>
+  <a href="#reto-estrella">⭐ RE</a>
+  <a href="#top20">🏆 Top 20</a>
+  <a href="#evolucion-diaria">📅 Ago</a>
+  <a href="#bono-racha">💚 Bono</a>
+  <a href="#mi-proceso">🗂 Proceso</a>
+  <a href="#fortalezas">💪 Fortalezas</a>
+  <a href="#meta">🎯 Meta</a>
+</div>
+<main>
+
+  <!-- HERO -->
+  <section class="hero" id="inicio">
+    <div>
+      <div class="hero-badge">⭐ Nivel Llama · Melissa Deusa</div>
+      <h1>Katherine Bond</h1>
+      <p class="hero-sub">Mariana Andrea Rusinque Soto &nbsp;·&nbsp; Planta &nbsp;·&nbsp; Flirt4Free, Stripchat, Chaturbate</p>
+      <p class="hero-intro">Este espacio reúne tu evolución, tus logros y los resultados que has construido dentro de Melissa Deusa. Informe generado el <strong>12 de agosto de 2026</strong> · Datos con corte al <strong>11 de agosto de 2026</strong>. Julio completamente cerrado · Agosto en progreso.</p>
+      <div class="hero-tags">
+        <span class="tag tag-platform">Flirt4Free, Stripchat, Chaturbate</span>
+        <span class="tag tag-modality">Modalidad Planta</span>
+        <span class="tag tag-status">● Activo</span>
+      </div>
+    </div>
+    <div class="hero-aside">
+      <div class="hero-aside-title">Tu perfil · Corte 11 de agosto de 2026</div>
+      <div class="aside-row"><span class="aside-label">Monitor</span><span class="aside-val" style="font-size:11px">Juliana Lara Navarro</span></div>
+      <div class="aside-row"><span class="aside-label">Nivel Fornax Nova</span><span class="aside-val">Llama</span></div>
+      <div class="aside-row"><span class="aside-label">Plataforma</span><span class="aside-val">Flirt4Free, Stripchat, Chaturbate</span></div>
+      <div class="aside-row"><span class="aside-label">RE asignado</span><span class="aside-val">40.000 cr/quincena</span></div>
+      <div class="aside-row"><span class="aside-label">Bono de Racha</span><span class="aside-val" style="color:#22C55E;font-size:11px">En construcción</span></div>
+      <div class="aside-row"><span class="aside-label">Agosto (1-11 ago)</span><span class="aside-val" style="font-size:12px;color:#3B82F6">17.245 cr (43.1%)</span></div>
+    </div>
+  </section>
+
+  <!-- RESUMEN -->
+  <section id="resumen">
+    <div class="section-header">
+      <h2><span class="icon">⚡</span> Tu Proceso en un Vistazo</h2>
+      <div class="section-divider"></div>
+      <p>Indicadores clave al 12 de agosto de 2026. Julio cerrado · Agosto en progreso.</p>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card" style="--accent-color:var(--gold)">
+        <div class="kpi-label">Mejor Quincena</div>
+        <div class="kpi-value">37.627</div>
+        <div class="kpi-sub">créditos · Febrero — Quincena 1</div>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--green)">
+        <div class="kpi-label">Reto Estrella (Ene, Feb, Mar–Jul)</div>
+        <div class="kpi-value">0/14</div>
+        <div class="kpi-sub">quincenas cumplidas</div>
+        <span class="kpi-badge badge-warn">0.0% de cumplimiento</span>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--blue)">
+        <div class="kpi-label">Agosto — En Curso</div>
+        <div class="kpi-value">17.245</div>
+        <div class="kpi-sub">créditos · Quincena 1 (11 de 15 días)</div>
+        <span class="kpi-badge badge-warn">43.1% del RE</span>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--muted)">
+        <div class="kpi-label">Promedio Mensual</div>
+        <div class="kpi-value">33.639</div>
+        <div class="kpi-sub">créditos por mes (7 meses cerrados)</div>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--green)">
+        <div class="kpi-label">Bono de Racha — Julio</div>
+        <div class="kpi-value">—</div>
+        <div class="kpi-sub">En construcción</div>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--orange)">
+        <div class="kpi-label">Total Ene–Jul 2026</div>
+        <div class="kpi-value">235.475</div>
+        <div class="kpi-sub">créditos en 7 meses cerrados</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EVOLUCIÓN -->
+  <section id="evolucion">
+    <div class="section-header">
+      <h2><span class="icon">📈</span> Tu Evolución</h2>
+      <div class="section-divider"></div>
+    </div>
+    <div class="chart-card">
+      <input type="radio" id="rb-monthly" name="evol" checked class="evol-radio">
+      <input type="radio" id="rb-quincena" name="evol" class="evol-radio">
+      <div class="chart-toggle">
+        <label for="rb-monthly" class="toggle-btn">Por Mes</label>
+        <label for="rb-quincena" class="toggle-btn">Por Quincena</label>
+      </div>
+      <div id="view-monthly">
+        <div class="chart-card-title">Producción Mensual — Enero a Julio 2026 + Agosto en curso</div>
+        <div class="chart-card-sub">Total de créditos producidos por mes</div>
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><tr style="background:transparent"><td style="padding:6px 10px;font-size:12px;color:#CBD5E1;font-weight:600;width:40px">Ene</td><td style="padding:6px 8px;min-width:200px"><div style="height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden"><div style="height:10px;width:55%;background:#F5B800;border-radius:5px"></div></div></td><td style="padding:6px 10px;font-size:12px;font-weight:700;color:#F5B800;text-align:right;white-space:nowrap">32.614 cr</td></tr><tr style="background:transparent"><td style="padding:6px 10px;font-size:12px;color:#CBD5E1;font-weight:600;width:40px">Feb</td><td style="padding:6px 8px;min-width:200px"><div style="height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden"><div style="height:10px;width:100%;background:#F5B800;border-radius:5px"></div></div></td><td style="padding:6px 10px;font-size:12px;font-weight:700;color:#F5B800;text-align:right;white-space:nowrap">59.540 cr</td></tr><tr style="background:transparent"><td style="padding:6px 10px;font-size:12px;color:#CBD5E1;font-weight:600;width:40px">Mar</td><td style="padding:6px 8px;min-width:200px"><div style="height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden"><div style="height:10px;width:51%;background:#F5B800;border-radius:5px"></div></div></td><td style="padding:6px 10px;font-size:12px;font-weight:700;color:#F5B800;text-align:right;white-space:nowrap">30.598 cr</td></tr><tr style="background:transparent"><td style="padding:6px 10px;font-size:12px;color:#CBD5E1;font-weight:600;width:40px">Abr</td><td style="padding:6px 8px;min-width:200px"><div style="height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden"><div style="height:10px;width:2%;background:#F5B800;border-radius:5px"></div></div></td><td style="padding:6px 10px;font-size:12px;font-weight:700;color:#F5B800;text-align:right;white-space:nowrap">1.257 cr</td></tr><tr style="background:transparent"><td style="padding:6px 10px;font-size:12px;color:#CBD5E1;font-weight:600;width:40px">May</td><td style="padding:6px 8px;min-width:200px"><div style="height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden"><div style="height:10px;width:44%;background:#F5B800;border-radius:5px"></div></div></td><td style="padding:6px 10px;font-size:12px;font-weight:700;color:#F5B800;text-align:right;white-space:nowrap">26.091 cr</td></tr><tr style="background:transparent"><td style="padding:6px 10px;font-size:12px;color:#CBD5E1;font-weight:600;width:40px">Jun</td><td style="padding:6px 8px;min-width:200px"><div style="height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden"><div style="height:10px;width:74%;background:#F5B800;border-radius:5px"></div></div></td><td style="padding:6px 10px;font-size:12px;font-weight:700;color:#F5B800;text-align:right;white-space:nowrap">44.233 cr</td></tr><tr style="background:transparent"><td style="padding:6px 10px;font-size:12px;color:#CBD5E1;font-weight:600;width:40px">Jul</td><td style="padding:6px 8px;min-width:200px"><div style="height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden"><div style="height:10px;width:69%;background:#F5B800;border-radius:5px"></div></div></td><td style="padding:6px 10px;font-size:12px;font-weight:700;color:#F5B800;text-align:right;white-space:nowrap">41.142 cr</td></tr><tr style="background:rgba(59,130,246,.04)"><td style="padding:6px 10px;font-size:12px;color:#CBD5E1;font-weight:600;width:40px">Ago</td><td style="padding:6px 8px;min-width:200px"><div style="height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden"><div style="height:10px;width:29%;background:#3B82F6;border-radius:5px"></div></div></td><td style="padding:6px 10px;font-size:12px;font-weight:700;color:#3B82F6;text-align:right;white-space:nowrap">17.245 cr <span style="background:#3B82F6;color:#fff;font-size:9px;padding:1px 5px;border-radius:6px">En curso</span></td></tr></table></div>
+      </div>
+      <div id="view-quincena">
+        <div class="chart-card-title">Producción por Quincena</div>
+        <div class="chart-card-sub">Créditos por quincena · RE = 40.000 cr</div>
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><tr><td style="padding:5px 10px;font-size:11px;color:#CBD5E1;width:60px">Ene Q1</td><td style="padding:5px 8px;min-width:180px"><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:8px;width:38%;background:#EF4444;border-radius:4px"></div></div></td><td style="padding:5px 10px;font-size:11px;font-weight:700;color:#EF4444;text-align:right">14.464 cr</td></tr><tr><td style="padding:5px 10px;font-size:11px;color:#CBD5E1;width:60px">Ene Q2</td><td style="padding:5px 8px;min-width:180px"><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:8px;width:48%;background:#EF4444;border-radius:4px"></div></div></td><td style="padding:5px 10px;font-size:11px;font-weight:700;color:#EF4444;text-align:right">18.150 cr</td></tr><tr><td style="padding:5px 10px;font-size:11px;color:#CBD5E1;width:60px">Feb Q1</td><td style="padding:5px 8px;min-width:180px"><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:8px;width:100%;background:#EF4444;border-radius:4px"></div></div></td><td style="padding:5px 10px;font-size:11px;font-weight:700;color:#EF4444;text-align:right">37.627 cr</td></tr><tr><td style="padding:5px 10px;font-size:11px;color:#CBD5E1;width:60px">Feb Q2</td><td style="padding:5px 8px;min-width:180px"><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:8px;width:58%;background:#EF4444;border-radius:4px"></div></div></td><td style="padding:5px 10px;font-size:11px;font-weight:700;color:#EF4444;text-align:right">21.913 cr</td></tr><tr><td style="padding:5px 10px;font-size:11px;color:#CBD5E1;width:60px">Mar Q1</td><td style="padding:5px 8px;min-width:180px"><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:8px;width:29%;background:#EF4444;border-radius:4px"></div></div></td><td style="padding:5px 10px;font-size:11px;font-weight:700;color:#EF4444;text-align:right">10.958 cr</td></tr><tr><td style="padding:5px 10px;font-size:11px;color:#CBD5E1;width:60px">Mar Q2</td><td style="padding:5px 8px;min-width:180px"><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:8px;width:52%;background:#EF4444;border-radius:4px"></div></div></td><td style="padding:5px 10px;font-size:11px;font-weight:700;color:#EF4444;text-align:right">19.640 cr</td></tr><tr><td style="padding:5px 10px;font-size:11px;color:#CBD5E1;width:60px">Abr Q1</td><td style="padding:5px 8px;min-width:180px"><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:8px;width:1%;background:#EF4444;border-radius:4px"></div></div></td><td style="padding:5px 10px;font-size:11px;font-weight:700;color:#EF4444;text-align:right">500 cr</td></tr><tr><td style="padding:5px 10px;font-size:11px;color:#CBD5E1;width:60px">Abr Q2</td><td style="padding:5px 8px;min-width:180px"><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:8px;width:2%;background:#EF4444;border-radius:4px"></div></div></td><td style="padding:5px 10px;font-size:11px;font-weight:700;color:#EF4444;text-align:right">757 cr</td></tr><tr><td style="padding:5px 10px;font-size:11px;color:#CBD5E1;width:60px">May Q1</td><td style="padding:5px 8px;min-width:180px"><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:8px;width:26%;background:#EF4444;border-radius:4px"></div></div></td><td style="padding:5px 10px;font-size:11px;font-weight:700;color:#EF4444;text-align:right">9.787 cr</td></tr><tr><td style="padding:5px 10px;font-size:11px;color:#CBD5E1;width:60px">May Q2</td><td style="padding:5px 8px;min-width:180px"><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:8px;width:43%;background:#EF4444;border-radius:4px"></div></div></td><td style="padding:5px 10px;font-size:11px;font-weight:700;color:#EF4444;text-align:right">16.304 cr</td></tr><tr><td style="padding:5px 10px;font-size:11px;color:#CBD5E1;width:60px">Jun Q1</td><td style="padding:5px 8px;min-width:180px"><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:8px;width:58%;background:#EF4444;border-radius:4px"></div></div></td><td style="padding:5px 10px;font-size:11px;font-weight:700;color:#EF4444;text-align:right">21.872 cr</td></tr><tr><td style="padding:5px 10px;font-size:11px;color:#CBD5E1;width:60px">Jun Q2</td><td style="padding:5px 8px;min-width:180px"><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:8px;width:59%;background:#EF4444;border-radius:4px"></div></div></td><td style="padding:5px 10px;font-size:11px;font-weight:700;color:#EF4444;text-align:right">22.361 cr</td></tr><tr><td style="padding:5px 10px;font-size:11px;color:#CBD5E1;width:60px">Jul Q1</td><td style="padding:5px 8px;min-width:180px"><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:8px;width:55%;background:#EF4444;border-radius:4px"></div></div></td><td style="padding:5px 10px;font-size:11px;font-weight:700;color:#EF4444;text-align:right">20.855 cr</td></tr><tr><td style="padding:5px 10px;font-size:11px;color:#CBD5E1;width:60px">Jul Q2</td><td style="padding:5px 8px;min-width:180px"><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:8px;width:54%;background:#EF4444;border-radius:4px"></div></div></td><td style="padding:5px 10px;font-size:11px;font-weight:700;color:#EF4444;text-align:right">20.287 cr</td></tr><tr><td style="padding:5px 10px;font-size:11px;color:#CBD5E1;width:60px">Ago Q1</td><td style="padding:5px 8px;min-width:180px"><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:8px;width:46%;background:#3B82F6;border-radius:4px"></div></div></td><td style="padding:5px 10px;font-size:11px;font-weight:700;color:#3B82F6;text-align:right">17.245 cr</td></tr></table></div>
+      </div>
+    </div>
+    <div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="chart-card" style="padding:16px">
+        <div class="chart-card-title" style="margin-bottom:8px">📊 Julio — Cerrado</div>
+        <div style="font-size:13px;color:#CBD5E1;line-height:1.7">
+          Julio cerró con 41.142 cr
+          (Q1: 20.855 cr ❌ · 
+          Q2: 20.287 cr ❌).
+          .
+        </div>
+      </div>
+      <div class="chart-card" style="padding:16px">
+        <div class="chart-card-title" style="margin-bottom:8px">📅 Agosto — En Progreso</div>
+        <div style="font-size:13px;color:#CBD5E1;line-height:1.7">
+          Agosto Q1 acumula 17.245 cr en 11 días (43.1% del RE de 40.000 cr).
+          Ritmo diario: 1.568 cr/día. Proyección al día 15: 23.520 cr.
+        </div>
+      </div>
+    </div>
+    <div class="tri-grid" style="margin-top:20px">
+      <div class="tri-card">
+        <div class="tri-label">Primer Trimestre ✅</div>
+        <div class="tri-credits">122.752</div>
+        <div class="tri-usd" style="color:#94A3B8;font-size:11px">Cerrado</div>
+        <div class="tri-re" style="font-size:11px;color:#94A3B8">0/6 RE cumplidos</div>
+      </div>
+      <div class="tri-card">
+        <div class="tri-label">Segundo Trimestre ✅</div>
+        <div class="tri-credits">71.581</div>
+        <div class="tri-usd" style="color:#94A3B8;font-size:11px">Cerrado</div>
+        <div class="tri-re" style="font-size:11px;color:#94A3B8">0/6 RE cumplidos</div>
+      </div>
+      <div class="tri-card">
+        <div class="tri-label">Tercer Trimestre ⏳</div>
+        <div class="tri-credits">58.387</div>
+        <div class="tri-usd" style="color:#94A3B8;font-size:11px">En progreso</div>
+        <div class="tri-re" style="font-size:11px;color:#94A3B8">0/2 RE cumplidos</div>
+      </div></div>
+
+  <!-- RETO ESTRELLA -->
+  <section id="reto-estrella">
+    <div class="section-header">
+      <h2><span class="icon">⭐</span> Tu Historia con el Reto Estrella</h2>
+      <div class="section-divider"></div>
+      <p>14 quincenas evaluadas con RE histórico 40.000 cr. Agosto Quincena 1 en progreso.</p>
+    </div>
+    <div class="re-stats">
+      <div class="re-stat">
+        <div class="re-stat-num" style="color:var(--green)">0</div>
+        <div class="re-stat-label">RE CUMPLIDOS</div>
+      </div>
+      <div class="re-stat">
+        <div class="re-stat-num" style="color:var(--red)">14</div>
+        <div class="re-stat-label">NO CUMPLIDOS</div>
+      </div>
+      <div class="re-stat">
+        <div class="re-stat-num" style="color:var(--gold)">0.0%</div>
+        <div class="re-stat-label">CUMPLIMIENTO</div>
+      </div>
+      <div class="re-stat">
+        <div class="re-stat-num" style="color:var(--blue)">0</div>
+        <div class="re-stat-label">RACHA ACTUAL</div>
+      </div>
+    </div>
+    <div class="re-timeline"><div class="re-block missed"><span class="re-block-icon">❌</span><div class="re-block-period">Enero — Quincena 1</div><div class="re-block-credits">14.464</div><div class="re-block-pct">36.2%</div></div><div class="re-block missed"><span class="re-block-icon">❌</span><div class="re-block-period">Enero — Quincena 2</div><div class="re-block-credits">18.150</div><div class="re-block-pct">45.4%</div></div><div class="re-block missed"><span class="re-block-icon">❌</span><div class="re-block-period">Febrero — Quincena 1</div><div class="re-block-credits">37.627</div><div class="re-block-pct">94.1%</div></div><div class="re-block missed"><span class="re-block-icon">❌</span><div class="re-block-period">Febrero — Quincena 2</div><div class="re-block-credits">21.913</div><div class="re-block-pct">54.8%</div></div><div class="re-block missed"><span class="re-block-icon">❌</span><div class="re-block-period">Marzo — Quincena 1</div><div class="re-block-credits">10.958</div><div class="re-block-pct">27.4%</div></div><div class="re-block missed"><span class="re-block-icon">❌</span><div class="re-block-period">Marzo — Quincena 2</div><div class="re-block-credits">19.640</div><div class="re-block-pct">49.1%</div></div><div class="re-block missed"><span class="re-block-icon">❌</span><div class="re-block-period">Abril — Quincena 1</div><div class="re-block-credits">500</div><div class="re-block-pct">1.2%</div></div><div class="re-block missed"><span class="re-block-icon">❌</span><div class="re-block-period">Abril — Quincena 2</div><div class="re-block-credits">757</div><div class="re-block-pct">1.9%</div></div><div class="re-block missed"><span class="re-block-icon">❌</span><div class="re-block-period">Mayo — Quincena 1</div><div class="re-block-credits">9.787</div><div class="re-block-pct">24.5%</div></div><div class="re-block missed"><span class="re-block-icon">❌</span><div class="re-block-period">Mayo — Quincena 2</div><div class="re-block-credits">16.304</div><div class="re-block-pct">40.8%</div></div><div class="re-block missed"><span class="re-block-icon">❌</span><div class="re-block-period">Junio — Quincena 1</div><div class="re-block-credits">21.872</div><div class="re-block-pct">54.7%</div></div><div class="re-block missed"><span class="re-block-icon">❌</span><div class="re-block-period">Junio — Quincena 2</div><div class="re-block-credits">22.361</div><div class="re-block-pct">55.9%</div></div><div class="re-block missed"><span class="re-block-icon">❌</span><div class="re-block-period">Julio — Quincena 1</div><div class="re-block-credits">20.855</div><div class="re-block-pct">52.1%</div></div><div class="re-block missed"><span class="re-block-icon">❌</span><div class="re-block-period">Julio — Quincena 2</div><div class="re-block-credits">20.287</div><div class="re-block-pct">50.7%</div></div><div class="re-block in-progress"><span class="re-block-icon">⏳</span><div class="re-block-period">Agosto Q1</div><div class="re-block-credits">17.245</div><div class="re-block-pct">43.1%</div></div>
+    </div>
+  </section>
+
+  <!-- TOP 20 -->
+  <section id="top20">
+    <div class="section-header">
+      <h2><span class="icon">🏆</span> Top 20 — Grupo Empresarial J&amp;D</h2>
+      <div class="section-divider"></div>
+      <p>Ranking oficial Grupo Empresarial J&amp;D · Agosto 2026 · Datos al 11 de agosto de 2026 · ↑↓ variación vs día anterior</p>
+    </div>
+    <div style="display:flex;gap:14px;margin-bottom:24px;flex-wrap:wrap"><div style="flex:1;min-width:140px;background:linear-gradient(135deg,rgba(245,184,0,.25),rgba(245,184,0,.08));border:2px solid #F5B800;border-radius:16px;padding:20px 14px;text-align:center"><div style="font-size:36px;margin-bottom:8px">🥇</div><div style="font-size:11px;font-weight:800;color:#F5B800;letter-spacing:.04em;margin-bottom:2px">#1</div><div style="font-size:14px;font-weight:700;color:#F1F5F9;margin-bottom:6px;line-height:1.3">Dion Seans</div><div style="font-size:11px;color:#64748B;margin-bottom:6px">Gold Online</div><span style="color:#64748B;font-size:11px;margin-left:8px">—</span></div><div style="flex:1;min-width:140px;background:linear-gradient(135deg,rgba(203,213,225,.2),rgba(203,213,225,.05));border:2px solid #94A3B8;border-radius:16px;padding:20px 14px;text-align:center"><div style="font-size:36px;margin-bottom:8px">🥈</div><div style="font-size:11px;font-weight:800;color:#94A3B8;letter-spacing:.04em;margin-bottom:2px">#2</div><div style="font-size:14px;font-weight:700;color:#F1F5F9;margin-bottom:6px;line-height:1.3">Nicol Miller</div><div style="font-size:11px;color:#64748B;margin-bottom:6px">CyV Studios</div><span style="color:#64748B;font-size:11px;margin-left:8px">—</span></div><div style="flex:1;min-width:140px;background:linear-gradient(135deg,rgba(205,127,50,.2),rgba(205,127,50,.05));border:2px solid #B87333;border-radius:16px;padding:20px 14px;text-align:center"><div style="font-size:36px;margin-bottom:8px">🥉</div><div style="font-size:11px;font-weight:800;color:#B87333;letter-spacing:.04em;margin-bottom:2px">#3</div><div style="font-size:14px;font-weight:700;color:#F1F5F9;margin-bottom:6px;line-height:1.3">Lucia Brown</div><div style="font-size:11px;color:#64748B;margin-bottom:6px">Fornax Studios</div><span style="color:#64748B;font-size:11px;margin-left:8px">—</span></div></div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:300px"><tr style="background:rgba(255,255,255,.04);border:1px solid transparent;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#4</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Isabella Winkler</td><td style="padding:8px 6px;font-size:11px;color:#64748B">Fornax Studios</td><td style="padding:8px 10px;text-align:right"><span style="color:#22C55E;font-size:11px;font-weight:700;margin-left:8px">↑ +1</span></td></tr><tr style="background:transparent;border:1px solid transparent;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#5</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Emilly Beaumont</td><td style="padding:8px 6px;font-size:11px;color:#64748B">Fornax Studios</td><td style="padding:8px 10px;text-align:right"><span style="color:#EF4444;font-size:11px;font-weight:700;margin-left:8px">↓ -1</span></td></tr><tr style="background:rgba(255,255,255,.04);border:1px solid transparent;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#6</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Katt Souza</td><td style="padding:8px 6px;font-size:11px;color:#64748B">Fornax Studios</td><td style="padding:8px 10px;text-align:right"><span style="color:#22C55E;font-size:11px;font-weight:700;margin-left:8px">↑ +5</span></td></tr><tr style="background:transparent;border:1px solid transparent;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#7</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Maximo & Marcelo</td><td style="padding:8px 6px;font-size:11px;color:#64748B">Fornax Studios</td><td style="padding:8px 10px;text-align:right"><span style="color:#22C55E;font-size:11px;font-weight:700;margin-left:8px">↑ +3</span></td></tr><tr style="background:rgba(255,255,255,.04);border:1px solid transparent;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#8</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Isa Raven</td><td style="padding:8px 6px;font-size:11px;color:#64748B">Fornax Studios</td><td style="padding:8px 10px;text-align:right"><span style="color:#EF4444;font-size:11px;font-weight:700;margin-left:8px">↓ -2</span></td></tr><tr style="background:rgba(59,130,246,.1);border:1px solid #3B82F6;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#9</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Katherine Bond<span style="background:#3B82F6;color:#fff;font-size:8px;padding:1px 5px;border-radius:8px;font-weight:700;margin-left:6px">TÚ</span></td><td style="padding:8px 6px;font-size:11px;color:#64748B">Fornax Studios</td><td style="padding:8px 10px;text-align:right"><span style="color:#EF4444;font-size:11px;font-weight:700;margin-left:8px">↓ -2</span></td></tr><tr style="background:rgba(255,255,255,.04);border:1px solid transparent;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#10</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Chloe Monroee</td><td style="padding:8px 6px;font-size:11px;color:#64748B">Gold Online</td><td style="padding:8px 10px;text-align:right"><span style="color:#EF4444;font-size:11px;font-weight:700;margin-left:8px">↓ -2</span></td></tr><tr style="background:transparent;border:1px solid transparent;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#11</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Mia Monrroe</td><td style="padding:8px 6px;font-size:11px;color:#64748B">Fornax Studios</td><td style="padding:8px 10px;text-align:right"><span style="color:#EF4444;font-size:11px;font-weight:700;margin-left:8px">↓ -2</span></td></tr><tr style="background:rgba(255,255,255,.04);border:1px solid transparent;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#12</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Zac Levis</td><td style="padding:8px 6px;font-size:11px;color:#64748B">Gold Online</td><td style="padding:8px 10px;text-align:right"><span style="color:#64748B;font-size:11px;margin-left:8px">—</span></td></tr><tr style="background:transparent;border:1px solid transparent;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#13</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Juli Saenz</td><td style="padding:8px 6px;font-size:11px;color:#64748B">Fornax Studios</td><td style="padding:8px 10px;text-align:right"><span style="color:#64748B;font-size:11px;margin-left:8px">—</span></td></tr><tr style="background:rgba(255,255,255,.04);border:1px solid transparent;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#14</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Connie Deep</td><td style="padding:8px 6px;font-size:11px;color:#64748B">Kama Studio</td><td style="padding:8px 10px;text-align:right"><span style="color:#64748B;font-size:11px;margin-left:8px">—</span></td></tr><tr style="background:transparent;border:1px solid transparent;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#15</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Josh Miller</td><td style="padding:8px 6px;font-size:11px;color:#64748B">Gold Online</td><td style="padding:8px 10px;text-align:right"><span style="color:#22C55E;font-size:11px;font-weight:700;margin-left:8px">↑ +7</span></td></tr><tr style="background:rgba(255,255,255,.04);border:1px solid transparent;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#16</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Apolo Lux</td><td style="padding:8px 6px;font-size:11px;color:#64748B">Gold Online</td><td style="padding:8px 10px;text-align:right"><span style="color:#22C55E;font-size:11px;font-weight:700;margin-left:8px">↑ +1</span></td></tr><tr style="background:transparent;border:1px solid transparent;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#17</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Cynthia Adams</td><td style="padding:8px 6px;font-size:11px;color:#64748B">Fornax Studios</td><td style="padding:8px 10px;text-align:right"><span style="color:#EF4444;font-size:11px;font-weight:700;margin-left:8px">↓ -2</span></td></tr><tr style="background:rgba(255,255,255,.04);border:1px solid transparent;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#18</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Erza Elric</td><td style="padding:8px 6px;font-size:11px;color:#64748B">Fornax Studios</td><td style="padding:8px 10px;text-align:right"><span style="color:#EF4444;font-size:11px;font-weight:700;margin-left:8px">↓ -2</span></td></tr><tr style="background:transparent;border:1px solid transparent;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#19</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Vanesa Foxy</td><td style="padding:8px 6px;font-size:11px;color:#64748B">Fornax Studios</td><td style="padding:8px 10px;text-align:right"><span style="color:#22C55E;font-size:11px;font-weight:700;margin-left:8px">↑ +4</span></td></tr><tr style="background:rgba(255,255,255,.04);border:1px solid transparent;border-radius:6px"><td style="padding:8px 10px;font-size:13px;font-weight:700;color:#94A3B8;width:36px">#20</td><td style="padding:8px 6px;font-size:13px;color:#F1F5F9">Alexander Ferrer</td><td style="padding:8px 6px;font-size:11px;color:#64748B">Gold Online</td><td style="padding:8px 10px;text-align:right"><span style="color:#EF4444;font-size:11px;font-weight:700;margin-left:8px">↓ -2</span></td></tr></table></div>
+  </section>
+
+  <!-- EVOLUCIÓN DIARIA -->
+  <section id="evolucion-diaria">
+    <div class="section-header">
+      <h2><span class="icon">📅</span> Mi Evolución Diaria — Agosto 2026</h2>
+      <div class="section-divider"></div>
+      <p>Producción por día · Período: 1 al 11 de agosto 2026 · Reto Estrella Agosto: 40.000 cr</p>
+    </div>
+    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+      <div style="background:rgba(245,184,0,.08);border:1px solid rgba(245,184,0,.3);border-radius:10px;padding:14px 18px;min-width:130px;text-align:center">
+        <div style="font-size:10px;color:#94A3B8;margin-bottom:4px">Total acumulado</div>
+        <div style="font-size:22px;font-weight:900;color:#F5B800">17.245</div>
+        <div style="font-size:10px;color:#94A3B8">créditos · 11 días</div>
+      </div>
+      <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.3);border-radius:10px;padding:14px 18px;min-width:130px;text-align:center">
+        <div style="font-size:10px;color:#94A3B8;margin-bottom:4px">Promedio diario</div>
+        <div style="font-size:22px;font-weight:900;color:#3B82F6">1.568</div>
+        <div style="font-size:10px;color:#94A3B8">cr/día (ritmo actual)</div>
+      </div>
+      <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);border-radius:10px;padding:14px 18px;min-width:130px;text-align:center">
+        <div style="font-size:10px;color:#94A3B8;margin-bottom:4px">Proyección Quincena 1</div>
+        <div style="font-size:22px;font-weight:900;color:#F59E0B">23.520</div>
+        <div style="font-size:10px;color:#94A3B8">cr (a este ritmo)</div>
+      </div>
+      <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:14px 18px;min-width:130px;text-align:center">
+        <div style="font-size:10px;color:#94A3B8;margin-bottom:4px">RE Agosto Q1</div>
+        <div style="font-size:22px;font-weight:900;color:#EF4444">40.000</div>
+        <div style="font-size:10px;color:#94A3B8">créditos · meta</div>
+      </div>
+    </div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;color:#94A3B8;margin-bottom:6px">Progreso del RE — Agosto Quincena 1 (43.1%)</div>
+      <div style="height:12px;background:rgba(255,255,255,.08);border-radius:6px;overflow:hidden">
+        <div style="height:12px;width:43%;background:#F5B800;border-radius:6px;transition:width .5s"></div>
+      </div>
+      <div style="font-size:10px;color:#94A3B8;margin-top:4px">17.245 de 40.000 cr · 22.755 cr restantes para cumplir el RE</div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Detalle por día y plataforma</div>
+      <div class="chart-card-sub">Créditos producidos cada día · Datos disponibles del 1 al 11 de agosto 2026</div>
+      <div style="margin-top:12px">
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:380px"><tr style="background:rgba(255,255,255,.06)"><th style="padding:8px 10px;font-size:11px;color:#94A3B8;font-weight:600;text-align:left">Fecha</th><th style="padding:8px 10px;font-size:11px;color:#94A3B8;font-weight:600;text-align:right">Flirt4Free</th><th style="padding:8px 10px;font-size:11px;color:#94A3B8;font-weight:600;text-align:right">Stripchat</th><th style="padding:8px 10px;font-size:11px;color:#94A3B8;font-weight:600;text-align:right">Chaturbate</th><th style="padding:8px 10px;font-size:11px;color:#94A3B8;font-weight:600;text-align:right">Total</th></tr><tr style="background:transparent"><td style="padding:7px 10px;font-size:12px;color:#CBD5E1;font-weight:600">1 ago</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">500</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:13px;font-weight:700;text-align:right;color:#F5B800">500</td></tr><tr style="background:rgba(255,255,255,.04)"><td style="padding:7px 10px;font-size:12px;color:#CBD5E1;font-weight:600">2 ago</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td></tr><tr style="background:transparent"><td style="padding:7px 10px;font-size:12px;color:#CBD5E1;font-weight:600">3 ago</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">865</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">623</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:13px;font-weight:700;text-align:right;color:#F5B800">1.488</td></tr><tr style="background:rgba(255,255,255,.04)"><td style="padding:7px 10px;font-size:12px;color:#CBD5E1;font-weight:600">4 ago</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">874</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">144</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:13px;font-weight:700;text-align:right;color:#F5B800">1.018</td></tr><tr style="background:transparent"><td style="padding:7px 10px;font-size:12px;color:#CBD5E1;font-weight:600">5 ago</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">114</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">4.510</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">343</td><td style="padding:7px 10px;font-size:13px;font-weight:700;text-align:right;color:#F5B800">4.967</td></tr><tr style="background:rgba(255,255,255,.04)"><td style="padding:7px 10px;font-size:12px;color:#CBD5E1;font-weight:600">6 ago</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">125</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">86</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">1.130</td><td style="padding:7px 10px;font-size:13px;font-weight:700;text-align:right;color:#F5B800">1.341</td></tr><tr style="background:transparent"><td style="padding:7px 10px;font-size:12px;color:#CBD5E1;font-weight:600">7 ago</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">301</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">1.146</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">226</td><td style="padding:7px 10px;font-size:13px;font-weight:700;text-align:right;color:#F5B800">1.673</td></tr><tr style="background:rgba(255,255,255,.04)"><td style="padding:7px 10px;font-size:12px;color:#CBD5E1;font-weight:600">8 ago</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">647</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">2.375</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">1.057</td><td style="padding:7px 10px;font-size:13px;font-weight:700;text-align:right;color:#F5B800">4.079</td></tr><tr style="background:transparent"><td style="padding:7px 10px;font-size:12px;color:#CBD5E1;font-weight:600">9 ago</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td></tr><tr style="background:rgba(255,255,255,.04)"><td style="padding:7px 10px;font-size:12px;color:#CBD5E1;font-weight:600">10 ago</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">490</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">949</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">549</td><td style="padding:7px 10px;font-size:13px;font-weight:700;text-align:right;color:#F5B800">1.988</td></tr><tr style="background:transparent"><td style="padding:7px 10px;font-size:12px;color:#CBD5E1;font-weight:600">11 ago</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">190</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#F5B800">1</td><td style="padding:7px 10px;font-size:13px;font-weight:700;text-align:right;color:#F5B800">191</td></tr><tr style="background:rgba(255,255,255,.04)"><td style="padding:7px 10px;font-size:12px;color:#CBD5E1;font-weight:600">12 ago</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td></tr><tr style="background:transparent"><td style="padding:7px 10px;font-size:12px;color:#CBD5E1;font-weight:600">13 ago</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td></tr><tr style="background:rgba(255,255,255,.04)"><td style="padding:7px 10px;font-size:12px;color:#CBD5E1;font-weight:600">14 ago</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td></tr><tr style="background:transparent"><td style="padding:7px 10px;font-size:12px;color:#CBD5E1;font-weight:600">15 ago</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#475569">—</td></tr><tr style="background:rgba(245,184,0,.08);border-top:2px solid rgba(245,184,0,.3)"><td style="padding:8px 10px;font-size:12px;font-weight:700;color:#F5B800">TOTAL</td><td style="padding:8px 10px;font-size:12px;font-weight:700;text-align:right;color:#F5B800">3.416</td><td style="padding:8px 10px;font-size:12px;font-weight:700;text-align:right;color:#F5B800">10.523</td><td style="padding:8px 10px;font-size:12px;font-weight:700;text-align:right;color:#F5B800">3.306</td><td style="padding:8px 10px;font-size:14px;font-weight:900;text-align:right;color:#F5B800">17.245</td></tr></table></div>
+      </div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:#475569;text-align:center">
+      Datos actualizados al 12/08/2026 – 23:59 · Los días pendientes se completarán con cada actualización del sistema
+    </div>
+  </section>
+
+  <!-- BONO DE RACHA -->
+  <section id="bono-racha">
+    <div class="section-header">
+      <h2><span class="icon">💚</span> Tu Bono de Racha — Ciclo Julio–Septiembre 2026</h2>
+      <div class="section-divider"></div>
+      <p>Cada quincena sin cumplir el RE reinicia el consecutivo desde cero.</p>
+    </div>
+    <div style="margin-bottom:20px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.3);border-radius:14px;padding:18px 24px;text-align:center">
+      <div style="font-size:32px;margin-bottom:8px">⏳</div>
+      <div style="font-size:20px;font-weight:900;color:#F5B800;letter-spacing:.04em">💪 BONO DE RACHA EN CONSTRUCCIÓN</div>
+      <div style="font-size:13px;color:#CBD5E1;margin-top:6px">Construye quincenas consecutivas con RE cumplido para desbloquear el bono.</div>
+    </div>
+    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+      <div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;padding:12px 20px;text-align:center;min-width:120px">
+        <div style="font-size:11px;color:#94A3B8;margin-bottom:4px">Consecutivas cerradas</div>
+        <div style="font-size:28px;font-weight:900;color:#22C55E;line-height:1">0</div>
+        <div style="font-size:10px;color:#22C55E">0 quincena(s) consecutiva(s)</div>
+      </div>
+      <div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;padding:12px 20px;text-align:center;min-width:120px">
+        <div style="font-size:11px;color:#94A3B8;margin-bottom:4px">Bono ganado</div>
+        <div style="font-size:28px;font-weight:900;color:#22C55E;line-height:1">USD 0</div>
+        <div style="font-size:10px;color:#22C55E">En construcción</div>
+      </div>
+      <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.3);border-radius:10px;padding:12px 20px;text-align:center;min-width:120px">
+        <div style="font-size:11px;color:#94A3B8;margin-bottom:4px">Agosto — en curso</div>
+        <div style="font-size:28px;font-weight:900;color:#3B82F6;line-height:1">17.245</div>
+        <div style="font-size:10px;color:#3B82F6">cr · 11 de 15 días</div>
+      </div>
+      <div style="background:rgba(245,184,0,.08);border:1px solid rgba(245,184,0,.3);border-radius:10px;padding:12px 20px;text-align:center;min-width:120px">
+        <div style="font-size:11px;color:#94A3B8;margin-bottom:4px">Potencial ciclo completo</div>
+        <div style="font-size:28px;font-weight:900;color:#F5B800;line-height:1">USD 85</div>
+        <div style="font-size:10px;color:#F5B800">máximo del ciclo</div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Ciclo Julio–Septiembre 2026 · Detalle de resultados</div>
+      <div class="chart-card-sub">RE: 40.000 cr · Si no cumple el RE en una quincena, el consecutivo se reinicia desde cero</div>
+      <div style="margin-top:12px;overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;min-width:480px">
+          <tr style="background:rgba(255,255,255,.06)">
+            <th style="padding:8px 10px;font-size:11px;color:#94A3B8;font-weight:600;text-align:left">Período</th>
+            <th style="padding:8px 10px;font-size:11px;color:#94A3B8;font-weight:600;text-align:left">Resultado</th>
+            <th style="padding:8px 10px;font-size:11px;color:#94A3B8;font-weight:600;text-align:left">Racha</th>
+            <th style="padding:8px 10px;font-size:11px;color:#94A3B8;font-weight:600;text-align:left">Bono</th>
+          </tr>
+          <tr style="background:transparent">
+            <td style="padding:7px 10px;font-size:12px;color:#CBD5E1;border-bottom:1px solid rgba(255,255,255,.06)">Julio — Quincena 1</td>
+            <td style="padding:7px 10px;font-size:11px;color:#EF4444;border-bottom:1px solid rgba(255,255,255,.06)">❌ No cumplió · 20.855 (52.1%)</td>
+            <td style="padding:7px 10px;font-size:11px;color:#94A3B8;border-bottom:1px solid rgba(255,255,255,.06)">Racha reiniciada</td>
+            <td style="padding:7px 10px;font-size:12px;font-weight:700;color:#94A3B8;border-bottom:1px solid rgba(255,255,255,.06)">USD 0 (base)</td>
+          </tr>
+          <tr style="background:transparent">
+            <td style="padding:7px 10px;font-size:12px;color:#CBD5E1;border-bottom:1px solid rgba(255,255,255,.06)">Julio — Quincena 2</td>
+            <td style="padding:7px 10px;font-size:11px;color:#EF4444;border-bottom:1px solid rgba(255,255,255,.06)">❌ No cumplió · 20.287 (50.7%)</td>
+            <td style="padding:7px 10px;font-size:11px;color:#94A3B8;border-bottom:1px solid rgba(255,255,255,.06)">Racha reiniciada</td>
+            <td style="padding:7px 10px;font-size:12px;font-weight:700;color:#94A3B8;border-bottom:1px solid rgba(255,255,255,.06)">USD 0 (base)</td>
+          </tr>
+          <tr style="background:rgba(59,130,246,.05)">
+            <td style="padding:7px 10px;font-size:12px;color:#CBD5E1;border-bottom:1px solid rgba(255,255,255,.06)">Agosto — Quincena 1</td>
+            <td style="padding:7px 10px;font-size:11px;color:#3B82F6;border-bottom:1px solid rgba(255,255,255,.06)">En curso · 17.245 (43.1%)</td>
+            <td style="padding:7px 10px;font-size:11px;color:#94A3B8;border-bottom:1px solid rgba(255,255,255,.06)">Consecutivo 1 → USD 0</td>
+            <td style="padding:7px 10px;font-size:12px;font-weight:700;color:#3B82F6;border-bottom:1px solid rgba(255,255,255,.06)">USD 0 (base)</td>
+          </tr>
+          <tr style="background:rgba(59,130,246,.05)">
+            <td style="padding:7px 10px;font-size:12px;color:#CBD5E1;border-bottom:1px solid rgba(255,255,255,.06)">Agosto — Quincena 2</td>
+            <td style="padding:7px 10px;font-size:11px;color:#475569;border-bottom:1px solid rgba(255,255,255,.06)">Pendiente— </td>
+            <td style="padding:7px 10px;font-size:11px;color:#94A3B8;border-bottom:1px solid rgba(255,255,255,.06)">Consecutivo 2 → USD 8</td>
+            <td style="padding:7px 10px;font-size:12px;font-weight:700;color:#3B82F6;border-bottom:1px solid rgba(255,255,255,.06)">USD 8 (si cumple RE)</td>
+          </tr>
+          <tr style="background:rgba(59,130,246,.05)">
+            <td style="padding:7px 10px;font-size:12px;color:#CBD5E1;border-bottom:1px solid rgba(255,255,255,.06)">Septiembre — Quincena 1</td>
+            <td style="padding:7px 10px;font-size:11px;color:#475569;border-bottom:1px solid rgba(255,255,255,.06)">Pendiente— </td>
+            <td style="padding:7px 10px;font-size:11px;color:#94A3B8;border-bottom:1px solid rgba(255,255,255,.06)">Consecutivo 3 → USD 12</td>
+            <td style="padding:7px 10px;font-size:12px;font-weight:700;color:#3B82F6;border-bottom:1px solid rgba(255,255,255,.06)">USD 12 (si cumple RE)</td>
+          </tr>
+          <tr style="background:rgba(59,130,246,.05)">
+            <td style="padding:7px 10px;font-size:12px;color:#CBD5E1;border-bottom:1px solid rgba(255,255,255,.06)">Septiembre — Quincena 2</td>
+            <td style="padding:7px 10px;font-size:11px;color:#475569;border-bottom:1px solid rgba(255,255,255,.06)">Pendiente— </td>
+            <td style="padding:7px 10px;font-size:11px;color:#94A3B8;border-bottom:1px solid rgba(255,255,255,.06)">Consecutivo 4 → USD 18</td>
+            <td style="padding:7px 10px;font-size:12px;font-weight:700;color:#3B82F6;border-bottom:1px solid rgba(255,255,255,.06)">USD 18 (si cumple RE)</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEJORES MOMENTOS -->
+  <section>
+    <div class="section-header">
+      <h2><span class="icon">🏆</span> Tus Mejores Momentos</h2>
+      <div class="section-divider"></div>
+      <p>Los hitos más importantes — Enero a Julio 2026.</p>
+    </div>
+    <div class="highlight-grid">
+      <div class="highlight-card">
+        <span class="highlight-emoji">🚀</span>
+        <div class="highlight-title">Récord Personal</div>
+        <div class="highlight-value">37.627 cr</div>
+        <div class="highlight-desc">Febrero — Quincena 1 · 94.1% del RE.</div>
+      </div>
+      <div class="highlight-card">
+        <span class="highlight-emoji">📅</span>
+        <div class="highlight-title">Mejor Mes (Enero–Julio)</div>
+        <div class="highlight-value">59.540 cr</div>
+        <div class="highlight-desc">Febrero 2026 — Mes de mayor producción.</div>
+      </div>
+      <div class="highlight-card">
+        <span class="highlight-emoji">🔥</span>
+        <div class="highlight-title">Racha Activa</div>
+        <div class="highlight-value">0 quincenas</div>
+        <div class="highlight-desc">Quincenas consecutivas con RE cumplido al cierre de Julio.</div>
+      </div>
+      <div class="highlight-card">
+        <span class="highlight-emoji">💎</span>
+        <div class="highlight-title">Total Enero–Julio</div>
+        <div class="highlight-value">235.475 cr</div>
+        <div class="highlight-desc">Producción total de enero a julio 2026.</div>
+      </div>
+      <div class="highlight-card">
+        <span class="highlight-emoji">⭐</span>
+        <div class="highlight-title">Nivel Alcanzado</div>
+        <div class="highlight-value">LLAMA</div>
+        <div class="highlight-desc">Nivel Llama del programa Fornax Nova.</div>
+      </div>
+      <div class="highlight-card">
+        <span class="highlight-emoji">🎯</span>
+        <div class="highlight-title">RE Cumplimiento</div>
+        <div class="highlight-value">0/14</div>
+        <div class="highlight-desc">0.0% de quincenas con Reto Estrella cumplido.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MI PROCESO -->
+  <section id="mi-proceso">
+    <div class="section-header">
+      <h2><span class="icon">🗂</span> Lo que Hemos Venido Trabajando</h2>
+      <div class="section-divider"></div>
+      <p>Evolución documentada — corte 12 de agosto de 2026.</p>
+    </div>
+    <div class="list-card">
+      <div class="process-timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:#F5B800"></div>
+          <div class="timeline-period">Primer Trimestre 2026 · CERRADO</div>
+          <span class="timeline-type type-dato">0/6 RE</span>
+          <div class="timeline-text">Cerrado con 122.752 cr y 0/6 quincenas cumplidas.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:#F5B800"></div>
+          <div class="timeline-period">Segundo Trimestre 2026 · CERRADO</div>
+          <span class="timeline-type type-dato">0/6 RE</span>
+          <div class="timeline-text">Cerrado con 71.581 cr y 0/6 quincenas cumplidas.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:#3B82F6"></div>
+          <div class="timeline-period">Tercer Trimestre 2026</div>
+          <span class="timeline-type type-dato">En curso</span>
+          <div class="timeline-text">Acumula 58.387 cr hasta la fecha.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:#3B82F6"></div>
+          <div class="timeline-period">Agosto 2026 · En Progreso (11-11 de agosto)</div>
+          <span class="timeline-type" style="background:rgba(59,130,246,.15);color:#3B82F6">En curso</span>
+          <div class="timeline-text">Agosto Q1 acumula <strong style="color:#3B82F6">17.245 créditos</strong> en 11 días (43.1% del RE de 40.000 cr). Restan 22.755 cr para cumplir el RE del período.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORTALEZAS -->
+  <section id="fortalezas">
+    <div class="section-header">
+      <h2><span class="icon">💪</span> Lo que Estás Haciendo Bien</h2>
+      <div class="section-divider"></div>
+      <p>Fortalezas identificadas a partir de los resultados reales.</p>
+    </div>
+    <div class="two-col">
+      <div class="list-card">
+        <div class="list-item">
+          <div class="list-num num-green">1</div>
+          <div><div class="list-content-title">Producción sostenida</div>
+          <div class="list-content-desc">Total de 235.475 cr en 7 meses. Promedio mensual de 33.639 cr.</div></div>
+        </div>
+        <div class="list-item">
+          <div class="list-num num-green">2</div>
+          <div><div class="list-content-title">Mejor mes: Febrero</div>
+          <div class="list-content-desc">Producción de 59.540 cr. Capacidad de rendimiento alto sostenido.</div></div>
+        </div>
+        <div class="list-item">
+          <div class="list-num num-green">3</div>
+          <div><div class="list-content-title">Récord de quincena: 37.627 cr</div>
+          <div class="list-content-desc">Febrero — Quincena 1 — 94.1% del RE de 40.000 cr.</div></div>
+        </div>
+      </div>
+      <div class="list-card">
+        <div class="list-item">
+          <div class="list-num num-gold">4</div>
+          <div><div class="list-content-title">Cumplimiento del Reto Estrella</div>
+          <div class="list-content-desc">0 de 14 quincenas evaluadas con RE cumplido (0.0%).</div></div>
+        </div>
+        <div class="list-item">
+          <div class="list-num num-gold">5</div>
+          <div><div class="list-content-title">Racha activa: 0 quincenas</div>
+          <div class="list-content-desc">Quincenas consecutivas con RE cumplido al cierre de Julio.</div></div>
+        </div>
+        <div class="list-item">
+          <div class="list-num num-gold">6</div>
+          <div><div class="list-content-title">Inicio de Agosto</div>
+          <div class="list-content-desc">17.245 cr en los primeros 11 días (43.1% del RE de Agosto).</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DÓNDE CRECER -->
+  <section>
+    <div class="section-header">
+      <h2><span class="icon">🌱</span> Dónde Podemos Seguir Creciendo</h2>
+      <div class="section-divider"></div>
+      <p>Áreas con potencial real de mejora.</p>
+    </div>
+    <div class="list-card">
+      <div class="list-item"><div class="list-num num-blue">1</div>
+        <div><div class="list-content-title">Quincenas por debajo del RE</div>
+        <div class="list-content-desc"><strong>Observado:</strong> 14 quincena(s) no alcanzaron el RE de 40.000 cr. La más baja: Abril — Quincena 1 con 500 cr.<br/>
+        <strong>Oportunidad:</strong> Identificar los factores de esos períodos y activar recuperaciones tempranas.</div></div>
+      </div>
+      <div class="list-item"><div class="list-num num-blue">15</div>
+        <div><div class="list-content-title">Cumplir el RE de Agosto (RE: 40.000 cr)</div>
+        <div class="list-content-desc"><strong>Observado:</strong> Agosto Q1 lleva 17.245 cr en 11 días — restan 22.755 cr para cumplir el RE.<br/>
+        <strong>Oportunidad:</strong> Se necesitan 5.689 cr/día en los 4 días restantes para cumplir el RE.</div></div>
+      </div>
+      <div class="list-item"><div class="list-num num-blue">16</div>
+        <div><div class="list-content-title">Construir y sostener la racha del Bono</div>
+        <div class="list-content-desc"><strong>Observado:</strong> Con 0 quincena(s) consecutiva(s) al cierre de Julio, Agosto Q1 puede ser el consecutivo 1 (USD 0).<br/>
+        <strong>Oportunidad:</strong> El Bono de Racha acumula hasta USD 85 en el ciclo. Cada quincena consecutiva importa.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- META -->
+  <section id="meta">
+    <div class="section-header">
+      <h2><span class="icon">🎯</span> Tu Próximo Objetivo — Agosto 2026</h2>
+      <div class="section-divider"></div>
+    </div>
+    <div class="goal-card">
+      <div>
+        <div class="goal-label">Agosto — Quincena 1 · En Progreso (1–15 ago 2026)</div>
+        <div class="goal-title">Acelerar para cerrar el RE</div>
+        <div class="goal-desc">Agosto Q1 lleva <strong style="color:var(--gold)">17.245 créditos</strong> en 11 días (43.1% del RE). Proyección al día 15: 23.520 cr — ⚠️ por debajo del RE, se necesitan 5.689 cr/día.<br/><br/></div>
+      </div>
+      <div class="goal-number">
+        <span class="goal-number-val">40.000</span>
+        <div class="goal-number-label">RE Agosto · créditos<br/>por quincena</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACCIONES -->
+  <section>
+    <div class="section-header">
+      <h2><span class="icon">📋</span> ¿En qué nos vamos a Enfocar?</h2>
+      <div class="section-divider"></div>
+    </div>
+    <div class="action-grid">
+      <div class="action-card">
+        <div class="action-num">01 — PRIORIDAD PRINCIPAL</div>
+        <div class="action-title">Cerrar Agosto Q1 con 40.000 cr o más</div>
+        <div class="action-desc">Faltan 22.755 cr para cumplir el RE de Agosto Q1. Con 4 días restantes, el ritmo necesario es 5.689 cr/día.</div>
+      </div>
+      <div class="action-card">
+        <div class="action-num">02 — BONO DE RACHA</div>
+        <div class="action-title">Extender la racha del Bono</div>
+        <div class="action-desc">Julio dejó 0 quincena(s) consecutiva(s). Cumplir Agosto Q1 lleva el Bono a USD 0.</div>
+      </div>
+      <div class="action-card">
+        <div class="action-num">03 — SEGUIMIENTO</div>
+        <div class="action-title">Monitoreo activo y metas diarias</div>
+        <div class="action-desc">El monitor realiza seguimiento continuo para detectar caídas antes del día 10 de cada período. Las metas diarias concretas son clave para no depender de recuperaciones tardías.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLOSING -->
+  <div class="closing">
+    <span class="closing-icon">🏆</span>
+    <h2>Katherine Bond — Agosto en construcción</h2>
+    <p>Agosto Q1 lleva 17.245 cr. Cada día cuenta para cerrar el RE.</p>
+  </div>
+</main>
+
+<footer>
+  Melissa Deusa · Grupo Empresarial J&amp;D · Documento de uso interno — Confidencial<br/>
+  Actualizado al 12 de agosto de 2026 · Última actualización: 12/08/2026 – 23:59 · Fuente: Cómo Vamos Fornax Studios · Katherine Bond
+</footer>
+
+<script>
+// Nav desktop
+var nl=document.getElementById('nav-links-desktop');
+if(nl && window.innerWidth>=900) nl.style.display='flex';
+</script>
+</body>
+</html>

@@ -19,7 +19,7 @@ FÓRMULA VERIFICADA: col_F4F(d) = 19 + (31-d)*5  [5 plats/día, LOCAL]
 NO commit/push hasta validación del usuario.
 """
 
-import openpyxl, re, base64, json, os
+import openpyxl, re, base64, json, os, copy
 from datetime import datetime, date, timedelta
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -196,8 +196,9 @@ def read_cv_sheet(wb, sheet):
                 if day_col(d) + pi - 1 < len(row)
             )
             if tiene_prod:
-                filas_sin_nombre.append(f"    ⚠  [{sheet}] fila {ri+1}: studio={studio!r} tiene producción pero nombre vacío — completar en Excel")
-            continue
+                model = 'Total Estudio'  # fila agregada de estudio — asignar pseudónombre
+            else:
+                continue
         if model.upper() in {'TOTAL','TOTALES','MODELO'}:
             continue
         entry = {}
@@ -429,8 +430,9 @@ def build_studio_periodos(cal, aliados_entry):
 def rebuild_aliados_from_excel(aliados, cv, key_map, mes, last_day, detect_new=True):
     """Reconstruye datos diarios del ALIADOS para el mes. Crea el mes si no existe.
     detect_new=True  → detecta e incorpora modelos nuevos del Excel (GRUPO_MAP)
-    detect_new=False → solo actualiza modelos existentes (ERIKA_MAP / FABIO_MAP,
-                        donde cada ALIADOS key es un modelo individual, no un estudio)."""
+    detect_new=False → para aliados individuales (ERIKA_MAP / FABIO_MAP).
+                       Dentro del False, se activa auto-detect cuando cv_studios == [ak]
+                       (entradas tipo-estudio donde el aliado key == nombre del estudio)."""
     cleared = 0; updated = 0; nuevos = 0
     for ak, ainfo in aliados.items():
         cv_studios = key_map.get(ak)
@@ -459,8 +461,11 @@ def rebuild_aliados_from_excel(aliados, cv, key_map, mes, last_day, detect_new=T
                     entry = {p: (day_vals.get(p) if day_vals.get(p, 0) else None) for p in PLATS}
                     modelos[model][str(d)] = entry; updated += 1
                 break
-        # ── DETECCIÓN AUTOMÁTICA DE MODELOS NUEVOS (solo GRUPO_MAP) ─
-        if detect_new:
+        # ── DETECCIÓN AUTOMÁTICA DE MODELOS NUEVOS ──────────────────
+        # Activa cuando: detect_new=True (GRUPO_MAP)
+        # O cuando: detect_new=False pero cv_studios==[ak] (entrada tipo-estudio en ERIKA/FABIO)
+        is_studio_entry = (cv_studios == [ak])
+        if detect_new or is_studio_entry:
             for (model, studio), day_entries in cv.items():
                 if studio not in cv_studios:
                     continue
@@ -472,10 +477,59 @@ def rebuild_aliados_from_excel(aliados, cv, key_map, mes, last_day, detect_new=T
                     modelos[model][str(d)] = entry; updated += 1
                 print(f"  🆕 [{mes}] Nuevo modelo → ALIADOS[{ak}]: '{model}'")
                 nuevos += 1
+        # Eliminar modelos sin datos que puedan ser artefactos de runs anteriores
+        if is_studio_entry:
+            stale = [m for m, days in modelos.items() if not days]
+            for m in stale:
+                del modelos[m]
+                if stale: print(f"  🗑  [{mes}] Eliminado artefacto sin datos: ALIADOS[{ak}]['{m}']")
         # ────────────────────────────────────────────────────────────
         md['dias'] = last_day
     print(f"  🗑  [{mes}] Limpiados: {cleared} | Reconstruidos: {updated} | Nuevos: {nuevos}")
     return aliados
+
+
+# ═══════════════════════════════════════════════════════════════════
+# PROPAGACIÓN DESDE GRUPO — FUENTE ÚNICA DE VERDAD
+# ═══════════════════════════════════════════════════════════════════
+def propagate_from_grupo(aliados_target, aliados_grupo, key_map, mes):
+    """Propaga datos del mes desde Grupo al dashboard de un ejecutivo.
+
+    GARANTÍA: cualquier aliado/estudio que existe TANTO en key_map como en
+    aliados_grupo recibe exactamente los mismos datos que tiene Grupo.
+    No se recalcula nada desde el Excel — se copia directamente desde la
+    estructura ya calculada de Grupo (fuente central).
+
+    Esto resuelve el problema donde Grupo podía mostrar un valor diferente
+    al de Erika/Fabio para el mismo estudio, porque cada dashboard hacía un
+    rebuild independiente desde el Excel con detect_new=False.
+
+    Flujo correcto:
+      Excel → Grupo (rebuild completo, detect_new=True)
+             ↓  propagate_from_grupo
+      Erika (datos idénticos para estudios compartidos)
+             ↓  propagate_from_grupo
+      Fabio (datos idénticos para estudios compartidos)
+
+    Para aliados individuales (Alice Steel, Dulce Luna, etc.) que existen en
+    key_map pero NO en aliados_grupo, la función no hace nada — esos ya fueron
+    rebuilt correctamente desde el Excel en el paso anterior."""
+    propagated = 0
+    skipped_ind = 0
+    for ak in key_map:
+        if ak not in aliados_target:
+            continue   # aliado no existe en el dashboard del ejecutivo
+        if ak not in aliados_grupo:
+            skipped_ind += 1
+            continue   # aliado individual no está en Grupo — no propagar
+        grupo_data = aliados_grupo[ak].get('data', {}).get(mes)
+        if grupo_data is None:
+            continue   # Grupo no tiene datos para este mes todavía
+        aliados_target[ak].setdefault('data', {})[mes] = copy.deepcopy(grupo_data)
+        propagated += 1
+    print(f"  🔄 [{mes}] Propagados desde Grupo: {propagated} aliados | "
+          f"individuales (excluidos): {skipped_ind}")
+    return aliados_target
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -809,8 +863,15 @@ def main():
     print(f'\n▶  ERIKA NOGUERA')
     html, aliados_e, al_q = load_dash(DASHBOARDS['erika'], 'ALIADOS')
     if aliados_e is not None:
+        # Paso 1 — rebuild entradas individuales desde Excel (Dulce Luna, Zac Levis, etc.)
+        #           detect_new=False: no contaminar con modelos de otros estudios
         aliados_e = rebuild_aliados_from_excel(aliados_e, cv_jul, ERIKA_MAP, MES,     last_day_jul, detect_new=False)
         aliados_e = rebuild_aliados_from_excel(aliados_e, cv_ago, ERIKA_MAP, MES_AGO, last_day_ago, detect_new=False)
+        # Paso 2 — propagar estudios aliados DESDE GRUPO (fuente única de verdad)
+        #           Garantiza que Erika muestre exactamente los mismos valores que Grupo
+        #           para cualquier estudio que comparten (PrestigeCam, Studio Levi, etc.)
+        aliados_e = propagate_from_grupo(aliados_e, aliados, ERIKA_MAP, MES)
+        aliados_e = propagate_from_grupo(aliados_e, aliados, ERIKA_MAP, MES_AGO)
 
         ep, ep_q = get_var(html, 'EXEC_PERIODOS')
         gp, gp_q = get_var(html, 'GRUPO_PERIODOS')
@@ -854,8 +915,14 @@ def main():
     print(f'\n▶  FABIO ROBLEDO')
     html, aliados_f, al_q = load_dash(DASHBOARDS['fabio'], 'ALIADOS')
     if aliados_f is not None:
+        # Paso 1 — rebuild entradas individuales desde Excel (Alice Steel, Eli Cortes, etc.)
         aliados_f = rebuild_aliados_from_excel(aliados_f, cv_jul, FABIO_MAP, MES,     last_day_jul, detect_new=False)
         aliados_f = rebuild_aliados_from_excel(aliados_f, cv_ago, FABIO_MAP, MES_AGO, last_day_ago, detect_new=False)
+        # Paso 2 — propagar estudios aliados DESDE GRUPO (fuente única de verdad)
+        #           Garantiza que Fabio muestre exactamente los mismos valores que Grupo
+        #           para cualquier estudio que comparten (Amadeus Studio, Black Card, etc.)
+        aliados_f = propagate_from_grupo(aliados_f, aliados, FABIO_MAP, MES)
+        aliados_f = propagate_from_grupo(aliados_f, aliados, FABIO_MAP, MES_AGO)
 
         ep, ep_q = get_var(html, 'EXEC_PERIODOS')
         if ep is not None:

@@ -21,8 +21,8 @@ OUT_HTML = os.path.join(OUT_DIR, "index.html")
 os.makedirs(OUT_DIR, exist_ok=True)
 
 # ── FECHAS ─────────────────────────────────────────────────────────────────────
-HOY    = date.today()
-CORTE  = HOY - timedelta(days=1)           # día vencido — datos de ayer
+HOY    = date(2026, 8, 15)
+CORTE  = date(2026, 8, 14)                 # Corte explícito: 14 de agosto
 GEN_DT = datetime.now()
 HOY_STR   = GEN_DT.strftime("%d/%m/%Y — %H:%M")  # fecha + hora real de generación
 CORTE_STR = CORTE.strftime("%d/%m/%Y")            # fecha de corte de datos

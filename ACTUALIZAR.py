@@ -496,6 +496,49 @@ def rebuild_aliados_from_excel(aliados, cv, key_map, mes, last_day, detect_new=T
 
 
 # ═══════════════════════════════════════════════════════════════════
+# CORRECCIÓN ALIADOS INDIVIDUALES DE EJECUTIVOS
+# ═══════════════════════════════════════════════════════════════════
+def fix_exec_individual_partners(aliados, key_map):
+    """
+    Para entradas INDIVIDUALES del ejecutivo (donde la clave del aliado es el
+    nombre del modelo, no del estudio, p.ej. 'Dulce Luna' → ['Fornax Studios']),
+    asegura que el dict modelos SOLO contenga el modelo cuyo nombre coincide
+    con la clave del aliado.
+
+    Problema que resuelve:
+      rebuild_aliados_from_excel reutiliza los modelos ya presentes en el dict.
+      Si en una ejecución anterior se contaminó la entrada con modelos extra del
+      mismo estudio (ej: todos los modelos de Fornax dentro de la clave 'Dulce Luna'),
+      cada ejecución posterior los reconstruye con datos reales, perpetuando el error.
+
+    La regla: la clave 'X' → solo puede tener el modelo llamado 'X'.
+    Se aplica a TODOS los meses presentes en la entrada.
+    No elimina datos del archivo fuente — solo filtra qué puede verse en cada dashboard.
+    """
+    fixed = 0
+    for ak, cv_studios in key_map.items():
+        # Entrada tipo-estudio: cv_studios == [ak] → no tocar
+        if cv_studios == [ak]:
+            continue
+        if ak not in aliados:
+            continue
+        for mes, md in (aliados[ak].get('data') or {}).items():
+            modelos = md.get('modelos')
+            if not modelos:
+                continue
+            extra = [m for m in list(modelos.keys()) if m != ak]
+            for m in extra:
+                del modelos[m]
+                fixed += 1
+    if fixed:
+        print(f"  🔒 fix_exec_individual_partners: {fixed} modelo(s) extra removido(s) "
+              f"(datos de otros estudios no autorizados para este ejecutivo)")
+    else:
+        print(f"  🔒 fix_exec_individual_partners: sin contaminación detectada")
+    return aliados
+
+
+# ═══════════════════════════════════════════════════════════════════
 # PROPAGACIÓN DESDE GRUPO — FUENTE ÚNICA DE VERDAD
 # ═══════════════════════════════════════════════════════════════════
 def propagate_from_grupo(aliados_target, aliados_grupo, key_map, mes):
@@ -874,6 +917,10 @@ def main():
         #           detect_new=False: no contaminar con modelos de otros estudios
         aliados_e = rebuild_aliados_from_excel(aliados_e, cv_jul, ERIKA_MAP, MES,     last_day_jul, detect_new=False)
         aliados_e = rebuild_aliados_from_excel(aliados_e, cv_ago, ERIKA_MAP, MES_AGO, last_day_ago, detect_new=False)
+        # Paso 1b — purgar modelos extra de entradas individuales (Dulce Luna, Liam Terrier, etc.)
+        #            Garantiza que cada entrada individual SOLO contiene su propio modelo,
+        #            no todos los modelos del mismo estudio cv (ej: todos los de Fornax Studios)
+        aliados_e = fix_exec_individual_partners(aliados_e, ERIKA_MAP)
         # Paso 2 — propagar estudios aliados DESDE GRUPO (fuente única de verdad)
         #           Garantiza que Erika muestre exactamente los mismos valores que Grupo
         #           para cualquier estudio que comparten (PrestigeCam, Studio Levi, etc.)
@@ -925,6 +972,8 @@ def main():
         # Paso 1 — rebuild entradas individuales desde Excel (Alice Steel, Eli Cortes, etc.)
         aliados_f = rebuild_aliados_from_excel(aliados_f, cv_jul, FABIO_MAP, MES,     last_day_jul, detect_new=False)
         aliados_f = rebuild_aliados_from_excel(aliados_f, cv_ago, FABIO_MAP, MES_AGO, last_day_ago, detect_new=False)
+        # Paso 1b — purgar modelos extra de entradas individuales (Alice Steel, Eli Cortes, etc.)
+        aliados_f = fix_exec_individual_partners(aliados_f, FABIO_MAP)
         # Paso 2 — propagar estudios aliados DESDE GRUPO (fuente única de verdad)
         #           Garantiza que Fabio muestre exactamente los mismos valores que Grupo
         #           para cualquier estudio que comparten (Amadeus Studio, Black Card, etc.)

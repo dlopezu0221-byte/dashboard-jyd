@@ -386,11 +386,17 @@ def build_grupo_periodos(cal, aliados, meta=None):
             out.append(p)
         gp[plat_display] = out
 
+    # Auto-calcular streamate_active desde datos reales:
+    # true si existe al menos un periodo STR con total > 0
+    str_has_data = any(p.get('total', 0) > 0 for p in gp.get('Streamate', []))
+
     if meta:
-        gp['_meta'] = meta
+        new_meta = dict(meta)   # nunca mutar el original
+        new_meta['streamate_active'] = str_has_data
+        gp['_meta'] = new_meta
     else:
         gp['_meta'] = {'studio': 'Grupo Empresarial J&D', 'entity_label': 'Estudio',
-                       'streamate_active': True}
+                       'streamate_active': str_has_data}
     return gp
 
 

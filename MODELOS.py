@@ -1204,7 +1204,7 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
     <div class="section-header">
       <h2><span class="icon">⭐</span> Tu Historia con el Reto Estrella</h2>
       <div class="section-divider"></div>
-      <p>{n_quinc} quincenas evaluadas con RE histórico {fmt(re)} cr. {mc_label} {q_label} en progreso.</p>
+      <p>{n_quinc} quincenas evaluadas con RE histórico {fmt(re)} cr. {"Agosto Q1 finalizada — Q2 inicia." if q1_complete else f"{mc_label} {q_label} en progreso."}</p>
     </div>
     <div class="re-stats">
       <div class="re-stat">
@@ -1229,8 +1229,11 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
     for q in quincenas:
         html += h_re_block(q['label'], q['credits'], q.get('re', re), q['status'])
 
-    # Add current in-progress quincena
-    html += h_re_block(f'{mc_label} Q{q_label_short[1]}', cur_credits, re, 'in-progress')
+    # Add current quincena: si Q1 cerró el día 15, mostrar Q2 como pendiente
+    if q1_complete:
+        html += h_re_block(f'{mc_label} Q2', 0, re, 'pending')
+    else:
+        html += h_re_block(f'{mc_label} Q{q_label_short[1]}', cur_credits, re, 'in-progress')
 
     html += f'''
     </div>

@@ -939,9 +939,10 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
     mc_label = MESES_CAP.get(current_mes, current_mes.capitalize())
     day_num = data_cutoff.day if hasattr(data_cutoff, 'day') else (today.day - 1)
     is_q1 = day_num <= 15
+    q1_complete = is_q1 and day_num == 15  # día 15 = último día de Q1 → período finalizado
     days_elapsed = day_num if is_q1 else day_num - 15
     days_total = 15 if is_q1 else 16
-    days_remaining = max(0, days_total - days_elapsed)
+    days_remaining = 0 if q1_complete else max(0, days_total - days_elapsed)
     cur_credits = cur_q1 if is_q1 else cur_q2
     cur_pct = pct(cur_credits, re)
     ritmo = round(cur_credits / days_elapsed) if days_elapsed else 0
@@ -970,7 +971,10 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
             if cm not in monthly_all:
                 st = 'pending'
             elif cm == current_mes and qn == q_label_short.lower():
-                st = 'in_progress'
+                if q1_complete:
+                    st = 'achieved' if cr >= re else 'missed'
+                else:
+                    st = 'in_progress'
             elif cm == current_mes and qn == 'q2' and not is_q1:
                 st = 'in_progress'
             elif cm == current_mes and qn == 'q2' and is_q1:
@@ -1096,10 +1100,10 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
         <span class="kpi-badge {"badge-up" if re_pct >= 80 else "badge-warn"}">{re_pct:.1f}% de cumplimiento</span>
       </div>
       <div class="kpi-card" style="--accent-color:var(--blue)">
-        <div class="kpi-label">{mc_label} — En Curso</div>
+        <div class="kpi-label">{mc_label} — {"Q1 Finalizado" if q1_complete else "En Curso"}</div>
         <div class="kpi-value">{fmt(cur_credits)}</div>
-        <div class="kpi-sub">créditos · {q_label} ({days_elapsed} de {days_total} días)</div>
-        <span class="kpi-badge badge-warn">{cur_pct:.1f}% del RE</span>
+        <div class="kpi-sub">créditos · {q_label} ({"período cerrado" if q1_complete else f"{days_elapsed} de {days_total} días"})</div>
+        <span class="kpi-badge {"badge-up" if q1_complete and cur_credits >= re else "badge-warn"}">{cur_pct:.1f}% del RE{"  ✅" if q1_complete and cur_credits >= re else "  ❌" if q1_complete else ""}</span>
       </div>
       <div class="kpi-card" style="--accent-color:var(--muted)">
         <div class="kpi-label">Promedio Mensual</div>
@@ -1163,7 +1167,7 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
         </div>
       </div>
       <div class="chart-card" style="padding:16px">
-        <div class="chart-card-title" style="margin-bottom:8px">📅 {mc_label} — En Progreso</div>
+        <div class="chart-card-title" style="margin-bottom:8px">📅 {mc_label} — {"Período Finalizado ✅" if q1_complete and cur_credits >= re else "Período Finalizado ❌" if q1_complete else "En Progreso"}</div>
         <div style="font-size:13px;color:#CBD5E1;line-height:1.7">
           {mc_label} {q_label_short} acumula {fmt(cur_credits)} cr en {days_elapsed} días ({cur_pct:.1f}% del RE de {fmt(re)} cr).
           Ritmo diario: {fmt(ritmo)} cr/día. Proyección al día {days_total}: {fmt(proyeccion)} cr.
@@ -1456,9 +1460,9 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
     html += f'''
         <div class="timeline-item">
           <div class="timeline-dot" style="background:#3B82F6"></div>
-          <div class="timeline-period">{mc_label} {today.year if hasattr(today,"year") else 2026} · En Progreso ({days_elapsed}-{day_num} de {mc_label.lower()})</div>
-          <span class="timeline-type" style="background:rgba(59,130,246,.15);color:#3B82F6">En curso</span>
-          <div class="timeline-text">{mc_label} {q_label_short} acumula <strong style="color:#3B82F6">{fmt(cur_credits)} créditos</strong> en {days_elapsed} días ({cur_pct:.1f}% del RE de {fmt(re)} cr). Restan {fmt(max(0,re-cur_credits))} cr para cumplir el RE del período.{" Bono de Racha: si cumple " + mc_label + " Q1, consecutivo " + str(consecutive_at_close+1) + " → USD " + str(BONO_USD.get(consecutive_at_close+1,25)) + "." if consecutive_at_close > 0 else ""}</div>
+          <div class="timeline-period">{mc_label} {today.year if hasattr(today,"year") else 2026} · {"Q1 Finalizado" if q1_complete else f"En Progreso (1–{day_num} de {mc_label.lower()})"}</div>
+          <span class="timeline-type" style="background:{"rgba(34,197,94,.15);color:#22C55E" if q1_complete and cur_credits >= re else "rgba(239,68,68,.15);color:#EF4444" if q1_complete else "rgba(59,130,246,.15);color:#3B82F6"}">{"✅ Cumplió RE" if q1_complete and cur_credits >= re else "❌ No cumplió RE" if q1_complete else "En curso"}</span>
+          <div class="timeline-text">{mc_label} {q_label_short} {"cerró con" if q1_complete else "acumula"} <strong style="color:{"#22C55E" if q1_complete and cur_credits >= re else "#EF4444" if q1_complete else "#3B82F6"}">{fmt(cur_credits)} créditos</strong> en {days_elapsed} días ({cur_pct:.1f}% del RE de {fmt(re)} cr). {"RE " + ("cumplido ✅" if cur_credits >= re else f"no cumplido ❌ — faltaron {fmt(re-cur_credits)} cr") if q1_complete else "Restan " + fmt(max(0,re-cur_credits)) + " cr para cumplir el RE del período." + (" Bono de Racha: si cumple " + mc_label + " Q1, consecutivo " + str(consecutive_at_close+1) + " → USD " + str(BONO_USD.get(consecutive_at_close+1,25)) + "." if consecutive_at_close > 0 else "")}</div>
         </div>
       </div>
     </div>
@@ -1550,7 +1554,7 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
     </div>
     <div class="goal-card">
       <div>
-        <div class="goal-label">{mc_label} — {q_label} · En Progreso ({period_range} {today.year if hasattr(today,"year") else 2026})</div>
+        <div class="goal-label">{mc_label} — {q_label} · {"Período Finalizado" if q1_complete else f"En Progreso ({period_range} {today.year if hasattr(today,'year') else 2026})"}</div>
         <div class="goal-title">{"Mantener el ritmo y cumplir el RE" if proyeccion >= re else "Acelerar para cerrar el RE"}</div>
         <div class="goal-desc">{mc_label} {q_label_short} lleva <strong style="color:var(--gold)">{fmt(cur_credits)} créditos</strong> en {days_elapsed} días ({cur_pct:.1f}% del RE). {"Proyección al día " + str(days_total) + ": " + fmt(proyeccion) + " cr — " + ("✅ en camino a cumplir el RE." if proyeccion >= re else "⚠️ por debajo del RE, se necesitan " + fmt(needed_per_day) + " cr/día.") + "<br/><br/>" if days_remaining > 0 else ""}{"Con la racha de " + str(consecutive_at_close) + " quincenas activa desde " + MESES_CAP.get(prev_mes,"") + ", cumplir " + mc_label + " " + q_label_short + " activaría el consecutivo " + str(consecutive_at_close+1) + " del Bono (USD " + str(BONO_USD.get(consecutive_at_close+1,25)) + ")." if consecutive_at_close > 0 else ""}</div>
       </div>
@@ -1714,6 +1718,18 @@ def main(model_targets=None):
                     'label': f'{mc} — Quincena {q_num}',
                     'credits': cred, 're': re_val, 'status': status
                 })
+
+        # Si el corte es día 15, Q1 del mes actual quedó cerrado → agregarlo a quincenas
+        if data_cutoff.day == 15 and current_mes in monthly_all:
+            mc_cur = MESES_CAP[current_mes]
+            cred_q1 = monthly_all[current_mes].get('q1', 0)
+            re_cur = HISTORICAL_RE.get(model_name, {}).get(current_mes, profile['re'])
+            st_q1 = 'achieved' if cred_q1 >= re_cur else 'missed'
+            quincenas.append({
+                'mes': current_mes, 'q': 'q1',
+                'label': f'{mc_cur} — Quincena 1',
+                'credits': cred_q1, 're': re_cur, 'status': st_q1
+            })
 
         # Top 20 Grupo Empresarial (fuente oficial: grupo579780/index.html)
         mc_label_cap = MESES_CAP.get(current_mes, current_mes.capitalize())

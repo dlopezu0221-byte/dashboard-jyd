@@ -1627,7 +1627,7 @@ def main(model_targets=None):
     print(f"  Fecha: {today.strftime('%d/%m/%Y')} · Fuente: Fornax2.xlsx")
     print(f"{'='*60}\n")
 
-    data_cutoff = date(2026, 8, 15)  # Corte explícito: 15 de agosto
+    data_cutoff = date(2026, 8, 16)  # Corte explícito: 16 de agosto
     print(f"  📅 Fecha informe: {today.strftime('%d/%m/%Y')} · Corte datos: {data_cutoff.strftime('%d/%m/%Y')}")
 
     print("  📂 Cargando Cómo vamos Fornax2.xlsx…")
@@ -1722,8 +1722,8 @@ def main(model_targets=None):
                     'credits': cred, 're': re_val, 'status': status
                 })
 
-        # Si el corte es día 15, Q1 del mes actual quedó cerrado → agregarlo a quincenas
-        if data_cutoff.day == 15 and current_mes in monthly_all:
+        # Si el corte es día 15+ (Q1 cerrado) o estamos en Q2 (día 16+), agregar Q1 cerrada
+        if data_cutoff.day >= 15 and current_mes in monthly_all:
             mc_cur = MESES_CAP[current_mes]
             cred_q1 = monthly_all[current_mes].get('q1', 0)
             re_cur = HISTORICAL_RE.get(model_name, {}).get(current_mes, profile['re'])

@@ -830,7 +830,7 @@ FABIO_MAP = {
 def main():
     now         = datetime.now()
     ts_str      = now.strftime('%d/%m/%Y — %H:%M')
-    cutoff_str  = '15/08/2026'  # Corte explícito
+    cutoff_str  = '16/08/2026'  # Corte explícito
     meses_activos = ALL_MESES  # Enero → Agosto
 
     print('=' * 65)
@@ -845,9 +845,9 @@ def main():
 
     cv_jul, last_day_jul = read_cv_sheet(wb, 'JULIO')
     cv_ago, last_day_ago = read_cv_sheet(wb, 'AGOSTO')
-    last_day_ago = min(last_day_ago, 15)  # Corte explícito: 15 de agosto
+    last_day_ago = min(last_day_ago, 16)  # Corte explícito: 16 de agosto
 
-    print(f'\n📅 JULIO: último día={last_day_jul} | AGOSTO: último día={last_day_ago} (corte=15)')
+    print(f'\n📅 JULIO: último día={last_day_jul} | AGOSTO: último día={last_day_ago} (corte=16)')
 
     if last_day_jul == 0:
         print("⚠  Sin datos en JULIO — verificar Excel."); return

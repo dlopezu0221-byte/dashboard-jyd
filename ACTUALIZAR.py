@@ -748,12 +748,21 @@ ALIADOS_DISPLAY = {
 }
 
 def recalc_top20g(top20g, grupo_aliados, mes=MES):
-    # Claves de aliados individuales (modelos reales bajo nombre propio)
+    # Claves de modelos individuales de Fabio (excepción: sí aparecen en TOP 20)
     _individual_keys = set(GRUPO_INDIVIDUAL_PARTNERS.keys())
+    # Estudios de Fabio que NO son modelos individuales → sus modelos no van en TOP 20.
+    # (Amadeus Studio, Black Card, Atelier_glamour, Dejavu Studio, piscis_studio, etc.)
+    # Se detectan como los aliados en FABIO_MAP que no están en GRUPO_INDIVIDUAL_PARTNERS.
+    _fabio_studios = set(FABIO_MAP.keys()) - _individual_keys
+
     all_totals = {}
     for ak, ainfo in grupo_aliados.items():
         studio_name = ALIADOS_DISPLAY.get(ak, ak)
         is_individual = ak in _individual_keys
+        # Excluir estudios de Fabio por completo: son entidades de estudio,
+        # no modelos individuales (excepción sólo para _individual_keys)
+        if ak in _fabio_studios:
+            continue
         md = (ainfo.get('data') or {}).get(mes, {})
         for model, days in (md.get('modelos') or {}).items():
             # Excluir fila agregada sin modelo individual asignado

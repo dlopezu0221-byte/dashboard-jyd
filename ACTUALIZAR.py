@@ -634,14 +634,15 @@ def rebuild_estudio_from_excel(estudio, cv, cv_studio, last_day, mes=MES):
 # Esto evita que detect_new=True agregue todos los modelos de Fabio
 # a cada clave individual.
 GRUPO_INDIVIDUAL_PARTNERS = {
-    'Alice Steel':   'Fabio Robledo',
-    'Eli Cortes':    'Fabio Robledo',
-    'Evelyn Lovers': 'Fabio Robledo',
-    'Jack Miller':   'Fabio Robledo',
-    'Maximus Clark': 'Fabio Robledo',
-    'Amanda Bond':   'Fabio Robledo',
-    'Yessie Jacobs': 'Fabio Robledo',
-    'Ana Black':     'Fabio Robledo',
+    'Alice Steel':    'Fabio Robledo',
+    'Eli Cortes':     'Fabio Robledo',
+    'Evelyn Lovers':  'Fabio Robledo',
+    'Jack Miller':    'Fabio Robledo',
+    'Maximus Clark':  'Fabio Robledo',
+    'Amanda Bond':    'Fabio Robledo',
+    'Yessie Jacobs':  'Fabio Robledo',
+    'Ana Black':      'Fabio Robledo',
+    'Kendal Wiston':  'Fabio Robledo',
 }
 
 def fix_grupo_individual_partners(aliados, cv_jul, last_day_jul, cv_ago, last_day_ago):
@@ -743,6 +744,7 @@ ALIADOS_DISPLAY = {
     'Amanda Bond':       'Amanda Bond',
     'Yessie Jacobs':     'Yessie Jacobs',
     'Ana Black':         'Ana Black',
+    'Kendal Wiston':     'Kendal Wiston',
 }
 
 def recalc_top20g(top20g, grupo_aliados, mes=MES):
@@ -786,7 +788,7 @@ GRUPO_MAP = {
     'Amadeus Studio':    ['Amadeus Studio'],
     'Black Card':        ['Black Card'],
     'Studio JGM':        ['Studio JGM'],
-    'Iridium Studio':    [],
+    'Iridium Studio':    ['Iridium Studio'],
     # Nota: aliados individuales ('Alice Steel', 'Eli Cortes', etc.) son corregidos
     # por fix_grupo_individual_partners() — NO agregar aquí con detect_new=True
     'piscis_studio':     ['Piscis Studio'],
@@ -819,8 +821,9 @@ FABIO_MAP = {
     'Ana Black':         ['Fabio Robledo'],
     'Amadeus Studio':    ['Amadeus Studio'],
     'Black Card':        ['Black Card'],
-    'Iridium Studio':    [],
+    'Iridium Studio':    ['Iridium Studio'],
     'Studio JGM':        ['Studio JGM'],
+    'Kendal Wiston':     ['Fabio Robledo'],
 }
 
 
@@ -830,7 +833,7 @@ FABIO_MAP = {
 def main():
     now         = datetime.now()
     ts_str      = now.strftime('%d/%m/%Y — %H:%M')
-    cutoff_str  = '16/08/2026'  # Corte explícito
+    cutoff_str  = '22/08/2026'  # Corte explícito
     meses_activos = ALL_MESES  # Enero → Agosto
 
     print('=' * 65)
@@ -845,9 +848,9 @@ def main():
 
     cv_jul, last_day_jul = read_cv_sheet(wb, 'JULIO')
     cv_ago, last_day_ago = read_cv_sheet(wb, 'AGOSTO')
-    last_day_ago = min(last_day_ago, 16)  # Corte explícito: 16 de agosto
+    last_day_ago = min(last_day_ago, 22)  # Corte explícito: 22 de agosto
 
-    print(f'\n📅 JULIO: último día={last_day_jul} | AGOSTO: último día={last_day_ago} (corte=16)')
+    print(f'\n📅 JULIO: último día={last_day_jul} | AGOSTO: último día={last_day_ago} (corte=22)')
 
     if last_day_jul == 0:
         print("⚠  Sin datos en JULIO — verificar Excel."); return
@@ -876,6 +879,11 @@ def main():
     print(f'\n▶  GRUPO EMPRESARIAL')
     html, aliados, al_q = load_dash(DASHBOARDS['grupo'], 'ALIADOS')
     if aliados is not None:
+        # Inicializar nuevos aliados individuales que no existen todavía en el HTML
+        for partner in GRUPO_INDIVIDUAL_PARTNERS:
+            if partner not in aliados:
+                aliados[partner] = {'data': {}}
+                print(f"  ➕ Nuevo aliado individual inicializado en Grupo: '{partner}'")
         # Rebuild datos diarios
         aliados = rebuild_aliados_from_excel(aliados, cv_jul, GRUPO_MAP, MES,     last_day_jul)
         aliados = rebuild_aliados_from_excel(aliados, cv_ago, GRUPO_MAP, MES_AGO, last_day_ago)
@@ -969,6 +977,11 @@ def main():
     print(f'\n▶  FABIO ROBLEDO')
     html, aliados_f, al_q = load_dash(DASHBOARDS['fabio'], 'ALIADOS')
     if aliados_f is not None:
+        # Inicializar nuevos aliados individuales/estudios que no existen todavía en el HTML
+        for partner, cv_studios in FABIO_MAP.items():
+            if partner not in aliados_f:
+                aliados_f[partner] = {'data': {}}
+                print(f"  ➕ Nuevo aliado inicializado en Fabio: '{partner}'")
         # Paso 1 — rebuild entradas individuales desde Excel (Alice Steel, Eli Cortes, etc.)
         aliados_f = rebuild_aliados_from_excel(aliados_f, cv_jul, FABIO_MAP, MES,     last_day_jul, detect_new=False)
         aliados_f = rebuild_aliados_from_excel(aliados_f, cv_ago, FABIO_MAP, MES_AGO, last_day_ago, detect_new=False)

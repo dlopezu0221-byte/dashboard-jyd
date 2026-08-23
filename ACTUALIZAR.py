@@ -748,11 +748,21 @@ ALIADOS_DISPLAY = {
 }
 
 def recalc_top20g(top20g, grupo_aliados, mes=MES):
+    # Claves de aliados individuales (modelos reales bajo nombre propio)
+    _individual_keys = set(GRUPO_INDIVIDUAL_PARTNERS.keys())
     all_totals = {}
     for ak, ainfo in grupo_aliados.items():
         studio_name = ALIADOS_DISPLAY.get(ak, ak)
+        is_individual = ak in _individual_keys
         md = (ainfo.get('data') or {}).get(mes, {})
         for model, days in (md.get('modelos') or {}).items():
+            # Excluir fila agregada sin modelo individual asignado
+            if model == 'Total Estudio':
+                continue
+            # Para aliados de tipo estudio (no individuales), excluir si el nombre
+            # del modelo coincide con el nombre del estudio (fila de totales del estudio)
+            if not is_individual and model == studio_name:
+                continue
             t = sum(sum((dv.get(p) or 0) for p in PLATS) for dv in days.values() if dv)
             if t > 0:
                 key = (model, studio_name)

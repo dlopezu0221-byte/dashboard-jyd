@@ -368,6 +368,89 @@ def read_daily(wb, mes_upper, model_name):
             daily[day] = {**plat_vals, 'total': total}
     return daily
 
+def read_monthly_ge(ge_wb, mes_upper, model_name, cutoff_day=31):
+    """Fallback: lee totales Q1/Q2 de GE Excel para modelos no en Fornax2.
+    Busca filas donde r[0] empieza por model_name (maneja variantes como '& Kultur Lens').
+    Estructura GE: col_s = 18 + (31-day)*5  →  [F4F, SC, CB, CAM/CS, STR_USD]
+    """
+    if ge_wb is None or mes_upper not in ge_wb.sheetnames:
+        return {'q1':0,'q2':0,'total':0,'q1_plats':{},'q2_plats':{},'n_plats':5}
+
+    PLATS_GE = ['f4f','sc','cb','cs','str']
+    q1_plats = {p: 0.0 for p in PLATS_GE}
+    q2_plats = {p: 0.0 for p in PLATS_GE}
+    name_lower = model_name.strip().lower()
+
+    for row in ge_wb[mes_upper].iter_rows(values_only=True):
+        if not row or not row[0] or not isinstance(row[0], str): continue
+        r = list(row)
+        row_name = r[0].strip().lower()
+        # Coincide exacto O variante con sufijo (ej. "Kendal Wiston & Kultur Lens")
+        if row_name != name_lower and not row_name.startswith(name_lower + ' '):
+            continue
+        for day in range(1, 32):
+            col_s = 18 + (31 - day) * 5
+            if col_s + 4 >= len(r): continue
+            vals = [float(r[col_s + p] or 0) for p in range(4)]
+            str_cr = float(r[col_s + 4] or 0) * STR_FACTOR
+            all_vals = vals + [str_cr]
+            if sum(all_vals) == 0: continue
+            if day <= 15:
+                target = q1_plats
+            elif day <= cutoff_day:
+                target = q2_plats
+            else:
+                continue
+            for i, pk in enumerate(PLATS_GE):
+                target[pk] += all_vals[i]
+
+    q1 = sum(q1_plats.values())
+    q2 = sum(q2_plats.values())
+    return {
+        'q1': q1, 'q2': q2, 'total': q1 + q2,
+        'q1_plats': {k: v for k, v in q1_plats.items() if v > 0},
+        'q2_plats': {k: v for k, v in q2_plats.items() if v > 0},
+        'n_plats': 5,
+    }
+
+
+def read_daily_ge(ge_wb, mes_upper, model_name, cutoff_day=31):
+    """Fallback: lee datos diarios de GE Excel para modelos no en Fornax2.
+    Returns {day: {plat_key: val_credits, 'total': X}}.
+    STR en USD → × STR_FACTOR. Agrega filas con variantes del nombre.
+    """
+    if ge_wb is None or mes_upper not in ge_wb.sheetnames:
+        return {}
+
+    PLATS_GE = ['f4f','sc','cb','cs','str']
+    daily = {}
+    name_lower = model_name.strip().lower()
+
+    for row in ge_wb[mes_upper].iter_rows(values_only=True):
+        if not row or not row[0] or not isinstance(row[0], str): continue
+        r = list(row)
+        row_name = r[0].strip().lower()
+        if row_name != name_lower and not row_name.startswith(name_lower + ' '):
+            continue
+        for day in range(1, cutoff_day + 1):
+            col_s = 18 + (31 - day) * 5
+            if col_s + 4 >= len(r): continue
+            vals = [float(r[col_s + p] or 0) for p in range(4)]
+            str_cr = float(r[col_s + 4] or 0) * STR_FACTOR
+            all_vals = vals + [str_cr]
+            total_day = sum(all_vals)
+            if total_day == 0: continue
+            entry = dict(zip(PLATS_GE, all_vals))
+            entry['total'] = total_day
+            if day in daily:
+                for k in entry:
+                    daily[day][k] = daily[day].get(k, 0) + entry[k]
+            else:
+                daily[day] = entry
+
+    return daily
+
+
 def read_studio(wb, mes_upper, model_name):
     """Detect studio from monthly sheet."""
     # Grupo Empresarial Excel has col1=studio; Fornax2 doesn't
@@ -1289,7 +1372,7 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
       <div class="chart-card-title">Detalle por día y plataforma</div>
       <div class="chart-card-sub">Créditos producidos cada día · Datos disponibles del 1 al {day_num} de {mc_label.lower()} {today.year if hasattr(today,"year") else 2026}</div>
       <div style="margin-top:12px">
-        {h_daily_table(daily, current_mes, re, 15 if is_q1 else 16, active_plats)}
+        {h_daily_table(daily, current_mes, re, day_num, active_plats)}
       </div>
     </div>
     <div style="margin-top:10px;font-size:11px;color:#475569;text-align:center">
@@ -1682,6 +1765,19 @@ def main(model_targets=None):
             if mdata['q1'] > 0 or mdata['q2'] > 0 or mdata['total'] > 0 or m == current_mes:
                 monthly_all[m] = mdata
 
+        # Fallback a GE Excel si Fornax2 no tiene producción real para este modelo
+        if ge_wb is not None and all(
+            v.get('q1', 0) == 0 and v.get('q2', 0) == 0 and v.get('total', 0) == 0
+            for v in monthly_all.values()
+        ):
+            print(f"     ℹ  {model_name} sin datos en Fornax2 → leyendo desde GE Excel…")
+            monthly_all = {}
+            for m in MESES:
+                cutoff = data_cutoff.day if m == current_mes else 31
+                mdata = read_monthly_ge(ge_wb, m, model_name, cutoff_day=cutoff)
+                if mdata['q1'] > 0 or mdata['q2'] > 0 or m == current_mes:
+                    monthly_all[m] = mdata
+
         if not monthly_all:
             print(f"     ⚠  Sin datos para {model_name}, omitiendo.")
             continue
@@ -1747,6 +1843,11 @@ def main(model_targets=None):
 
         # Datos diarios por plataforma (con conversión Streamate)
         daily = read_daily(wb, current_mes, model_name)
+        # Fallback a GE Excel si Fornax2 no tiene datos diarios
+        if not daily and ge_wb is not None:
+            daily = read_daily_ge(ge_wb, current_mes, model_name, cutoff_day=data_cutoff.day)
+            if daily:
+                print(f"     ℹ  Datos diarios de {model_name} leídos desde GE Excel (fallback).")
 
         # Generate HTML
         html = build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes, prev_mes, data_cutoff, gen_dt)

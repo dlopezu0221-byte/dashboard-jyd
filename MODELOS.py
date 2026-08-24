@@ -82,6 +82,20 @@ HISTORICAL_RE = {
     'Antonella Cooper': {**{m: 27000 for m in PRIMER_SEMESTRE}, 'JULIO': 27000},
 }
 
+# RE ajustado Summer Fest — aplica SOLO a Q2 AGOSTO 2026 (días 16-31)
+# Cálculo: RE_original × 10/16 (período fue de 10 días en lugar de 16)
+# La siguiente quincena vuelve al RE estándar de BASE DE DATOS
+SUMMERFEST_RE_Q2_AGOSTO = {
+    'Isabella Winkler': 25000,
+    'Isa Raven':        31250,
+    'Katt Souza':       37500,
+    'Dahiana Walcott':  23000,
+    'Cynthia Adams':    17000,
+    'Lucia Brown':      23000,
+    'Emilly Beaumont':  17500,
+    'Maximo & Marcelo': 25000,
+}
+
 LOGO_B64 = "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"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -806,8 +820,10 @@ def h_monthly_bar_chart(monthly_all, current_mes):
         )
     return f'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">{rows_html}</table></div>'
 
-def h_quincena_bar_chart(monthly_all, current_mes, re):
-    """Table-based bar chart by quincena."""
+def h_quincena_bar_chart(monthly_all, current_mes, re, re_q2_ago=None):
+    """Table-based bar chart by quincena.
+    re_q2_ago: RE ajustado Summer Fest para Q2 de AGOSTO (si aplica).
+    """
     max_val = max((max(d['q1'],d['q2']) for d in monthly_all.values() if d['q1'] or d['q2']), default=1) or 1
     mes_label = {'ENERO':'Ene','FEBRERO':'Feb','MARZO':'Mar','ABRIL':'Abr','MAYO':'May',
                  'JUNIO':'Jun','JULIO':'Jul','AGOSTO':'Ago'}
@@ -817,8 +833,10 @@ def h_quincena_bar_chart(monthly_all, current_mes, re):
         mc = MESES_CAP[m]
         for q, val in [('Q1', d['q1']), ('Q2', d['q2'])]:
             if val == 0 and q == 'Q2' and m == current_mes: continue
-            ok = val >= re
-            is_ip = (val > 0 and val < re and q == 'Q1' and m == current_mes)
+            # Usar RE Summer Fest para Agosto Q2 si aplica
+            re_bar = (re_q2_ago if (re_q2_ago and m == 'AGOSTO' and q == 'Q2') else re)
+            ok = val >= re_bar
+            is_ip = (val > 0 and val < re_bar and q == 'Q2' and m == current_mes)
             color = '#22C55E' if ok else ('#3B82F6' if is_ip else '#EF4444')
             if val == 0 and m != current_mes: color = '#475569'
             w = round((val / max_val)*100) if max_val else 0
@@ -970,6 +988,8 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
     modalidad = profile['modalidad']
     monitor = profile['monitor']
     re = profile['re']
+    # RE ajustado Summer Fest: solo para Q2 de AGOSTO 2026
+    re_q2_ago = SUMMERFEST_RE_Q2_AGOSTO.get(model, re)
     studio = profile['studio']
     plataforma = profile['plataforma']
     slug_upper = model.upper()
@@ -1027,10 +1047,12 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
     days_total = 15 if is_q1 else 16
     days_remaining = 0 if q1_complete else max(0, days_total - days_elapsed)
     cur_credits = cur_q1 if is_q1 else cur_q2
-    cur_pct = pct(cur_credits, re)
+    # Para Q2 de agosto, usar RE ajustado Summer Fest si aplica
+    re_period = (re_q2_ago if (current_mes == 'AGOSTO' and not is_q1) else re)
+    cur_pct = pct(cur_credits, re_period)
     ritmo = round(cur_credits / days_elapsed) if days_elapsed else 0
     proyeccion = ritmo * days_total
-    needed_per_day = round((re - cur_credits) / days_remaining) if days_remaining > 0 and cur_credits < re else 0
+    needed_per_day = round((re_period - cur_credits) / days_remaining) if days_remaining > 0 and cur_credits < re_period else 0
     q_label = 'Quincena 1' if is_q1 else 'Quincena 2'
     q_label_short = 'Q1' if is_q1 else 'Q2'
     period_range = f'1–15 {mc_label[:3].lower()}' if is_q1 else f'16–{31 if current_mes not in ("FEBRERO","ABRIL","JUNIO","SEPTIEMBRE","NOVIEMBRE") else ("28" if current_mes=="FEBRERO" else "30")} {mc_label[:3].lower()}'
@@ -1050,12 +1072,14 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
             lbl = f'{MESES_CAP[cm]} — Quincena {"1" if qn=="q1" else "2"}'
             d = monthly_all.get(cm, {})
             cr = d.get('q1', 0) if qn=='q1' else d.get('q2', 0)
+            # RE efectivo para esta quincena (Summer Fest solo aplica Q2 AGOSTO)
+            re_q = (re_q2_ago if (cm == 'AGOSTO' and qn == 'q2') else re)
             # Determine status
             if cm not in monthly_all:
                 st = 'pending'
             elif cm == current_mes and qn == q_label_short.lower():
                 if q1_complete:
-                    st = 'achieved' if cr >= re else 'missed'
+                    st = 'achieved' if cr >= re_q else 'missed'
                 else:
                     st = 'in_progress'
             elif cm == current_mes and qn == 'q2' and not is_q1:
@@ -1072,8 +1096,8 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
                 if matched:
                     st = matched[0]['status']
                 else:
-                    st = 'achieved' if cr >= re else 'missed'
-            cycle_q.append({'label': lbl, 'credits': cr, 're': re, 'status': st, 'mes': cm, 'q': qn})
+                    st = 'achieved' if cr >= re_q else 'missed'
+            cycle_q.append({'label': lbl, 'credits': cr, 're': re_q, 'status': st, 'mes': cm, 'q': qn})
 
     bono_rows = compute_bono(cycle_q)
     bono_earned = sum(r['bono_earned'] for r in bono_rows if r.get('status')=='achieved' and not r.get('potential'))
@@ -1226,8 +1250,8 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
       </div>
       <div id="view-quincena">
         <div class="chart-card-title">Producción por Quincena</div>
-        <div class="chart-card-sub">Créditos por quincena · RE = {fmt(re)} cr</div>
-        {h_quincena_bar_chart(monthly_all, current_mes, re)}
+        <div class="chart-card-sub">Créditos por quincena · RE = {fmt(re_period)} cr</div>
+        {h_quincena_bar_chart(monthly_all, current_mes, re, re_q2_ago=(re_q2_ago if re_q2_ago != re else None))}
       </div>
     </div>'''
 

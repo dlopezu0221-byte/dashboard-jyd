@@ -460,12 +460,24 @@ def rebuild_aliados_from_excel(aliados, cv, key_map, mes, last_day, detect_new=T
         # Reconstruir datos de modelos existentes
         for model in list(modelos.keys()):
             for studio in cv_studios:
-                key = (model, studio)
-                if key not in cv:
+                # Buscar clave exacta + variantes de prefijo (ej. "Kendal Wiston & Kultur Lens")
+                matching = [k for k in cv if k[1] == studio and
+                            (k[0] == model or k[0].startswith(model + ' '))]
+                if not matching:
                     continue
-                for d, day_vals in cv[key].items():
-                    entry = {p: (day_vals.get(p) if day_vals.get(p, 0) else None) for p in PLATS}
-                    modelos[model][str(d)] = entry; updated += 1
+                for key in matching:
+                    for d, day_vals in cv[key].items():
+                        entry = {p: (day_vals.get(p) if day_vals.get(p, 0) else None) for p in PLATS}
+                        day_str = str(d)
+                        if day_str in modelos[model]:
+                            # Acumular si hay datos de otra variante del mismo nombre
+                            for p in PLATS:
+                                nv = entry.get(p)
+                                if nv is not None:
+                                    modelos[model][day_str][p] = (modelos[model][day_str].get(p) or 0) + nv
+                        else:
+                            modelos[model][day_str] = entry
+                        updated += 1
                 break
         # ── DETECCIÓN AUTOMÁTICA DE MODELOS NUEVOS ──────────────────
         # Activa cuando: detect_new=True (GRUPO_MAP)
@@ -658,11 +670,25 @@ def fix_grupo_individual_partners(aliados, cv_jul, last_day_jul, cv_ago, last_da
             aliados[partner]['data'] = {}
         # Procesar Julio y Agosto
         for mes, cv, last_day in [('Julio', cv_jul, last_day_jul), ('Agosto', cv_ago, last_day_ago)]:
-            partner_data = cv.get((partner, cv_studio), {})
+            # Buscar clave exacta + variantes de prefijo (ej. "Kendal Wiston & Kultur Lens")
+            matching_keys = [k for k in cv if k[1] == cv_studio and
+                             (k[0] == partner or k[0].startswith(partner + ' '))]
             day_entries = {}
-            for d in range(1, last_day + 1):
-                if d in partner_data and any(v for v in partner_data[d].values() if v):
-                    day_entries[str(d)] = partner_data[d]
+            for key in matching_keys:
+                partner_data = cv[key]
+                for d in range(1, last_day + 1):
+                    if d not in partner_data:
+                        continue
+                    if not any(v for v in partner_data[d].values() if v):
+                        continue
+                    day_str = str(d)
+                    if day_str in day_entries:
+                        # Acumular datos de variantes del mismo nombre
+                        for p, nv in partner_data[d].items():
+                            if nv:
+                                day_entries[day_str][p] = (day_entries[day_str].get(p) or 0) + nv
+                    else:
+                        day_entries[day_str] = dict(partner_data[d])
             # Reemplazar completamente los modelos de este mes con solo el propio
             aliados[partner]['data'][mes] = {'modelos': {partner: day_entries} if day_entries else {}}
     print(f"  ✅ fix_grupo_individual_partners: {len(GRUPO_INDIVIDUAL_PARTNERS)} claves corregidas")

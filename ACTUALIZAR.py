@@ -852,7 +852,7 @@ FABIO_MAP = {
 def main():
     now         = datetime.now()
     ts_str      = now.strftime('%d/%m/%Y — %H:%M')
-    cutoff_str  = '22/08/2026'  # Corte explícito
+    cutoff_str  = '23/08/2026'  # Corte explícito
     meses_activos = ALL_MESES  # Enero → Agosto
 
     print('=' * 65)
@@ -867,7 +867,7 @@ def main():
 
     cv_jul, last_day_jul = read_cv_sheet(wb, 'JULIO')
     cv_ago, last_day_ago = read_cv_sheet(wb, 'AGOSTO')
-    last_day_ago = min(last_day_ago, 22)  # Corte explícito: 22 de agosto
+    last_day_ago = min(last_day_ago, 23)  # Corte explícito: 23 de agosto
 
     print(f'\n📅 JULIO: último día={last_day_jul} | AGOSTO: último día={last_day_ago} (corte=22)')
 

@@ -1734,7 +1734,7 @@ def main(model_targets=None):
     print(f"  Fecha: {today.strftime('%d/%m/%Y')} · Fuente: Fornax2.xlsx")
     print(f"{'='*60}\n")
 
-    data_cutoff = date(2026, 8, 23)  # Corte explícito: 23 de agosto
+    data_cutoff = date(2026, 8, 24)  # Corte explícito: 24 de agosto
     print(f"  📅 Fecha informe: {today.strftime('%d/%m/%Y')} · Corte datos: {data_cutoff.strftime('%d/%m/%Y')}")
 
     print("  📂 Cargando Cómo vamos Fornax2.xlsx…")

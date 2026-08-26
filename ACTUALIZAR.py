@@ -655,6 +655,13 @@ GRUPO_INDIVIDUAL_PARTNERS = {
     'Yessie Jacobs':  'Fabio Robledo',
     'Ana Black':      'Fabio Robledo',
     'Kendal Wiston':  'Fabio Robledo',
+    # Nuevos modelos directos de Fabio detectados en GE Excel
+    'Celeste Black':  'Fabio Robledo',
+    'Karl Jack':      'Fabio Robledo',
+    'Keily kim':      'Fabio Robledo',
+    'Melissa Deusa':  'Fabio Robledo',
+    'Ross Lauren':    'Fabio Robledo',
+    'Teo Sweet':      'Fabio Robledo',
 }
 
 def fix_grupo_individual_partners(aliados, cv_jul, last_day_jul, cv_ago, last_day_ago):
@@ -771,6 +778,13 @@ ALIADOS_DISPLAY = {
     'Yessie Jacobs':     'Yessie Jacobs',
     'Ana Black':         'Ana Black',
     'Kendal Wiston':     'Kendal Wiston',
+    # Nuevos modelos Fabio
+    'Celeste Black':     'Celeste Black',
+    'Karl Jack':         'Karl Jack',
+    'Keily kim':         'Keily Kim',
+    'Melissa Deusa':     'Melissa Deusa',
+    'Ross Lauren':       'Ross Lauren',
+    'Teo Sweet':         'Teo Sweet',
 }
 
 def recalc_top20g(top20g, grupo_aliados, mes=MES):
@@ -869,6 +883,13 @@ FABIO_MAP = {
     'Iridium Studio':    ['Iridium Studio'],
     'Studio JGM':        ['Studio JGM'],
     'Kendal Wiston':     ['Fabio Robledo'],
+    # Nuevos modelos directos de Fabio detectados en GE Excel
+    'Celeste Black':     ['Fabio Robledo'],
+    'Karl Jack':         ['Fabio Robledo'],
+    'Keily kim':         ['Fabio Robledo'],
+    'Melissa Deusa':     ['Fabio Robledo'],
+    'Ross Lauren':       ['Fabio Robledo'],
+    'Teo Sweet':         ['Fabio Robledo'],
 }
 
 
@@ -878,7 +899,7 @@ FABIO_MAP = {
 def main():
     now         = datetime.now()
     ts_str      = now.strftime('%d/%m/%Y — %H:%M')
-    cutoff_str  = '24/08/2026'  # Corte explícito
+    cutoff_str  = '25/08/2026'  # Corte explícito
     meses_activos = ALL_MESES  # Enero → Agosto
 
     print('=' * 65)
@@ -893,9 +914,9 @@ def main():
 
     cv_jul, last_day_jul = read_cv_sheet(wb, 'JULIO')
     cv_ago, last_day_ago = read_cv_sheet(wb, 'AGOSTO')
-    last_day_ago = min(last_day_ago, 24)  # Corte explícito: 24 de agosto
+    last_day_ago = min(last_day_ago, 25)  # Corte explícito: 25 de agosto
 
-    print(f'\n📅 JULIO: último día={last_day_jul} | AGOSTO: último día={last_day_ago} (corte=24)')
+    print(f'\n📅 JULIO: último día={last_day_jul} | AGOSTO: último día={last_day_ago} (corte=25)')
 
     if last_day_jul == 0:
         print("⚠  Sin datos en JULIO — verificar Excel."); return

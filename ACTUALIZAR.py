@@ -456,6 +456,12 @@ def rebuild_aliados_from_excel(aliados, cv, key_map, mes, last_day, detect_new=T
         modelos = md.get('modelos')
         if modelos is None:
             continue
+        # Para entradas individuales (ak=nombre modelo, cv_studios≠[ak]):
+        # si el modelo ak no está en modelos (ej: sin datos históricos en el mes ref),
+        # lo inicializamos para que el rebuild pueda leerlo del Excel.
+        _is_ind = not detect_new and cv_studios != [ak]
+        if _is_ind and ak not in modelos:
+            modelos[ak] = {}
         # Limpiar datos diarios de modelos existentes
         for model in list(modelos.keys()):
             modelos[model] = {}; cleared += 1
@@ -869,7 +875,7 @@ ERIKA_MAP = {
     'Liam Terrier':      ['Fornax Studios'],
     'Zac Levis':         ['Gold Online'],
     'Joel Souza':        ['Erika Noguera'],
-    'William Gardener':  ['Erika Noguera'],
+    'William Gardener':  ['Fornax Studios'],
 }
 FABIO_MAP = {
     'Atelier_glamour':   ['Atelier Glamour'],

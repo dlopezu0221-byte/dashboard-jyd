@@ -106,15 +106,17 @@ def set_var(html, varname, data, quote):
 # ═══════════════════════════════════════════════════════════════════
 def patch_meses_dmes(html, meses_list):
     """
-    Reemplaza var MESES=[...] y var DMES={...} en el HTML
+    Reemplaza var MESES=[...], var DMES={...} y var MESES_EJE=[...] en el HTML
     para incluir todos los meses en meses_list.
     """
-    meses_js   = "var MESES=[" + ",".join(f"'{m}'" for m in meses_list) + "];"
-    dmes_parts = ",".join(f"{m}:{DMES_VALS[m]}" for m in meses_list if m in DMES_VALS)
-    dmes_js    = "var DMES={" + dmes_parts + "};"
+    meses_js      = "var MESES=[" + ",".join(f"'{m}'" for m in meses_list) + "];"
+    dmes_parts    = ",".join(f"{m}:{DMES_VALS[m]}" for m in meses_list if m in DMES_VALS)
+    dmes_js       = "var DMES={" + dmes_parts + "};"
+    meses_eje_js  = "var MESES_EJE=[" + ",".join(f"'{m}'" for m in meses_list) + "];"
 
-    html = re.sub(r"var MESES=\[[^\]]*\];", meses_js, html, count=1)
-    html = re.sub(r"var DMES=\{[^}]*\};",  dmes_js,  html, count=1)
+    html = re.sub(r"var MESES=\[[^\]]*\];",     meses_js,     html, count=1)
+    html = re.sub(r"var DMES=\{[^}]*\};",       dmes_js,      html, count=1)
+    html = re.sub(r"var MESES_EJE=\[[^\]]*\];", meses_eje_js, html, count=1)
     return html
 
 
@@ -697,7 +699,11 @@ def fix_grupo_individual_partners(aliados, cv_jul, last_day_jul, cv_ago, last_da
                     else:
                         day_entries[day_str] = dict(partner_data[d])
             # Reemplazar completamente los modelos de este mes con solo el propio
-            aliados[partner]['data'][mes] = {'modelos': {partner: day_entries} if day_entries else {}}
+            # IMPORTANTE: incluir 'dias' para que el JS de Consulta Mensual no muestre "undefined días"
+            aliados[partner]['data'][mes] = {
+                'dias': last_day,
+                'modelos': {partner: day_entries} if day_entries else {}
+            }
     print(f"  ✅ fix_grupo_individual_partners: {len(GRUPO_INDIVIDUAL_PARTNERS)} claves corregidas")
     return aliados
 

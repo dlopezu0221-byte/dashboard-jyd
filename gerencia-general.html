@@ -17664,6 +17664,258 @@ function jdExportarBackup(){
   }
 }
 
+// ══════════════════════════════════════════════════════════════════
+// SINCRONIZACIÓN BIDIRECCIONAL SUPABASE ← localStorage (v88)
+// Cada cambio que el sistema hace en localStorage se guarda
+// automáticamente en Supabase de forma permanente.
+// ══════════════════════════════════════════════════════════════════
+(function initSupabaseWriteBack() {
+
+  // Claves de localStorage que deben sincronizarse
+  const SYNC_KEYS = [
+    'jd_estudios','jd_modelos','jd_liqs','jd_banco_movimientos',
+    'jd_monetizaciones','jd_horarios','jd_nominas','jd_configuracion'
+  ];
+
+  // Indicador visual de sincronización
+  var _syncEl = document.createElement('div');
+  _syncEl.id = '_supaSync';
+  _syncEl.style.cssText = [
+    'position:fixed','bottom:16px','right:16px','z-index:2147483647',
+    'font-size:11px','font-family:system-ui,sans-serif',
+    'padding:5px 12px','border-radius:20px',
+    'background:rgba(15,17,23,0.92)','border:1px solid rgba(255,255,255,0.1)',
+    'color:#aaa','display:none','pointer-events:none',
+    'transition:opacity 0.3s','backdrop-filter:blur(4px)'
+  ].join(';');
+  document.body.appendChild(_syncEl);
+
+  function _showSync(msg, color) {
+    _syncEl.textContent = msg;
+    _syncEl.style.color = color || '#aaa';
+    _syncEl.style.display = 'block';
+    _syncEl.style.opacity = '1';
+  }
+  function _hideSync() {
+    setTimeout(function() {
+      _syncEl.style.opacity = '0';
+      setTimeout(function(){ _syncEl.style.display='none'; _syncEl.style.opacity='1'; }, 300);
+    }, 2500);
+  }
+
+  // ── Transformadores v86 → Supabase ─────────────────────────────
+
+  function _toEstudios(rows) {
+    var known = {id:1,nombreAgencia:1,nombreReal:1,documento:1,estado:1,obs:1,createdAt:1};
+    return (rows||[]).filter(function(e){ return e && e.id; }).map(function(e) {
+      var extra = {};
+      Object.keys(e).forEach(function(k){ if(!known[k]) extra[k]=e[k]; });
+      return {
+        id: e.id,
+        nombre: e.nombreAgencia || e.nombreReal || e.id,
+        propietario: e.nombreReal || '',
+        nit: e.documento || '',
+        activo: e.estado === 'Activo' || e.estado === true,
+        datos_extra: extra
+      };
+    });
+  }
+
+  function _toModelos(rows) {
+    var known = {id:1,nombreAgencia:1,nombreReal:1,monitor:1,estado:1,paginasVinculadas:1,porcentaje:1,creadoEn:1,tipo:1};
+    return (rows||[]).filter(function(m){ return m && m.id; }).map(function(m) {
+      var extra = {};
+      Object.keys(m).forEach(function(k){ if(!known[k]) extra[k]=m[k]; });
+      return {
+        id: m.id,
+        nombre: m.nombreAgencia || m.nombreReal || m.id,
+        nombre_real: m.nombreReal || '',
+        estado: m.estado || 'Activo',
+        monitor: m.monitor || '',
+        plataformas: m.paginasVinculadas || [],
+        datos_extra: extra
+      };
+    });
+  }
+
+  function _toLiqs(rows) {
+    var known = {id:1,fecha:1,estudioId:1,estudioNombre:1,pagoEstudio:1,pagado:1,estado:1,
+      pendienteUmbral:1,pendienteDesde:1,createdAt:1,ocultarHistorial:1,
+      saldoComprometido:1,pagoAnticipado:1,pagadoEn:1,pagoExterno:1,
+      netoCOP:1,brutoUSD:1,brutoCOP:1,planMon:1,trm:1};
+    return (rows||[]).filter(function(l){ return l && l.id; }).map(function(l) {
+      var extra = {};
+      Object.keys(l).forEach(function(k){ if(!known[k]) extra[k]=l[k]; });
+      return {
+        id: l.id,
+        estudio_nombre: l.estudioNombre || '',
+        estudio_id: l.estudioId || null,
+        fecha: l.fecha || '',
+        pago_estudio: parseFloat(l.pagoEstudio || l.netoCOP || 0),
+        valor_total: parseFloat(l.brutoCOP || 0),
+        estado: l.estado || 'Pendiente',
+        pagado: !!l.pagado,
+        pagado_en: l.pagadoEn || null,
+        pago_externo: !!l.pagoExterno,
+        pendiente_umbral: !!l.pendienteUmbral,
+        ocultar_historial: !!l.ocultarHistorial,
+        saldo_comprometido: !!l.saldoComprometido,
+        pago_anticipado: !!l.pagoAnticipado,
+        datos_extra: extra
+      };
+    });
+  }
+
+  function _toBanco(rows) {
+    var known = {id:1,fecha:1,tipo:1,categoria:1,valor:1,beneficiario:1,concepto:1,
+      referencia:1,liqId:1,liqIds:1,nominaId:1,createdAt:1,obs:1,cuenta:1};
+    return (rows||[]).filter(function(b){ return b && b.id; }).map(function(b) {
+      var extra = {};
+      Object.keys(b).forEach(function(k){ if(!known[k]) extra[k]=b[k]; });
+      return {
+        id: b.id,
+        fecha: b.fecha || '',
+        tipo: b.tipo || '',
+        categoria: b.categoria || '',
+        descripcion: b.concepto || b.beneficiario || '',
+        valor: parseFloat(b.valor || 0),
+        referencia: b.referencia || null,
+        liq_id: b.liqId || null,
+        datos_extra: extra
+      };
+    });
+  }
+
+  function _toMonets(rows) {
+    var known = {id:1,fecha:1,plataforma:1,estado:1,usdMonetizados:1,tasaBancolombia:1,
+      pesosReal:1,mercury:1,createdAt:1,opNumero:1};
+    return (rows||[]).filter(function(m){ return m && m.id; }).map(function(m) {
+      var extra = {};
+      Object.keys(m).forEach(function(k){ if(!known[k]) extra[k]=m[k]; });
+      return {
+        id: m.id,
+        fecha: m.fecha || '',
+        plataforma: m.plataforma || '',
+        valor_usd: parseFloat(m.usdMonetizados || m.mercury || 0),
+        valor_cop: parseFloat(m.pesosReal || 0),
+        tasa_cambio: parseFloat(m.tasaBancolombia || 0),
+        estado: m.estado || 'Registrado',
+        datos_extra: extra
+      };
+    });
+  }
+
+  // ── Sincronizador principal ─────────────────────────────────────
+
+  var _syncTimers = {};
+
+  function _doSync(key, value) {
+    if (!_supaDb) return; // cliente no inicializado aún
+    var parsed;
+    try { parsed = JSON.parse(value); } catch(e) { return; }
+
+    _showSync('⟳ Guardando en la nube…', '#C8A84B');
+
+    var promise;
+    if (key === 'jd_estudios') {
+      var rows = _toEstudios(Array.isArray(parsed) ? parsed : []);
+      promise = rows.length > 0
+        ? _supaDb.from('estudios').upsert(rows, {onConflict:'id'})
+        : Promise.resolve({error:null});
+
+    } else if (key === 'jd_modelos') {
+      var rows = _toModelos(Array.isArray(parsed) ? parsed : []);
+      promise = rows.length > 0
+        ? _supaDb.from('modelos').upsert(rows, {onConflict:'id'})
+        : Promise.resolve({error:null});
+
+    } else if (key === 'jd_liqs') {
+      var rows = _toLiqs(Array.isArray(parsed) ? parsed : []);
+      promise = rows.length > 0
+        ? _supaDb.from('liquidaciones').upsert(rows, {onConflict:'id'})
+        : Promise.resolve({error:null});
+
+    } else if (key === 'jd_banco_movimientos') {
+      var rows = _toBanco(Array.isArray(parsed) ? parsed : []);
+      promise = rows.length > 0
+        ? _supaDb.from('banco_movimientos').upsert(rows, {onConflict:'id'})
+        : Promise.resolve({error:null});
+
+    } else if (key === 'jd_monetizaciones') {
+      var rows = _toMonets(Array.isArray(parsed) ? parsed : []);
+      promise = rows.length > 0
+        ? _supaDb.from('monetizaciones').upsert(rows, {onConflict:'id'})
+        : Promise.resolve({error:null});
+
+    } else {
+      // jd_horarios, jd_nominas, configs → tabla configuracion
+      promise = _supaDb.from('configuracion')
+        .upsert({clave: key, valor: parsed}, {onConflict:'clave'});
+    }
+
+    promise.then(function(res) {
+      if (res && res.error) {
+        console.warn('[SYNC] Error en', key, ':', res.error.message);
+        _showSync('⚠ Error al guardar', '#E05252');
+      } else {
+        _showSync('✓ Guardado en la nube', '#52C97A');
+      }
+      _hideSync();
+    }).catch(function(err) {
+      console.warn('[SYNC] Excepción en', key, ':', err);
+      _showSync('⚠ Error de conexión', '#E05252');
+      _hideSync();
+    });
+  }
+
+  // ── Interceptor de localStorage.setItem ────────────────────────
+
+  var _origSetItem = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = function(key, value) {
+    _origSetItem(key, value);
+    // Solo sincronizar claves JD relevantes
+    var shouldSync = SYNC_KEYS.indexOf(key) !== -1 ||
+      (key.startsWith && key.startsWith('jd_') && key !== 'jd_auth');
+    if (shouldSync) {
+      clearTimeout(_syncTimers[key]);
+      _syncTimers[key] = setTimeout(function(){ _doSync(key, value); }, 1200);
+    }
+  };
+
+  // ── Sincronización manual (disponible globalmente) ──────────────
+
+  window.jdSyncAll = function() {
+    var total = 0;
+    SYNC_KEYS.forEach(function(k) {
+      var v = localStorage.getItem(k);
+      if (v) { _doSync(k, v); total++; }
+    });
+    console.log('[SYNC] Sincronización manual de', total, 'claves iniciada.');
+    toast('🔄 Sincronizando ' + total + ' tablas con la nube…', 'info');
+  };
+
+  // ── Sincronización al cerrar la página ─────────────────────────
+
+  window.addEventListener('beforeunload', function() {
+    SYNC_KEYS.forEach(function(k) {
+      var v = localStorage.getItem(k);
+      if (v) {
+        try {
+          var parsed = JSON.parse(v);
+          if (_supaDb) {
+            // Sync síncrono básico antes de cerrar
+            if (k === 'jd_liqs') _supaDb.from('liquidaciones').upsert(_toLiqs(parsed),{onConflict:'id'});
+            else if (k === 'jd_modelos') _supaDb.from('modelos').upsert(_toModelos(parsed),{onConflict:'id'});
+            else if (k === 'jd_estudios') _supaDb.from('estudios').upsert(_toEstudios(parsed),{onConflict:'id'});
+          }
+        } catch(e) {}
+      }
+    });
+  });
+
+  console.log('[JD v88] ✅ Sincronización bidireccional activa — cambios se guardan en Supabase automáticamente.');
+})();
+
 </script>
 
 </body>

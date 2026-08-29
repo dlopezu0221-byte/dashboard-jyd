@@ -1,118 +1,995 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>Grupo Empresarial J&amp;D &mdash; Dashboard Ejecutivo</title>
+<title>Portal JyD</title>
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0B1120;--card:#141E35;--border:rgba(255,255,255,.07);
-  --gold:#F5B800;--text:#F1F5F9;--muted:#64748B;
+  --bg:#0F1117;--sidebar:#16181F;--card:#1E2028;--card2:#252830;
+  --border:#2E3040;--gold:#C8A84B;--gold2:#D4A843;--text:#E8E8E8;
+  --muted:#8A8FA8;--danger:#E05252;--success:#52C97A;--info:#5299E0;
+  --warn:#E0A852;--font:'Outfit',system-ui,sans-serif;--sw:240px
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:var(--bg);color:var(--text);
-  font-family:'Segoe UI',system-ui,sans-serif}
-body{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:100vh;padding:24px;text-align:center}
+html{font-size:14px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
 
-/* subtle grid background */
-body::before{content:'';position:fixed;inset:0;
-  background-image:
-    linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
-  background-size:40px 40px;pointer-events:none;z-index:0}
+/* ── LOGIN ── */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;
+  background:radial-gradient(ellipse at 50% 0%,rgba(200,168,75,.09) 0%,var(--bg) 60%)}
+.lcard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2.5rem;
+  width:100%;max-width:400px;box-shadow:0 32px 64px rgba(0,0,0,.45)}
+.llogo{text-align:center;margin-bottom:2rem}
+.llogo-icon{font-size:2.4rem;display:block;margin-bottom:.5rem}
+.llogo h1{font-size:1.45rem;font-weight:700;letter-spacing:-.02em}
+.llogo h1 em{color:var(--gold);font-style:normal}
+.llogo p{color:var(--muted);font-size:.84rem;margin-top:.25rem}
+.fgroup{margin-bottom:1rem}
+.fgroup label{display:block;font-size:.72rem;font-weight:600;color:var(--muted);
+  margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.06em}
+.finput{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:.65rem .85rem;color:var(--text);font-family:var(--font);font-size:.9rem;
+  outline:none;transition:border-color .15s}
+.finput:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,168,75,.1)}
+.errmsg{background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:var(--danger);
+  border-radius:8px;padding:.6rem .85rem;font-size:.83rem;margin-bottom:1rem;display:none}
 
-.wrap{position:relative;z-index:1;max-width:480px;width:100%}
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;
+  padding:.65rem 1.25rem;border:none;border-radius:8px;font-family:var(--font);
+  font-size:.9rem;font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none;
+  white-space:nowrap}
+.btn-primary{background:var(--gold);color:#0F1117}
+.btn-primary:hover{background:var(--gold2);transform:translateY(-1px)}
+.btn-secondary{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--border)}
+.btn-ghost{background:transparent;color:var(--muted)}
+.btn-ghost:hover{color:var(--text);background:var(--card2)}
+.btn-danger{background:rgba(224,82,82,.12);color:var(--danger);border:1px solid rgba(224,82,82,.25)}
+.btn-danger:hover{background:rgba(224,82,82,.22)}
+.btn-full{width:100%}
+.btn-sm{padding:.38rem .8rem;font-size:.78rem}
 
-.logo-ring{
-  width:80px;height:80px;border-radius:50%;
-  background:rgba(245,184,0,.08);
-  border:2px solid rgba(245,184,0,.25);
-  display:flex;align-items:center;justify-content:center;
-  margin:0 auto 28px;
+/* ── APP LAYOUT ── */
+#app{display:flex;min-height:100vh}
+#sidebar{width:var(--sw);min-height:100vh;background:var(--sidebar);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .25s ease}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
+#sidebar-overlay.vis{display:block}
+
+/* ── SIDEBAR INTERNALS ── */
+.sb-logo{padding:1.2rem 1rem;border-bottom:1px solid var(--border)}
+.sb-logo-row{display:flex;align-items:center;gap:.6rem}
+.sb-logo-icon{font-size:1.35rem;flex-shrink:0}
+.sb-logo h2{font-size:.95rem;font-weight:700}
+.sb-logo h2 em{color:var(--gold);font-style:normal}
+.role-badge{display:inline-block;font-size:.62rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.07em;padding:.14rem .5rem;border-radius:20px;margin-top:.3rem;
+  background:rgba(200,168,75,.12);color:var(--gold);border:1px solid rgba(200,168,75,.22)}
+.sb-nav{flex:1;padding:.6rem .5rem;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:.65rem;padding:.58rem .75rem;
+  border-radius:8px;color:var(--muted);cursor:pointer;transition:all .15s;
+  margin-bottom:.12rem;font-size:.86rem;font-weight:500;user-select:none}
+.nav-item:hover{color:var(--text);background:var(--card)}
+.nav-item.active{color:var(--gold);background:rgba(200,168,75,.1)}
+.nav-item svg{width:15px;height:15px;flex-shrink:0}
+.sb-footer{padding:.75rem;border-top:1px solid var(--border)}
+.user-chip{display:flex;align-items:center;gap:.6rem;padding:.5rem;margin-bottom:.5rem}
+.uavatar{width:32px;height:32px;border-radius:50%;background:rgba(200,168,75,.15);
+  border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;font-weight:700;color:var(--gold);flex-shrink:0}
+.uinfo{flex:1;min-width:0}
+.uinfo .uname{font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.uinfo .uemail{font-size:.68rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── MAIN AREA ── */
+#main{flex:1;margin-left:var(--sw);display:flex;flex-direction:column;min-height:100vh}
+#topbar{height:54px;background:var(--sidebar);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 1.5rem;position:sticky;top:0;z-index:50;gap:.75rem}
+#menu-toggle{display:none}
+#topbar-title{font-size:.95rem;font-weight:600;flex:1}
+#content{flex:1;padding:1.5rem}
+
+/* ── COMPONENTS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem}
+.card-title{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.4rem}
+.card-val{font-size:1.7rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15}
+.card-sub{font-size:.76rem;color:var(--muted);margin-top:.2rem}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin-bottom:1.5rem}
+
+.section{margin-bottom:2rem}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem}
+.sec-title{font-size:1rem;font-weight:700}
+.sec-sub{font-size:.78rem;color:var(--muted)}
+
+.page-hd{margin-bottom:1.75rem}
+.page-hd h1{font-size:1.35rem;font-weight:700;letter-spacing:-.02em;line-height:1.2;text-wrap:balance}
+.page-hd p{color:var(--muted);font-size:.84rem;margin-top:.3rem}
+
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+thead th{background:var(--card2);color:var(--muted);font-size:.7rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.06em;padding:.65rem 1rem;text-align:left;white-space:nowrap}
+tbody tr{border-top:1px solid var(--border);transition:background .1s}
+tbody tr:hover{background:rgba(46,48,64,.4)}
+tbody td{padding:.68rem 1rem;vertical-align:middle}
+.td-m{color:var(--muted);font-size:.8rem}
+.td-num{font-variant-numeric:tabular-nums}
+
+.badge{display:inline-flex;align-items:center;padding:.18rem .55rem;border-radius:20px;
+  font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.bg-s{background:rgba(82,201,122,.13);color:var(--success);border:1px solid rgba(82,201,122,.22)}
+.bg-w{background:rgba(224,168,82,.13);color:var(--warn);border:1px solid rgba(224,168,82,.22)}
+.bg-d{background:rgba(224,82,82,.13);color:var(--danger);border:1px solid rgba(224,82,82,.22)}
+.bg-i{background:rgba(82,153,224,.13);color:var(--info);border:1px solid rgba(82,153,224,.22)}
+.bg-g{background:rgba(200,168,75,.13);color:var(--gold);border:1px solid rgba(200,168,75,.22)}
+.bg-m{background:rgba(138,143,168,.1);color:var(--muted);border:1px solid rgba(138,143,168,.18)}
+
+.filters-row{display:flex;gap:.65rem;flex-wrap:wrap;margin-bottom:1rem}
+.fi{background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:.48rem .75rem;color:var(--text);font-family:var(--font);font-size:.84rem;
+  outline:none;min-width:150px}
+.fi:focus{border-color:var(--gold)}
+
+.loading-state,.empty-state,.error-state{display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:.75rem;padding:3rem 1rem;
+  color:var(--muted);text-align:center;font-size:.84rem}
+.spinner{width:26px;height:26px;border:3px solid var(--border);
+  border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── HORARIO ── */
+.hor-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.5rem}
+.hor-day{background:var(--card2);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.hor-dh{background:rgba(200,168,75,.12);text-align:center;padding:.35rem;
+  font-weight:700;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--gold)}
+.hor-slots{padding:.35rem}
+.hor-slot{padding:.25rem .4rem;background:rgba(200,168,75,.07);border-left:2px solid var(--gold);
+  border-radius:3px;margin-bottom:.22rem;font-size:.66rem}
+.hor-slot:last-child{margin-bottom:0}
+.hor-empty{text-align:center;color:var(--border);padding:.5rem .2rem;font-size:.65rem}
+
+/* ── PROFILE CARD ── */
+.prof-card{display:flex;align-items:flex-start;gap:1.1rem;background:var(--card);
+  border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1.5rem}
+.prof-av{width:52px;height:52px;border-radius:50%;background:rgba(200,168,75,.14);
+  border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;
+  font-size:1.35rem;font-weight:700;color:var(--gold);flex-shrink:0}
+.prof-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.8rem;margin-top:.85rem}
+.mf .ml{font-size:.66rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.15rem}
+.mf .mv{font-size:.88rem;font-weight:500}
+
+/* ── INFO CARD ── */
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.9rem}
+
+/* ── TAG LIST ── */
+.tags{display:flex;flex-wrap:wrap;gap:.35rem}
+.tag{background:var(--card2);border:1px solid var(--border);border-radius:6px;
+  padding:.2rem .55rem;font-size:.74rem;color:var(--text)}
+
+/* ── MONITOR GROUPS ── */
+.mg{margin-bottom:.85rem}
+.mg-hd{display:flex;align-items:center;gap:.5rem;padding:.5rem .75rem;
+  background:var(--card2);border-radius:8px 8px 0 0;border:1px solid var(--border);
+  font-weight:600;font-size:.84rem}
+.mg-body{border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px}
+.mg-row{display:flex;align-items:center;gap:.7rem;padding:.58rem .75rem;
+  border-bottom:1px solid var(--border);font-size:.8rem}
+.mg-row:last-child{border-bottom:none}
+
+/* ── FIN SUMMARY BAR ── */
+.fin-bar-wrap{height:10px;border-radius:5px;overflow:hidden;display:flex;margin:.4rem 0 .2rem}
+.fin-seg{height:100%;transition:width .5s ease}
+
+/* ── REDIRECT / NO-PERFIL ── */
+.redirect-card{max-width:480px;margin:4rem auto;text-align:center;background:var(--card);
+  border:1px solid var(--border);border-radius:16px;padding:3rem 2rem}
+.redirect-card h2{font-size:1.2rem;font-weight:700;margin-bottom:.5rem}
+.redirect-card p{color:var(--muted);font-size:.88rem;margin-bottom:1.5rem}
+
+/* ── MOBILE ── */
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0)}
+  #main{margin-left:0}
+  #menu-toggle{display:flex}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .hor-grid{grid-template-columns:repeat(4,1fr)}
 }
-.logo-ring svg{width:38px;height:38px;opacity:.9}
-
-.badge{
-  display:inline-block;
-  background:rgba(245,184,0,.1);color:var(--gold);
-  font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
-  padding:4px 14px;border-radius:20px;border:1px solid rgba(245,184,0,.25);
-  margin-bottom:18px;
-}
-
-h1{font-size:26px;font-weight:900;color:var(--text);line-height:1.2;margin-bottom:10px}
-h1 span{color:var(--gold)}
-
-.tagline{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:36px;max-width:340px;margin-left:auto;margin-right:auto}
-
-.access-card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:24px 28px;
-  margin-bottom:28px;
-}
-.lock-icon{font-size:28px;margin-bottom:10px}
-.access-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px}
-.access-msg{font-size:12px;color:var(--muted);line-height:1.7}
-.access-msg strong{color:var(--text)}
-
-.divider{
-  display:flex;align-items:center;gap:12px;margin-bottom:22px;color:var(--muted);font-size:10px;
-}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
-
-.footer{font-size:10px;color:rgba(148,163,184,.45);line-height:1.8}
-.footer a{color:rgba(245,184,0,.4);text-decoration:none}
-
-/* glow pulse on lock */
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(245,184,0,.15)}
-  50%{box-shadow:0 0 0 10px rgba(245,184,0,0)}}
-.logo-ring{animation:pulse 3s ease-in-out infinite}
-
 @media(max-width:480px){
-  h1{font-size:22px}
-  .access-card{padding:20px 18px}
+  .stats-grid{grid-template-columns:1fr}
+  .hor-grid{grid-template-columns:repeat(3,1fr)}
+  #content{padding:1rem}
 }
 </style>
-</head>
-<body>
-<div class="wrap">
 
-  <div class="logo-ring">
-    <!-- J&D logo mark — simple monogram SVG, no external deps -->
-    <svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="J&D">
-      <text x="2" y="28" font-family="'Segoe UI',system-ui,sans-serif"
-            font-size="22" font-weight="900" fill="#F5B800" letter-spacing="-1">J&amp;D</text>
-    </svg>
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="lcard">
+    <div class="llogo">
+      <span class="llogo-icon">👔</span>
+      <h1>Grupo <em>JyD</em></h1>
+      <p>Portal de Acceso</p>
+    </div>
+    <div id="login-error" class="errmsg"></div>
+    <form id="login-form">
+      <div class="fgroup">
+        <label for="lemail">Correo electrónico</label>
+        <input type="email" id="lemail" class="finput" placeholder="usuario@ejemplo.com" required autocomplete="email">
+      </div>
+      <div class="fgroup">
+        <label for="lpass">Contraseña</label>
+        <input type="password" id="lpass" class="finput" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" id="login-btn" style="margin-top:1.1rem">
+        Iniciar sesión
+      </button>
+    </form>
   </div>
+</div>
 
-  <div class="badge">Grupo Empresarial J&amp;D</div>
+<!-- SIDEBAR OVERLAY -->
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
-  <h1>Dashboard<br/><span>Ejecutivo Comercial</span></h1>
+<!-- MAIN APP -->
+<div id="app" hidden>
+  <aside id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-row">
+        <span class="sb-logo-icon">👔</span>
+        <h2>Grupo <em>JyD</em></h2>
+      </div>
+      <div id="sb-role" class="role-badge">Portal</div>
+    </div>
+    <nav class="sb-nav" id="sb-nav"></nav>
+    <div class="sb-footer">
+      <div class="user-chip">
+        <div class="uavatar" id="u-av">U</div>
+        <div class="uinfo">
+          <div class="uname" id="u-name">—</div>
+          <div class="uemail" id="u-email">—</div>
+        </div>
+      </div>
+      <button class="btn btn-danger btn-full btn-sm" onclick="logout()">Cerrar sesión</button>
+    </div>
+  </aside>
 
-  <p class="tagline">
-    Sistema de gestión y seguimiento comercial.<br/>
-    Información confidencial de uso exclusivo interno.
-  </p>
-
-  <div class="access-card">
-    <div class="lock-icon">🔒</div>
-    <div class="access-title">Acceso privado</div>
-    <div class="access-msg">
-      Ingrese mediante el <strong>enlace asignado</strong> a su perfil.<br/>
-      Si no tiene su enlace, comuníquese con el administrador<br/>del sistema.
+  <div id="main">
+    <div id="topbar">
+      <button class="btn btn-ghost btn-sm" id="menu-toggle" onclick="toggleSidebar()" aria-label="Menú">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <div id="topbar-title">Portal</div>
+    </div>
+    <div id="content">
+      <div class="loading-state"><div class="spinner"></div></div>
     </div>
   </div>
-
-  <div class="divider">información confidencial</div>
-
-  <div class="footer">
-    &copy; 2026 Grupo Empresarial J&amp;D &nbsp;&middot;&nbsp; Uso interno exclusivo<br/>
-    Acceso no autorizado está prohibido
-  </div>
-
 </div>
-</body>
-</html>
+
+<script>
+// ═══════════════════════════════════════════════
+// SUPABASE
+// ═══════════════════════════════════════════════
+const SUPA_URL = 'https://mqafwoaghwhnvorerjha.supabase.co';
+const SUPA_KEY = 'sb_publishable_aFR9VQR68If1Nc-ZO0cI6w_FgDLLsNP';
+const db = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let currentSession = null;
+let currentPerfil  = null;
+let activeSection  = null;
+let monitorData    = {};
+let ejData         = {};
+let modeloData     = {};
+let estudioData    = {};
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+function fCOP(v) {
+  if (v == null || isNaN(v)) return '$0';
+  return '$' + Math.round(Number(v)).toLocaleString('es-CO');
+}
+function fUSD(v) {
+  if (v == null || isNaN(v)) return '$0.00 USD';
+  return '$' + parseFloat(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' USD';
+}
+function fDate(s) {
+  if (!s) return '—';
+  try { return new Date(s).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}); }
+  catch { return s; }
+}
+function initials(n) {
+  if (!n) return '?';
+  return n.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+function badge(estado) {
+  if (!estado) return '<span class="badge bg-m">—</span>';
+  const e = String(estado).toLowerCase();
+  let c = 'bg-m';
+  if (e==='pagado'||e==='activo'||e==='procesado') c='bg-s';
+  else if (e==='pendiente'||e.includes('proceso')) c='bg-w';
+  else if (e==='comprometido') c='bg-i';
+  else if (e==='umbral'||e==='inactivo') c='bg-d';
+  return `<span class="badge ${c}">${estado}</span>`;
+}
+function activoBadge(a) {
+  return a ? '<span class="badge bg-s">Activo</span>' : '<span class="badge bg-d">Inactivo</span>';
+}
+function spin(msg='Cargando...') {
+  return `<div class="loading-state"><div class="spinner"></div><p>${msg}</p></div>`;
+}
+function empty(msg='No hay datos disponibles') {
+  return `<div class="empty-state">
+    <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--border)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r=".5" fill="currentColor"/></svg>
+    <p>${msg}</p></div>`;
+}
+function errCard(msg, fn) {
+  return `<div class="error-state"><p style="color:var(--danger)">${msg}</p>${fn?`<button onclick="${fn}()" class="btn btn-secondary btn-sm">Reintentar</button>`:''}</div>`;
+}
+function monthOptions() {
+  let o='';
+  for(let i=11;i>=0;i--){
+    const d=new Date(); d.setMonth(d.getMonth()-i);
+    const v=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const l=d.toLocaleDateString('es-CO',{month:'long',year:'numeric'});
+    o+=`<option value="${v}">${l.charAt(0).toUpperCase()+l.slice(1)}</option>`;
+  }
+  return o;
+}
+
+// ═══════════════════════════════════════════════
+// DOM HELPERS
+// ═══════════════════════════════════════════════
+const $  = id => document.getElementById(id);
+function setContent(h){ $('content').innerHTML=h; }
+function setTitle(t){ $('topbar-title').textContent=t; }
+function showApp(){ $('login-screen').hidden=true; $('app').hidden=false; }
+function showLogin(){ $('login-screen').hidden=false; $('app').hidden=true; }
+function toggleSidebar(){ $('sidebar').classList.toggle('open'); $('sidebar-overlay').classList.toggle('vis'); }
+function closeSidebar(){ $('sidebar').classList.remove('open'); $('sidebar-overlay').classList.remove('vis'); }
+
+// ═══════════════════════════════════════════════
+// SIDEBAR ICONS
+// ═══════════════════════════════════════════════
+const ICONS = {
+  grid:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`,
+  cal:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+  dollar:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
+  building:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>`,
+  trending:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>`,
+  users:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+  user:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+};
+
+const NAV = {
+  monitor:[
+    {id:'overview',label:'Dashboard',icon:'grid'},
+    {id:'horarios',label:'Horarios',icon:'cal'},
+  ],
+  ejecutivo:[
+    {id:'overview',label:'Resumen',icon:'grid'},
+    {id:'liquidaciones',label:'Liquidaciones',icon:'dollar'},
+    {id:'estudios',label:'Estudios',icon:'building'},
+    {id:'monetizaciones',label:'Monetizaciones',icon:'trending'},
+    {id:'modelos',label:'Modelos',icon:'users'},
+  ],
+  modelo:[
+    {id:'perfil',label:'Mi Perfil',icon:'user'},
+    {id:'liquidaciones',label:'Liquidaciones',icon:'dollar'},
+    {id:'horario',label:'Mi Horario',icon:'cal'},
+  ],
+  estudio:[
+    {id:'overview',label:'Resumen',icon:'grid'},
+    {id:'liquidaciones',label:'Liquidaciones',icon:'dollar'},
+  ],
+};
+const ROL_LABELS = {monitor:'Monitor',ejecutivo:'Ej. Comercial',modelo:'Modelo',estudio:'Estudio'};
+
+function renderSidebar(perfil) {
+  $('sb-role').textContent = ROL_LABELS[perfil.rol] || perfil.rol;
+  $('u-name').textContent  = perfil.nombre || 'Usuario';
+  $('u-email').textContent = currentSession?.user?.email || '';
+  $('u-av').textContent    = initials(perfil.nombre);
+  const items = NAV[perfil.rol] || [];
+  $('sb-nav').innerHTML = items.map(it =>
+    `<div class="nav-item${it.id===activeSection?' active':''}" onclick="navTo('${it.id}')" data-s="${it.id}">
+      ${ICONS[it.icon]||''}<span>${it.label}</span></div>`
+  ).join('');
+}
+function setActiveNav(s) {
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.s===s));
+}
+function navTo(s) {
+  activeSection=s; setActiveNav(s); closeSidebar();
+  const r=currentPerfil?.rol;
+  if(r==='monitor')   renderMonitorSection(s);
+  else if(r==='ejecutivo') renderEjSection(s);
+  else if(r==='modelo')    renderModeloSection(s);
+  else if(r==='estudio')   renderEstudioSection(s);
+}
+
+// ═══════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════
+$('login-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = $('lemail').value, pass = $('lpass').value;
+  const errEl = $('login-error'), btn = $('login-btn');
+  errEl.style.display='none'; btn.disabled=true; btn.textContent='Autenticando…';
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
+    if (error) throw error;
+    currentSession = data.session;
+    await loadAndRoute();
+  } catch(err) {
+    errEl.style.display='block';
+    errEl.textContent = err.message.includes('Invalid login') || err.message.includes('credentials')
+      ? 'Credenciales incorrectas. Verifica tu correo y contraseña.'
+      : err.message;
+    btn.disabled=false; btn.textContent='Iniciar sesión';
+  }
+});
+
+async function logout() {
+  await db.auth.signOut();
+  currentPerfil=null; currentSession=null; activeSection=null;
+  monitorData={}; ejData={}; modeloData={}; estudioData={};
+  showLogin();
+}
+
+async function loadAndRoute() {
+  const uid = currentSession?.user?.id;
+  if (!uid) { showLogin(); return; }
+  showApp(); setContent(spin('Cargando perfil…'));
+  try {
+    const { data: rows, error } = await db.from('perfiles').select('*').eq('id', uid);
+    const perfil = rows && rows.length > 0 ? rows[0] : null;
+    if (error || !perfil) {
+      setContent(`<div class="redirect-card">
+        <div style="font-size:2rem;margin-bottom:1rem">⚠️</div>
+        <h2>Perfil no configurado</h2>
+        <p>Tu cuenta no tiene un perfil asignado. Contacta al administrador para configurar tu acceso.</p>
+        <button onclick="logout()" class="btn btn-secondary">Cerrar sesión</button>
+      </div>`);
+      $('u-name').textContent=currentSession?.user?.email||''; $('u-av').textContent='?';
+      $('sb-nav').innerHTML='';
+      return;
+    }
+    currentPerfil = perfil;
+    if (perfil.rol==='gerente') {
+      $('sb-role').textContent='Gerente'; $('u-name').textContent=perfil.nombre;
+      $('u-av').textContent=initials(perfil.nombre); $('sb-nav').innerHTML='';
+      setContent(`<div class="redirect-card">
+        <div style="font-size:2.5rem;margin-bottom:1rem">🖥️</div>
+        <h2>Sistema Administrativo</h2>
+        <p>Hola <strong>${perfil.nombre}</strong>, tu rol requiere el sistema administrativo completo.</p>
+        <a href="jd_sistema_v87.html" class="btn btn-primary">Ir al sistema administrativo →</a>
+      </div>`);
+      return;
+    }
+    const items = NAV[perfil.rol]||[];
+    activeSection = items[0]?.id || 'overview';
+    renderSidebar(perfil);
+    navTo(activeSection);
+  } catch(err) {
+    setContent(errCard('Error al cargar el perfil: '+err.message));
+  }
+}
+
+// ═══════════════════════════════════════════════
+// MONITOR DASHBOARD
+// ═══════════════════════════════════════════════
+async function renderMonitorSection(s) {
+  setTitle('Monitor — '+(currentPerfil.nombre||''));
+  if (!monitorData.loaded) {
+    setContent(spin('Cargando modelos…'));
+    try {
+      const [mR, hR] = await Promise.all([
+        db.from('modelos').select('*').eq('monitor', currentPerfil.nombre),
+        db.from('configuracion').select('valor').eq('clave','jd_horarios').maybeSingle()
+      ]);
+      monitorData = { loaded:true, modelos:mR.data||[], horarios:hR.data?.valor||{} };
+    } catch(err) {
+      setContent(errCard('No se pudo cargar la información.','reloadMonitor')); return;
+    }
+  }
+  if (s==='overview') monitorOverview();
+  else if (s==='horarios') monitorHorarios();
+}
+function reloadMonitor(){ monitorData={}; renderMonitorSection(activeSection); }
+
+function monitorOverview() {
+  const { modelos } = monitorData;
+  const act = modelos.filter(m=>m.activo).length;
+  setContent(`
+    <div class="page-hd"><h1>Dashboard Monitor</h1><p>Modelos asignados a ${currentPerfil.nombre||'ti'}</p></div>
+    <div class="stats-grid">
+      <div class="card"><div class="card-title">Total Modelos</div><div class="card-val">${modelos.length}</div><div class="card-sub">asignados</div></div>
+      <div class="card"><div class="card-title">Activos</div><div class="card-val" style="color:var(--success)">${act}</div></div>
+      <div class="card"><div class="card-title">Inactivos</div><div class="card-val" style="color:var(--muted)">${modelos.length-act}</div></div>
+    </div>
+    <div class="section">
+      <div class="sec-hd"><span class="sec-title">Modelos Asignados</span></div>
+      ${modelos.length===0 ? empty('No tienes modelos asignados') : `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Nombre Agencia</th><th>Nombre Real</th><th>Estado</th><th>Plataformas</th></tr></thead>
+        <tbody>
+          ${modelos.map(m=>`<tr>
+            <td><strong>${m.nombre||'—'}</strong></td>
+            <td class="td-m">${m.nombre_real||'—'}</td>
+            <td>${badge(m.estado||(m.activo?'activo':'inactivo'))}</td>
+            <td><div class="tags">${(m.plataformas||[]).map(p=>`<span class="tag">${p}</span>`).join('')||'<span class="td-m">—</span>'}</div></td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`}
+    </div>`);
+}
+
+function monitorHorarios() {
+  const { modelos, horarios } = monitorData;
+  const DAYS = ['L','M','X','J','V','S','D'];
+  const DL   = {L:'Lun',M:'Mar',X:'Mié',J:'Jue',V:'Vie',S:'Sáb',D:'Dom'};
+  setContent(`
+    <div class="page-hd"><h1>Horarios</h1><p>Turnos semanales de tus modelos</p></div>
+    ${modelos.length===0 ? empty('Sin modelos asignados') : modelos.map(m=>{
+      const h = horarios[m.id]||{};
+      return `<div class="section">
+        <div class="sec-hd">
+          <div><span class="sec-title">${m.nombre||'—'}</span>
+          <span style="color:var(--muted);font-size:.78rem;margin-left:.5rem">${m.nombre_real||''}</span>
+          ${badge(m.estado||(m.activo?'activo':'inactivo'))}</div>
+        </div>
+        <div class="hor-grid">
+          ${DAYS.map(d=>{
+            const slots=h[d]||[];
+            return `<div class="hor-day">
+              <div class="hor-dh">${DL[d]}</div>
+              <div class="hor-slots">${slots.length===0?`<div class="hor-empty">—</div>`:slots.map(s=>`
+                <div class="hor-slot"><div style="font-weight:600">${s.desde||'?'}–${s.hasta||'?'}</div>
+                ${s.habitacion?`<div style="color:var(--muted)">${s.habitacion}</div>`:''}</div>`).join('')}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('')}`);
+}
+
+// ═══════════════════════════════════════════════
+// EJECUTIVO DASHBOARD
+// ═══════════════════════════════════════════════
+async function renderEjSection(s) {
+  setTitle('Ejecutivo — '+(currentPerfil.nombre||''));
+  if (!ejData.loaded) {
+    setContent(spin('Cargando datos…'));
+    try {
+      const [estR, modR, liqR, monR] = await Promise.all([
+        db.from('estudios').select('*').order('nombre'),
+        db.from('modelos').select('*').order('nombre'),
+        db.from('liquidaciones').select('*').order('fecha',{ascending:false}),
+        db.from('monetizaciones').select('*').order('fecha',{ascending:false}),
+      ]);
+      ejData = { loaded:true, estudios:estR.data||[], modelos:modR.data||[],
+        liquidaciones:liqR.data||[], monetizaciones:monR.data||[] };
+    } catch(err) {
+      setContent(errCard('No se pudo cargar la información.','reloadEj')); return;
+    }
+  }
+  if (s==='overview')       ejOverview();
+  else if (s==='liquidaciones') ejLiquidaciones();
+  else if (s==='estudios')      ejEstudios();
+  else if (s==='monetizaciones') ejMonetizaciones();
+  else if (s==='modelos')       ejModelos();
+}
+function reloadEj(){ ejData={}; renderEjSection(activeSection); }
+
+function ejOverview() {
+  const { estudios, modelos, liquidaciones, monetizaciones } = ejData;
+  const estAct = estudios.filter(e=>e.activo).length;
+  const modAct = modelos.filter(m=>m.activo||m.estado==='activo').length;
+  const totLiq = liquidaciones.reduce((s,l)=>s+(l.pago_estudio||0),0);
+  const totUSD = monetizaciones.reduce((s,m)=>s+(m.valor_usd||0),0);
+  const recientes = liquidaciones.slice(0,8);
+  setContent(`
+    <div class="page-hd"><h1>Resumen Ejecutivo</h1><p>Vista general del negocio</p></div>
+    <div class="stats-grid">
+      <div class="card"><div class="card-title">Estudios Activos</div><div class="card-val" style="color:var(--success)">${estAct}</div><div class="card-sub">de ${estudios.length} total</div></div>
+      <div class="card"><div class="card-title">Modelos Activos</div><div class="card-val" style="color:var(--info)">${modAct}</div><div class="card-sub">de ${modelos.length} total</div></div>
+      <div class="card"><div class="card-title">Total Liquidado COP</div><div class="card-val" style="font-size:1.15rem;color:var(--gold)">${fCOP(totLiq)}</div><div class="card-sub">${liquidaciones.length} liquidaciones</div></div>
+      <div class="card"><div class="card-title">Total USD Monetizado</div><div class="card-val" style="font-size:1.15rem;color:var(--gold)">${fUSD(totUSD)}</div><div class="card-sub">${monetizaciones.length} registros</div></div>
+    </div>
+    <div class="section">
+      <div class="sec-hd"><span class="sec-title">Liquidaciones Recientes</span>
+        <button class="btn btn-secondary btn-sm" onclick="navTo('liquidaciones')">Ver todas</button></div>
+      ${recientes.length===0 ? empty('Sin liquidaciones') : `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Fecha</th><th>Estudio</th><th>Pago Estudio</th><th>Total</th><th>Estado</th></tr></thead>
+        <tbody>${recientes.map(l=>`<tr>
+          <td class="td-m">${fDate(l.fecha)}</td>
+          <td><strong>${l.estudio_nombre||'—'}</strong></td>
+          <td class="td-num">${fCOP(l.pago_estudio)}</td>
+          <td class="td-num">${fCOP(l.valor_total)}</td>
+          <td>${badge(l.estado)}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>`}
+    </div>`);
+}
+
+function ejLiquidaciones() {
+  const { liquidaciones } = ejData;
+  setContent(`
+    <div class="page-hd"><h1>Liquidaciones</h1><p>${liquidaciones.length} registros totales</p></div>
+    <div class="filters-row">
+      <input type="search" class="fi" placeholder="Buscar estudio…" id="liq-q" oninput="ejFilterLiq()">
+      <select class="fi" id="liq-e" onchange="ejFilterLiq()">
+        <option value="">Todos los estados</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="pagado">Pagado</option>
+        <option value="comprometido">Comprometido</option>
+        <option value="umbral">Umbral</option>
+      </select>
+      <select class="fi" id="liq-m" onchange="ejFilterLiq()">
+        <option value="">Todos los meses</option>${monthOptions()}
+      </select>
+    </div>
+    <div id="liq-tbl">${ejLiqTable(liquidaciones)}</div>`);
+}
+function ejLiqTable(rows) {
+  if (!rows.length) return empty('No se encontraron liquidaciones');
+  return `<div class="table-wrap"><table>
+    <thead><tr><th>Fecha</th><th>Estudio</th><th>Pago Estudio</th><th>Valor Total</th><th>Estado</th><th>Pagado En</th></tr></thead>
+    <tbody>${rows.map(l=>`<tr>
+      <td class="td-m">${fDate(l.fecha)}</td>
+      <td><strong>${l.estudio_nombre||'—'}</strong></td>
+      <td class="td-num">${fCOP(l.pago_estudio)}</td>
+      <td class="td-num">${fCOP(l.valor_total)}</td>
+      <td>${badge(l.estado)}</td>
+      <td class="td-m">${l.pagado_en?fDate(l.pagado_en):'—'}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+function ejFilterLiq() {
+  const q=($('liq-q')?.value||'').toLowerCase();
+  const e=($('liq-e')?.value||'').toLowerCase();
+  const m=$('liq-m')?.value||'';
+  let rows=ejData.liquidaciones;
+  if (q) rows=rows.filter(l=>(l.estudio_nombre||'').toLowerCase().includes(q));
+  if (e) rows=rows.filter(l=>(l.estado||'').toLowerCase()===e);
+  if (m) rows=rows.filter(l=>l.fecha&&l.fecha.startsWith(m));
+  $('liq-tbl').innerHTML=ejLiqTable(rows);
+}
+
+function ejEstudios() {
+  const { estudios, liquidaciones } = ejData;
+  const byEst = {};
+  liquidaciones.forEach(l=>{ if(!byEst[l.estudio_id]) byEst[l.estudio_id]={n:0,t:0};
+    byEst[l.estudio_id].n++; byEst[l.estudio_id].t+=(l.pago_estudio||0); });
+  setContent(`
+    <div class="page-hd"><h1>Estudios</h1><p>${estudios.length} estudios registrados</p></div>
+    ${estudios.length===0 ? empty('No hay estudios registrados') : `
+    <div class="table-wrap"><table>
+      <thead><tr><th>Nombre</th><th>Propietario</th><th>NIT</th><th>Liquidaciones</th><th>Total Pagado</th><th>Estado</th></tr></thead>
+      <tbody>${estudios.map(e=>{
+        const st=byEst[e.id]||{n:0,t:0};
+        return `<tr>
+          <td><strong>${e.nombre||'—'}</strong></td>
+          <td class="td-m">${e.propietario||'—'}</td>
+          <td class="td-m">${e.nit||'—'}</td>
+          <td class="td-num" style="text-align:center">${st.n}</td>
+          <td class="td-num">${fCOP(st.t)}</td>
+          <td>${activoBadge(e.activo)}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`}`);
+}
+
+function ejMonetizaciones() {
+  const { monetizaciones } = ejData;
+  const totUSD=monetizaciones.reduce((s,m)=>s+(m.valor_usd||0),0);
+  const totCOP=monetizaciones.reduce((s,m)=>s+(m.valor_cop||0),0);
+  setContent(`
+    <div class="page-hd"><h1>Monetizaciones</h1><p>${monetizaciones.length} registros</p></div>
+    <div class="stats-grid" style="max-width:500px">
+      <div class="card"><div class="card-title">Total USD</div><div class="card-val" style="font-size:1.2rem;color:var(--gold)">${fUSD(totUSD)}</div></div>
+      <div class="card"><div class="card-title">Total COP</div><div class="card-val" style="font-size:1.2rem;color:var(--gold)">${fCOP(totCOP)}</div></div>
+    </div>
+    ${monetizaciones.length===0 ? empty('No hay monetizaciones registradas') : `
+    <div class="table-wrap"><table>
+      <thead><tr><th>Fecha</th><th>Plataforma</th><th>Valor USD</th><th>Valor COP</th><th>Tasa</th><th>Estado</th></tr></thead>
+      <tbody>${monetizaciones.map(m=>`<tr>
+        <td class="td-m">${fDate(m.fecha)}</td>
+        <td><strong>${m.plataforma||'—'}</strong></td>
+        <td class="td-num">${fUSD(m.valor_usd)}</td>
+        <td class="td-num">${fCOP(m.valor_cop)}</td>
+        <td class="td-m td-num">${m.tasa_cambio?Number(m.tasa_cambio).toLocaleString('es-CO'):'—'}</td>
+        <td>${badge(m.estado)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`}`);
+}
+
+function ejModelos() {
+  const { modelos } = ejData;
+  const byMon = {};
+  modelos.forEach(m=>{ const k=m.monitor||'Sin Monitor'; if(!byMon[k]) byMon[k]=[]; byMon[k].push(m); });
+  setContent(`
+    <div class="page-hd"><h1>Modelos</h1><p>${modelos.length} en total</p></div>
+    ${Object.keys(byMon).length===0 ? empty('No hay modelos registrados') :
+      Object.entries(byMon).map(([mon, mods])=>`
+        <div class="mg">
+          <div class="mg-hd">${ICONS.user} ${mon} <span class="badge bg-m" style="margin-left:auto">${mods.length}</span></div>
+          <div class="mg-body">${mods.map(m=>`
+            <div class="mg-row">
+              <div style="flex:1"><strong>${m.nombre||'—'}</strong> <span class="td-m">· ${m.nombre_real||'—'}</span></div>
+              <div class="tags" style="gap:.25rem">${(m.plataformas||[]).slice(0,3).map(p=>`<span class="tag">${p}</span>`).join('')}</div>
+              ${badge(m.estado||(m.activo?'activo':'inactivo'))}
+            </div>`).join('')}
+          </div>
+        </div>`).join('')}`);
+}
+
+// ═══════════════════════════════════════════════
+// MODELO DASHBOARD
+// ═══════════════════════════════════════════════
+async function renderModeloSection(s) {
+  setTitle('Mi Dashboard — '+(currentPerfil.nombre||''));
+  if (!modeloData.loaded) {
+    setContent(spin('Cargando información…'));
+    try {
+      const eid = currentPerfil.entidad_id;
+      const [modR, horR] = await Promise.all([
+        db.from('modelos').select('*').eq('id',eid).maybeSingle(),
+        db.from('configuracion').select('valor').eq('clave','jd_horarios').maybeSingle()
+      ]);
+      let liq = [];
+      try {
+        const { data } = await db.from('liquidaciones').select('*')
+          .filter('datos_extra->>modeloId','eq',eid).order('fecha',{ascending:false});
+        liq = data || [];
+      } catch {
+        const { data: all } = await db.from('liquidaciones').select('*').order('fecha',{ascending:false});
+        liq = (all||[]).filter(l=>l.datos_extra?.modeloId===eid);
+      }
+      const horarios = horR.data?.valor || {};
+      modeloData = { loaded:true, modelo:modR.data||{}, liquidaciones:liq, horario:horarios[eid]||{} };
+    } catch(err) {
+      setContent(errCard('No se pudo cargar tu información.','reloadModelo')); return;
+    }
+  }
+  if (s==='perfil')          modeloPerfil();
+  else if (s==='liquidaciones') modeloLiquidaciones();
+  else if (s==='horario')       modeloHorario();
+}
+function reloadModelo(){ modeloData={}; renderModeloSection(activeSection); }
+
+function modeloPerfil() {
+  const m = modeloData.modelo;
+  const n = m.nombre || currentPerfil.nombre || '—';
+  setContent(`
+    <div class="page-hd"><h1>Mi Perfil</h1></div>
+    <div class="prof-card">
+      <div class="prof-av">${initials(n)}</div>
+      <div style="flex:1">
+        <div style="font-size:1.15rem;font-weight:700">${n}</div>
+        <div style="color:var(--muted);font-size:.82rem;margin-top:.2rem">${m.nombre_real||'—'}</div>
+        <div style="margin-top:.4rem">${badge(m.estado||(m.activo?'activo':'inactivo'))}</div>
+        <div class="prof-meta">
+          <div class="mf"><div class="ml">Monitor</div><div class="mv">${m.monitor||'—'}</div></div>
+          <div class="mf"><div class="ml">Nombre Agencia</div><div class="mv">${m.nombre||'—'}</div></div>
+          <div class="mf"><div class="ml">Nombre Real</div><div class="mv">${m.nombre_real||'—'}</div></div>
+        </div>
+      </div>
+    </div>
+    ${(m.plataformas||[]).length ? `
+    <div class="section">
+      <div class="sec-title" style="margin-bottom:.75rem">Mis Plataformas</div>
+      <div class="tags">${(m.plataformas||[]).map(p=>`<span class="tag" style="padding:.35rem .85rem;font-size:.82rem">${p}</span>`).join('')}</div>
+    </div>` : ''}`);
+}
+
+function modeloLiquidaciones() {
+  const { liquidaciones } = modeloData;
+  const pagadas = liquidaciones.filter(l=>(l.estado||'').toLowerCase()==='pagado');
+  const pendts  = liquidaciones.filter(l=>(l.estado||'').toLowerCase()!=='pagado');
+  const totPag  = pagadas.reduce((s,l)=>s+(l.pago_estudio||0),0);
+  const totPen  = pendts.reduce((s,l)=>s+(l.pago_estudio||0),0);
+  setContent(`
+    <div class="page-hd"><h1>Mis Liquidaciones</h1><p>${liquidaciones.length} registros</p></div>
+    <div class="stats-grid" style="max-width:440px">
+      <div class="card"><div class="card-title">Total Pagado</div><div class="card-val" style="font-size:1.2rem;color:var(--success)">${fCOP(totPag)}</div></div>
+      <div class="card"><div class="card-title">Total Pendiente</div><div class="card-val" style="font-size:1.2rem;color:var(--warn)">${fCOP(totPen)}</div></div>
+    </div>
+    ${liquidaciones.length===0 ? empty('No tienes liquidaciones registradas') : `
+    <div class="table-wrap"><table>
+      <thead><tr><th>Fecha</th><th>Estudio</th><th>Mi Pago</th><th>Estado</th><th>Pagado En</th></tr></thead>
+      <tbody>${liquidaciones.map(l=>`<tr>
+        <td class="td-m">${fDate(l.fecha)}</td>
+        <td><strong>${l.estudio_nombre||'—'}</strong></td>
+        <td class="td-num"><strong>${fCOP(l.pago_estudio)}</strong></td>
+        <td>${badge(l.estado)}</td>
+        <td class="td-m">${l.pagado_en?fDate(l.pagado_en):'—'}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`}`);
+}
+
+function modeloHorario() {
+  const h = modeloData.horario;
+  const DAYS=['L','M','X','J','V','S','D'], DL={L:'Lunes',M:'Martes',X:'Miércoles',J:'Jueves',V:'Viernes',S:'Sábado',D:'Domingo'};
+  const hasH = DAYS.some(d=>(h[d]||[]).length>0);
+  setContent(`
+    <div class="page-hd"><h1>Mi Horario</h1><p>Turnos semanales asignados</p></div>
+    ${!hasH ? empty('No tienes horario asignado') : `
+    <div class="hor-grid" style="margin-bottom:1.5rem">
+      ${DAYS.map(d=>{
+        const slots=h[d]||[];
+        return `<div class="hor-day">
+          <div class="hor-dh">${DL[d].substring(0,3)}</div>
+          <div class="hor-slots">${slots.length===0?`<div class="hor-empty">Libre</div>`:
+            slots.map(s=>`<div class="hor-slot"><div style="font-weight:600">${s.desde||'?'}–${s.hasta||'?'}</div>
+              ${s.habitacion?`<div style="color:var(--muted)">${s.habitacion}</div>`:''}</div>`).join('')}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="card" style="font-size:.8rem;color:var(--muted)">
+      Los horarios son asignados por tu monitor. Ante cualquier duda, consulta con tu monitor directamente.
+    </div>`}`);
+}
+
+// ═══════════════════════════════════════════════
+// ESTUDIO DASHBOARD
+// ═══════════════════════════════════════════════
+async function renderEstudioSection(s) {
+  setTitle('Estudio — '+(currentPerfil.nombre||''));
+  if (!estudioData.loaded) {
+    setContent(spin('Cargando información…'));
+    try {
+      const eid = currentPerfil.entidad_id;
+      const [estR, liqR] = await Promise.all([
+        db.from('estudios').select('*').eq('id',eid).maybeSingle(),
+        db.from('liquidaciones').select('*').eq('estudio_id',eid).order('fecha',{ascending:false}),
+      ]);
+      estudioData = { loaded:true, estudio:estR.data||{}, liquidaciones:liqR.data||[] };
+    } catch(err) {
+      setContent(errCard('No se pudo cargar la información del estudio.','reloadEstudio')); return;
+    }
+  }
+  if (s==='overview')           estOverview();
+  else if (s==='liquidaciones') estLiquidaciones();
+}
+function reloadEstudio(){ estudioData={}; renderEstudioSection(activeSection); }
+
+function estOverview() {
+  const { estudio, liquidaciones } = estudioData;
+  const pagadas = liquidaciones.filter(l=>l.pagado||(l.estado||'').toLowerCase()==='pagado');
+  const pendts  = liquidaciones.filter(l=>!l.pagado&&(l.estado||'').toLowerCase()!=='pagado');
+  const totPag  = pagadas.reduce((s,l)=>s+(l.pago_estudio||0),0);
+  const totPen  = pendts.reduce((s,l)=>s+(l.pago_estudio||0),0);
+  const total   = totPag+totPen;
+  const pctP    = total>0 ? (totPag/total*100) : 0;
+  const pctN    = total>0 ? (totPen/total*100) : 0;
+  const ultima  = liquidaciones[0];
+  setContent(`
+    <div class="page-hd"><h1>Dashboard Estudio</h1><p>Resumen financiero y operativo</p></div>
+    <div class="card" style="margin-bottom:1.5rem">
+      <div style="display:flex;align-items:flex-start;gap:1rem">
+        <div style="font-size:2rem;line-height:1">🏢</div>
+        <div>
+          <div style="font-size:1.1rem;font-weight:700">${estudio.nombre||'—'}</div>
+          <div style="color:var(--muted);font-size:.8rem;margin-top:.25rem">
+            ${estudio.propietario||'—'} &nbsp;·&nbsp; NIT: ${estudio.nit||'—'} &nbsp;·&nbsp; ${activoBadge(estudio.activo)}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="card"><div class="card-title">Liquidaciones</div><div class="card-val">${liquidaciones.length}</div></div>
+      <div class="card"><div class="card-title">Total Pagado</div><div class="card-val" style="font-size:1.1rem;color:var(--success)">${fCOP(totPag)}</div></div>
+      <div class="card"><div class="card-title">Total Pendiente</div><div class="card-val" style="font-size:1.1rem;color:var(--warn)">${fCOP(totPen)}</div></div>
+      <div class="card"><div class="card-title">Última Liquidación</div><div class="card-val" style="font-size:1rem">${ultima?fDate(ultima.fecha):'—'}</div></div>
+    </div>
+    ${total>0 ? `
+    <div class="section">
+      <div class="sec-title" style="margin-bottom:.9rem">Resumen Financiero</div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:.5rem">
+          <span style="color:var(--success)">● Pagado ${fCOP(totPag)} (${Math.round(pctP)}%)</span>
+          <span style="color:var(--warn)">Pendiente ${fCOP(totPen)} (${Math.round(pctN)}%) ●</span>
+        </div>
+        <div class="fin-bar-wrap">
+          <div class="fin-seg" style="width:${pctP}%;background:var(--success)"></div>
+          <div class="fin-seg" style="width:${pctN}%;background:var(--warn)"></div>
+        </div>
+        <div style="font-size:.74rem;color:var(--muted);margin-top:.3rem">Total acumulado: ${fCOP(total)}</div>
+      </div>
+    </div>` : ''}
+    <div class="section">
+      <div class="sec-hd"><span class="sec-title">Liquidaciones Recientes</span>
+        <button class="btn btn-secondary btn-sm" onclick="navTo('liquidaciones')">Ver todas</button></div>
+      ${liquidaciones.length===0 ? empty('Sin liquidaciones') : `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Fecha</th><th>Total</th><th>Mi Pago</th><th>Estado</th></tr></thead>
+        <tbody>${liquidaciones.slice(0,6).map(l=>`<tr>
+          <td class="td-m">${fDate(l.fecha)}</td>
+          <td class="td-num">${fCOP(l.valor_total)}</td>
+          <td class="td-num"><strong>${fCOP(l.pago_estudio)}</strong></td>
+          <td>${badge(l.estado)}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>`}
+    </div>`);
+}
+
+function estLiquidaciones() {
+  const { liquidaciones } = estudioData;
+  setContent(`
+    <div class="page-hd"><h1>Mis Liquidaciones</h1><p>${liquidaciones.length} registros</p></div>
+    <div class="filters-row">
+      <select class="fi" id="est-e" onchange="estFilterLiq()">
+        <option value="">Todos los estados</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="pagado">Pagado</option>
+        <option value="comprometido">Comprometido</option>
+        <option value="umbral">Umbral</option>
+      </select>
+      <select class="fi" id="est-m" onchange="estFilterLiq()">
+        <option value="">Todos los meses</option>${monthOptions()}
+      </select>
+    </div>
+    <div id="est-tbl">${estLiqTable(liquidaciones)}</div>`);
+}
+function estLiqTable(rows) {
+  if (!rows.length) return empty('No se encontraron liquidaciones');
+  return `<div class="table-wrap"><table>
+    <thead><tr><th>Fecha</th><th>Valor Total</th><th>Mi Pago</th><th>Estado</th><th>Pagado En</th><th>Externo</th></tr></thead>
+    <tbody>${rows.map(l=>{
+      const e=(l.estado||'').toLowerCase();
+      const bg=e==='pagado'?'rgba(82,201,122,.03)':e==='pendiente'?'rgba(224,168,82,.03)':
+        e==='comprometido'?'rgba(82,153,224,.03)':e==='umbral'?'rgba(224,82,82,.03)':'';
+      return `<tr style="background:${bg}">
+        <td class="td-m">${fDate(l.fecha)}</td>
+        <td class="td-num">${fCOP(l.valor_total)}</td>
+        <td class="td-num"><strong>${fCOP(l.pago_estudio)}</strong></td>
+        <td>${badge(l.estado)}</td>
+        <td class="td-m">${l.pagado_en?fDate(l.pagado_en):'—'}</td>
+        <td>${l.pago_externo?'<span class="badge bg-i">Sí</span>':'<span class="td-m">—</span>'}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+function estFilterLiq() {
+  const e=($('est-e')?.value||'').toLowerCase();
+  const m=$('est-m')?.value||'';
+  let rows=estudioData.liquidaciones;
+  if (e) rows=rows.filter(l=>(l.estado||'').toLowerCase()===e);
+  if (m) rows=rows.filter(l=>l.fecha&&l.fecha.startsWith(m));
+  $('est-tbl').innerHTML=estLiqTable(rows);
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+async function init() {
+  try {
+    const { data:{ session } } = await db.auth.getSession();
+    if (session) { currentSession=session; await loadAndRoute(); }
+    else showLogin();
+  } catch { showLogin(); }
+
+  db.auth.onAuthStateChange((event, session) => {
+    if (event==='SIGNED_OUT') {
+      currentPerfil=null; currentSession=null;
+      monitorData={}; ejData={}; modeloData={}; estudioData={};
+      showLogin();
+    } else if (event==='TOKEN_REFRESHED' && session) {
+      currentSession=session;
+    }
+  });
+}
+init();
+</script>

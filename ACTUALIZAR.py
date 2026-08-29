@@ -190,17 +190,12 @@ def read_cv_sheet(wb, sheet):
             continue
         if studio.upper() in IGNORAR_STUDIOS or studio.upper() in {s.upper() for s in IGNORAR_STUDIOS}:
             continue
-        # Detectar filas con studio pero sin nombre de modelo que tengan producción
+        # Fallback: si col A está vacía, leer col R (índice 17) donde el usuario escribe el nombre
+        if not model and len(row) > 17:
+            model = str(row[17] or '').strip()
+        # Filas sin nombre de modelo → ignorar (subtotales del Excel)
         if not model:
-            tiene_prod = any(
-                isinstance(row[day_col(d) + pi - 1], (int, float)) and float(row[day_col(d) + pi - 1] or 0) > 0
-                for d in range(1, 32) for pi in range(5)
-                if day_col(d) + pi - 1 < len(row)
-            )
-            if tiene_prod:
-                model = 'Total Estudio'  # fila agregada de estudio — asignar pseudónombre
-            else:
-                continue
+            continue
         if model.upper() in {'TOTAL','TOTALES','MODELO'}:
             continue
         entry = {}
@@ -504,11 +499,15 @@ def rebuild_aliados_from_excel(aliados, cv, key_map, mes, last_day, detect_new=T
                 print(f"  🆕 [{mes}] Nuevo modelo → ALIADOS[{ak}]: '{model}'")
                 nuevos += 1
         # Eliminar modelos sin datos que puedan ser artefactos de runs anteriores
+        # También limpiar siempre 'Total Estudio' y entradas nombre-estudio residuales
         if is_studio_entry:
             stale = [m for m, days in modelos.items() if not days]
-            for m in stale:
-                del modelos[m]
-                if stale: print(f"  🗑  [{mes}] Eliminado artefacto sin datos: ALIADOS[{ak}]['{m}']")
+        else:
+            # Para aliados no-studio (ej: Studio RWB ≠ Studios RWB), limpiar sólo artefactos explícitos
+            stale = [m for m in modelos if m == 'Total Estudio' or (not modelos[m] and m in cv_studios)]
+        for m in stale:
+            del modelos[m]
+            print(f"  🗑  [{mes}] Eliminado artefacto sin datos: ALIADOS[{ak}]['{m}']")
         # ────────────────────────────────────────────────────────────
         md['dias'] = last_day
     print(f"  🗑  [{mes}] Limpiados: {cleared} | Reconstruidos: {updated} | Nuevos: {nuevos}")
@@ -911,7 +910,7 @@ FABIO_MAP = {
 def main():
     now         = datetime.now()
     ts_str      = now.strftime('%d/%m/%Y — %H:%M')
-    cutoff_str  = '25/08/2026'  # Corte explícito
+    cutoff_str  = None  # Se calcula dinámicamente después de leer el Excel
     meses_activos = ALL_MESES  # Enero → Agosto
 
     print('=' * 65)
@@ -926,9 +925,10 @@ def main():
 
     cv_jul, last_day_jul = read_cv_sheet(wb, 'JULIO')
     cv_ago, last_day_ago = read_cv_sheet(wb, 'AGOSTO')
-    last_day_ago = min(last_day_ago, 25)  # Corte explícito: 25 de agosto
+    # Corte dinámico: usar el último día con datos en el Excel
+    cutoff_str = f'{last_day_ago:02d}/08/2026'  # p.ej. "28/08/2026" — automático
 
-    print(f'\n📅 JULIO: último día={last_day_jul} | AGOSTO: último día={last_day_ago} (corte=25)')
+    print(f'\n📅 JULIO: último día={last_day_jul} | AGOSTO: último día={last_day_ago} (corte=automático)')
 
     if last_day_jul == 0:
         print("⚠  Sin datos en JULIO — verificar Excel."); return

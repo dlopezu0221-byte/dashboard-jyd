@@ -17665,7 +17665,7 @@ function jdExportarBackup(){
 }
 
 // ══════════════════════════════════════════════════════════════════
-// ARQUITECTURA SUPABASE-PRIMERO (v89)
+// ARQUITECTURA SUPABASE-PRIMERO (v90)
 // Supabase ES la fuente de verdad. localStorage es solo caché temporal.
 // ─ Al iniciar: SIEMPRE carga datos desde Supabase → localStorage
 // ─ Al guardar: escribe en Supabase primero, luego confirma en localStorage
@@ -17807,67 +17807,123 @@ function jdExportarBackup(){
     });
   }
 
+  // ── Mapa tabla → transformadores ───────────────────────────────
+
+  var _TABLE_MAP = {
+    'jd_estudios':          { table:'estudios',          conv:_toEstudios },
+    'jd_modelos':           { table:'modelos',           conv:_toModelos  },
+    'jd_liqs':              { table:'liquidaciones',     conv:_toLiqs     },
+    'jd_banco_movimientos': { table:'banco_movimientos', conv:_toBanco    },
+    'jd_monetizaciones':    { table:'monetizaciones',    conv:_toMonets   }
+  };
+
   // ── Sincronizador principal ─────────────────────────────────────
+  // Flujo correcto para CREAR, MODIFICAR y ELIMINAR:
+  //  1. Leer IDs actuales en Supabase
+  //  2. Calcular IDs que ya no están en el array local → DELETE
+  //  3. Upsert los registros que sí están → INSERT/UPDATE
+  // Así las eliminaciones se propagan a TODOS los dispositivos.
 
   var _syncTimers = {};
 
   function _doSync(key, value) {
-    if (!_supaDb) return; // cliente no inicializado aún
+    if (!_supaDb) return;
     var parsed;
     try { parsed = JSON.parse(value); } catch(e) { return; }
 
     _showSync('⟳ Guardando en la nube…', '#C8A84B');
 
-    var promise;
-    if (key === 'jd_estudios') {
-      var rows = _toEstudios(Array.isArray(parsed) ? parsed : []);
-      promise = rows.length > 0
-        ? _supaDb.from('estudios').upsert(rows, {onConflict:'id'})
-        : Promise.resolve({error:null});
+    var entry = _TABLE_MAP[key];
 
-    } else if (key === 'jd_modelos') {
-      var rows = _toModelos(Array.isArray(parsed) ? parsed : []);
-      promise = rows.length > 0
-        ? _supaDb.from('modelos').upsert(rows, {onConflict:'id'})
-        : Promise.resolve({error:null});
+    if (entry) {
+      var rows    = entry.conv(Array.isArray(parsed) ? parsed : []);
+      var newIds  = rows.map(function(r){ return String(r.id); });
+      var tbl     = entry.table;
 
-    } else if (key === 'jd_liqs') {
-      var rows = _toLiqs(Array.isArray(parsed) ? parsed : []);
-      promise = rows.length > 0
-        ? _supaDb.from('liquidaciones').upsert(rows, {onConflict:'id'})
-        : Promise.resolve({error:null});
+      // Paso 1: leer IDs existentes en Supabase para detectar eliminaciones
+      _supaDb.from(tbl).select('id').then(function(selRes) {
+        var toDelete = [];
+        if (!selRes.error && selRes.data) {
+          toDelete = selRes.data
+            .map(function(r){ return String(r.id); })
+            .filter(function(id){ return newIds.indexOf(id) === -1; });
+        }
 
-    } else if (key === 'jd_banco_movimientos') {
-      var rows = _toBanco(Array.isArray(parsed) ? parsed : []);
-      promise = rows.length > 0
-        ? _supaDb.from('banco_movimientos').upsert(rows, {onConflict:'id'})
-        : Promise.resolve({error:null});
+        // Paso 2: DELETE en Supabase de los registros que ya no existen
+        var delPromise = toDelete.length > 0
+          ? _supaDb.from(tbl).delete().in('id', toDelete)
+          : Promise.resolve({error: null});
 
-    } else if (key === 'jd_monetizaciones') {
-      var rows = _toMonets(Array.isArray(parsed) ? parsed : []);
-      promise = rows.length > 0
-        ? _supaDb.from('monetizaciones').upsert(rows, {onConflict:'id'})
-        : Promise.resolve({error:null});
+        delPromise.then(function(delRes) {
+          if (toDelete.length > 0) {
+            if (delRes && delRes.error) {
+              console.warn('[SYNC] Error eliminando de', tbl, delRes.error.message);
+            } else {
+              console.log('[SYNC] 🗑 Eliminados de', tbl + ':', toDelete);
+            }
+          }
+
+          // Paso 3: UPSERT los registros actuales
+          var upsertP = rows.length > 0
+            ? _supaDb.from(tbl).upsert(rows, {onConflict:'id'})
+            : Promise.resolve({error: null});
+
+          upsertP.then(function(res) {
+            if (res && res.error) {
+              console.warn('[SYNC] Error upsert en', key, res.error.message);
+              _showSync('⚠ Error al guardar', '#E05252');
+            } else {
+              _showSync('✓ Guardado en la nube', '#52C97A');
+            }
+            _hideSync();
+          }).catch(function(err) {
+            console.warn('[SYNC] Excepción upsert en', key, err);
+            _showSync('⚠ Error de conexión', '#E05252');
+            _hideSync();
+          });
+
+        }).catch(function() {
+          // Si falla el delete, al menos hacer upsert
+          var fallback = rows.length > 0
+            ? _supaDb.from(tbl).upsert(rows, {onConflict:'id'})
+            : Promise.resolve({error:null});
+          fallback.then(function(res) {
+            if (res && res.error) _showSync('⚠ Error al guardar', '#E05252');
+            else _showSync('✓ Guardado en la nube', '#52C97A');
+            _hideSync();
+          });
+        });
+
+      }).catch(function() {
+        // Si falla el select, al menos hacer upsert
+        var fallback2 = rows.length > 0
+          ? _supaDb.from(tbl).upsert(rows, {onConflict:'id'})
+          : Promise.resolve({error:null});
+        fallback2.then(function(res) {
+          if (res && res.error) _showSync('⚠ Error al guardar', '#E05252');
+          else _showSync('✓ Guardado en la nube', '#52C97A');
+          _hideSync();
+        });
+      });
 
     } else {
-      // jd_horarios, jd_nominas, configs → tabla configuracion
-      promise = _supaDb.from('configuracion')
-        .upsert({clave: key, valor: parsed}, {onConflict:'clave'});
+      // jd_horarios, jd_nominas, configuraciones → tabla configuracion
+      _supaDb.from('configuracion')
+        .upsert({clave: key, valor: parsed}, {onConflict:'clave'})
+        .then(function(res) {
+          if (res && res.error) {
+            console.warn('[SYNC] Error config en', key, res.error.message);
+            _showSync('⚠ Error al guardar', '#E05252');
+          } else {
+            _showSync('✓ Guardado en la nube', '#52C97A');
+          }
+          _hideSync();
+        }).catch(function(err) {
+          console.warn('[SYNC] Excepción config en', key, err);
+          _showSync('⚠ Error de conexión', '#E05252');
+          _hideSync();
+        });
     }
-
-    promise.then(function(res) {
-      if (res && res.error) {
-        console.warn('[SYNC] Error en', key, ':', res.error.message);
-        _showSync('⚠ Error al guardar', '#E05252');
-      } else {
-        _showSync('✓ Guardado en la nube', '#52C97A');
-      }
-      _hideSync();
-    }).catch(function(err) {
-      console.warn('[SYNC] Excepción en', key, ':', err);
-      _showSync('⚠ Error de conexión', '#E05252');
-      _hideSync();
-    });
   }
 
   // ── Interceptor de localStorage.setItem ────────────────────────
@@ -17897,20 +17953,14 @@ function jdExportarBackup(){
   };
 
   // ── Sincronización al cerrar la página ─────────────────────────
+  // Usa _doSync completo (con DELETE) para que las eliminaciones
+  // realizadas justo antes de cerrar también se propaguen.
 
   window.addEventListener('beforeunload', function() {
     SYNC_KEYS.forEach(function(k) {
       var v = localStorage.getItem(k);
-      if (v) {
-        try {
-          var parsed = JSON.parse(v);
-          if (_supaDb) {
-            // Sync síncrono básico antes de cerrar
-            if (k === 'jd_liqs') _supaDb.from('liquidaciones').upsert(_toLiqs(parsed),{onConflict:'id'});
-            else if (k === 'jd_modelos') _supaDb.from('modelos').upsert(_toModelos(parsed),{onConflict:'id'});
-            else if (k === 'jd_estudios') _supaDb.from('estudios').upsert(_toEstudios(parsed),{onConflict:'id'});
-          }
-        } catch(e) {}
+      if (v && _supaDb) {
+        try { _doSync(k, v); } catch(e) {}
       }
     });
   });
@@ -18107,7 +18157,7 @@ function jdExportarBackup(){
     if (typeof toast === 'function') toast('☁ Recargando datos del servidor…', 'info');
   };
 
-  console.log('[JD v89] ✅ Arquitectura Supabase-primero activa — el servidor es la fuente de verdad.');
+  console.log('[JD v90] ✅ Arquitectura Supabase-primero activa — CREAR/MODIFICAR/ELIMINAR se propagan a todos los dispositivos.');
 })();
 
 </script>

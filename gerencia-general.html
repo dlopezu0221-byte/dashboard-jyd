@@ -436,6 +436,7 @@ td[style*="text-align:right"], th[style*="text-align:right"] {
     <div class="nav-item" onclick="goPage('perfiles')"><span class="ico">🔍</span>Perfiles 360°</div>
     <div class="nav-item" onclick="jdExportarBackup()" style="border-top:1px solid rgba(200,168,75,.15);margin-top:6px;padding-top:10px;color:var(--gold);opacity:.85"><span class="ico">📦</span>Exportar Backup</div>
     <div class="nav-item" onclick="goPage('config')"><span class="ico">⚙️</span>Configuración</div>
+    <div id="nav-usuarios-item" class="nav-item" onclick="goPage('usuarios')" style="display:none;border-top:1px solid rgba(200,168,75,.15);margin-top:4px;padding-top:8px;color:#818cf8"><span class="ico">👥</span>Administración Usuarios</div>
   </nav>
   <div class="sidebar-foot">v4.0 · Grupo J&D © 2026</div>
 </div>
@@ -2299,6 +2300,158 @@ td[style*="text-align:right"], th[style*="text-align:right"] {
   </div>
 </div>
 
+<!-- ══════════════════ ADMINISTRACIÓN DE USUARIOS ══════════════════ -->
+<div id="page-usuarios" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">👥 <span>Administración de Usuarios</span></div>
+      <div class="page-sub">Super Administrador · Control total del ecosistema de usuarios</div>
+    </div>
+    <button onclick="jdUsuariosOpenCreate()" style="background:#6366f1;color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px">
+      ➕ Crear Usuario
+    </button>
+  </div>
+
+  <!-- KPIs -->
+  <div id="usr-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px"></div>
+
+  <!-- Tabla de usuarios -->
+  <div style="background:#1a1d27;border:1px solid #2e3040;border-radius:12px;overflow:hidden">
+    <div style="padding:16px 20px;border-bottom:1px solid #2e3040;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-weight:700;color:#e8e8e8">Usuarios del Sistema</span>
+      <input id="usr-search" type="text" placeholder="🔍 Buscar..." oninput="jdUsuariosFiltrar()" style="background:#252830;border:1px solid #2e3040;border-radius:6px;padding:6px 12px;color:#e8e8e8;font-size:12px;outline:none;width:200px">
+    </div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px" id="usr-tabla">
+        <thead>
+          <tr style="background:#252830;color:#888">
+            <th style="padding:10px 16px;text-align:left;font-weight:600">Usuario</th>
+            <th style="padding:10px 16px;text-align:left;font-weight:600">Correo</th>
+            <th style="padding:10px 16px;text-align:center;font-weight:600">Rol</th>
+            <th style="padding:10px 16px;text-align:center;font-weight:600">Estado</th>
+            <th style="padding:10px 16px;text-align:center;font-weight:600">Creación</th>
+            <th style="padding:10px 16px;text-align:center;font-weight:600">Último acceso</th>
+            <th style="padding:10px 16px;text-align:center;font-weight:600">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="usr-tbody">
+          <tr><td colspan="7" style="padding:30px;text-align:center;color:#555">Cargando usuarios...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Registro de auditoría -->
+  <div style="margin-top:24px;background:#1a1d27;border:1px solid #2e3040;border-radius:12px;overflow:hidden">
+    <div style="padding:16px 20px;border-bottom:1px solid #2e3040;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-weight:700;color:#e8e8e8">📋 Registro de Auditoría</span>
+      <button onclick="jdAuditoriaCargar()" style="background:#252830;border:1px solid #2e3040;color:#aaa;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:11px">↻ Actualizar</button>
+    </div>
+    <div id="usr-auditoria" style="max-height:350px;overflow-y:auto;padding:4px 0">
+      <div style="padding:20px;text-align:center;color:#555">Cargando auditoría...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Crear usuario -->
+<div id="modal-crear-usuario" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:none;align-items:center;justify-content:center">
+  <div style="background:#1a1d27;border:1px solid #2e3040;border-radius:14px;padding:28px;width:460px;max-width:95vw">
+    <div style="font-size:18px;font-weight:700;color:#e8e8e8;margin-bottom:20px">➕ Crear Nuevo Usuario</div>
+    <div style="display:grid;gap:14px">
+      <div>
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Nombre completo *</label>
+        <input id="cru-nombre" type="text" placeholder="Ej: Jorge Rodríguez" style="width:100%;background:#252830;border:1px solid #2e3040;border-radius:6px;padding:10px;color:#e8e8e8;font-size:13px;outline:none;box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Correo electrónico *</label>
+        <input id="cru-email" type="email" placeholder="jorge@grupoJD.com" style="width:100%;background:#252830;border:1px solid #2e3040;border-radius:6px;padding:10px;color:#e8e8e8;font-size:13px;outline:none;box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Contraseña *</label>
+        <div style="position:relative">
+          <input id="cru-pass" type="password" placeholder="Mínimo 8 caracteres" style="width:100%;background:#252830;border:1px solid #2e3040;border-radius:6px;padding:10px;color:#e8e8e8;font-size:13px;outline:none;box-sizing:border-box">
+          <button onclick="jdTogglePass('cru-pass')" type="button" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:#888;cursor:pointer">👁</button>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Rol</label>
+        <select id="cru-rol" style="width:100%;background:#252830;border:1px solid #2e3040;border-radius:6px;padding:10px;color:#e8e8e8;font-size:13px;outline:none">
+          <option value="usuario">Usuario Operativo</option>
+          <option value="monitor">Monitor</option>
+          <option value="ejecutivo">Ejecutivo Comercial</option>
+          <option value="gerente">Gerente</option>
+          <option value="admin">Administrador</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Notas (opcional)</label>
+        <input id="cru-notas" type="text" placeholder="Descripción del usuario..." style="width:100%;background:#252830;border:1px solid #2e3040;border-radius:6px;padding:10px;color:#e8e8e8;font-size:13px;outline:none;box-sizing:border-box">
+      </div>
+    </div>
+    <div id="cru-err" style="margin-top:12px;font-size:12px;color:#ef4444;min-height:16px"></div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button onclick="jdUsuariosCrear()" style="flex:1;background:#6366f1;color:#fff;border:none;padding:11px;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px">Crear Usuario</button>
+      <button onclick="jdModalClose('modal-crear-usuario')" style="flex:1;background:#252830;color:#aaa;border:1px solid #2e3040;padding:11px;border-radius:8px;cursor:pointer;font-size:13px">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Editar usuario -->
+<div id="modal-editar-usuario" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:#1a1d27;border:1px solid #2e3040;border-radius:14px;padding:28px;width:460px;max-width:95vw">
+    <div style="font-size:18px;font-weight:700;color:#e8e8e8;margin-bottom:20px">✏️ Editar Usuario</div>
+    <input id="edu-id" type="hidden">
+    <div style="display:grid;gap:14px">
+      <div>
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Nombre completo</label>
+        <input id="edu-nombre" type="text" style="width:100%;background:#252830;border:1px solid #2e3040;border-radius:6px;padding:10px;color:#e8e8e8;font-size:13px;outline:none;box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Rol</label>
+        <select id="edu-rol" style="width:100%;background:#252830;border:1px solid #2e3040;border-radius:6px;padding:10px;color:#e8e8e8;font-size:13px;outline:none">
+          <option value="usuario">Usuario Operativo</option>
+          <option value="monitor">Monitor</option>
+          <option value="ejecutivo">Ejecutivo Comercial</option>
+          <option value="gerente">Gerente</option>
+          <option value="admin">Administrador</option>
+          <option value="super_admin">Super Admin</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Estado</label>
+        <select id="edu-estado" style="width:100%;background:#252830;border:1px solid #2e3040;border-radius:6px;padding:10px;color:#e8e8e8;font-size:13px;outline:none">
+          <option value="activo">✅ Activo</option>
+          <option value="inactivo">🔴 Inactivo</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Notas</label>
+        <input id="edu-notas" type="text" style="width:100%;background:#252830;border:1px solid #2e3040;border-radius:6px;padding:10px;color:#e8e8e8;font-size:13px;outline:none;box-sizing:border-box">
+      </div>
+    </div>
+    <div id="edu-err" style="margin-top:12px;font-size:12px;color:#ef4444;min-height:16px"></div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button onclick="jdUsuariosGuardarEdicion()" style="flex:1;background:#6366f1;color:#fff;border:none;padding:11px;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px">Guardar Cambios</button>
+      <button onclick="jdModalClose('modal-editar-usuario')" style="flex:1;background:#252830;color:#aaa;border:1px solid #2e3040;padding:11px;border-radius:8px;cursor:pointer;font-size:13px">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Permisos -->
+<div id="modal-permisos" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;overflow-y:auto;padding:20px">
+  <div style="background:#1a1d27;border:1px solid #2e3040;border-radius:14px;padding:28px;width:580px;max-width:95vw;margin:auto">
+    <div style="font-size:18px;font-weight:700;color:#e8e8e8;margin-bottom:4px">🔑 Permisos de Usuario</div>
+    <div id="prm-nombre-lbl" style="font-size:13px;color:#888;margin-bottom:18px"></div>
+    <input id="prm-uid" type="hidden">
+    <div id="prm-tabla" style="display:grid;gap:6px"></div>
+    <div id="prm-err" style="margin-top:12px;font-size:12px;color:#ef4444;min-height:16px"></div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button onclick="jdPermisosGuardar()" style="flex:1;background:#059669;color:#fff;border:none;padding:11px;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px">💾 Guardar Permisos</button>
+      <button onclick="jdModalClose('modal-permisos')" style="flex:1;background:#252830;color:#aaa;border:1px solid #2e3040;padding:11px;border-radius:8px;cursor:pointer;font-size:13px">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════ PERFILES 360° ══════════════════ -->
 <div id="page-perfiles" class="page">
   <div class="page-header">
@@ -3712,6 +3865,7 @@ const _SUPA_KEY = 'sb_publishable_aFR9VQR68If1Nc-ZO0cI6w_FgDLLsNP';
 const _GERENTE_EMAIL = 'daniel.lopez@grupoempresarialjd.com';
 let _supaDb = null;
 let _supaUser = null;
+let _jdCurrentUser = null; // Perfil completo del usuario: {id, nombre, email, rol, estado, permisos}
 
 // ── Interceptar DOMContentLoaded para retrasar init hasta cargar datos ──
 const _origDocAEL = document.addEventListener.bind(document);
@@ -3867,17 +4021,17 @@ async function jdAuthLogin() {
     return;
   }
   _supaUser = data.user;
+  loading.textContent = '⏳ Cargando perfil de usuario...';
+  const perfil = await _jdLoadUserProfile(data.user);
+  if (!perfil) { loading.style.display='none'; err.textContent='❌ Usuario no tiene perfil en el sistema. Contacta al administrador.'; await _supaDb.auth.signOut(); return; }
+  if (perfil.estado === 'inactivo') { loading.style.display='none'; err.textContent='🔴 Tu cuenta está inactiva. Contacta al administrador.'; await _supaDb.auth.signOut(); _supaUser=null; return; }
   loading.textContent = '⏳ Sincronizando datos desde Supabase...';
   await _loadSupabaseData();
   loading.textContent = '✅ Datos listos. Iniciando sistema...';
   setTimeout(() => {
     document.getElementById('jd-auth-overlay').style.display = 'none';
     _runDCLQueue();
-    // Mostrar nombre de usuario en sidebar
-    try {
-      const foot = document.querySelector('.sidebar-foot');
-      if (foot) foot.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:#C8A84B;color:#111;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">' + (email[0]||'U').toUpperCase() + '</div><div><div style="font-size:11px;color:#E8E8E8;font-weight:600">' + email.split('@')[0] + '</div><div style="font-size:10px;color:#C8A84B">GERENTE</div></div></div><button onclick="jdSuperLogout()" style="width:100%;margin-top:8px;padding:6px;background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:#E05252;border-radius:6px;cursor:pointer;font-size:11px;font-family:Outfit,sans-serif">⬅ Cerrar sesión</button>';
-    } catch(e) {}
+    _jdApplyUserUI();
   }, 500);
 }
 
@@ -3885,6 +4039,510 @@ async function jdSuperLogout() {
   await _supaDb.auth.signOut();
   location.reload();
 }
+
+// ═══════════════════════════════════════════════════════════════
+// SISTEMA DE USUARIOS - v1.0
+// ═══════════════════════════════════════════════════════════════
+
+// Módulos del sistema con etiquetas legibles
+const JD_MODULES = [
+  {key:'dashboard',       label:'🏠 Dashboard'},
+  {key:'mercury',         label:'⚡ Mercury'},
+  {key:'estudios',        label:'🎥 Estudios'},
+  {key:'monetizacion',    label:'💱 Monetización'},
+  {key:'nueva-liq',       label:'➕ Nueva Liquidación'},
+  {key:'prestamos',       label:'💰 Préstamos'},
+  {key:'ahorros',         label:'🏦 Ahorros'},
+  {key:'sexshop',         label:'🛍️ Compras Sex-Shop'},
+  {key:'historico',       label:'📋 Histórico'},
+  {key:'trazabilidad',    label:'📊 Trazabilidad'},
+  {key:'finanzas',        label:'💵 Finanzas (Ingresos/Egresos)'},
+  {key:'modelos',         label:'👤 Modelos'},
+  {key:'horarios',        label:'📅 Horarios'},
+  {key:'monitores',       label:'🖥️ Monitores'},
+  {key:'perfiles',        label:'🔍 Perfiles 360°'},
+  {key:'config',          label:'⚙️ Configuración'},
+  {key:'usuarios',        label:'👥 Administración Usuarios'},
+];
+
+// Permisos por defecto para super_admin (acceso total)
+const JD_PERMS_SUPER = Object.fromEntries(JD_MODULES.map(m=>[m.key,{ver:true,editar:true}]));
+
+// Roles y su etiqueta visual
+const JD_ROLES = {
+  super_admin: {label:'Super Admin', color:'#f59e0b'},
+  admin:       {label:'Admin',       color:'#6366f1'},
+  gerente:     {label:'Gerente',     color:'#10b981'},
+  ejecutivo:   {label:'Ejecutivo',   color:'#3b82f6'},
+  monitor:     {label:'Monitor',     color:'#8b5cf6'},
+  usuario:     {label:'Usuario',     color:'#6b7280'},
+};
+
+// ── Cargar perfil de usuario desde Supabase ──────────────────────
+async function _jdLoadUserProfile(authUser) {
+  if (!authUser || !_supaDb) return null;
+  try {
+    // Intentar leer perfil existente
+    const { data, error } = await _supaDb
+      .from('jd_usuarios')
+      .select('*')
+      .eq('id', authUser.id)
+      .single();
+
+    if (data && !error) {
+      _jdCurrentUser = data;
+      // Actualizar último acceso
+      _supaDb.from('jd_usuarios').update({ ultimo_acceso: new Date().toISOString() }).eq('id', authUser.id).then(()=>{});
+      return data;
+    }
+
+    // No existe perfil — auto-crear como super_admin si es el primero, o usuario normal
+    const { count } = await _supaDb.from('jd_usuarios').select('*', {count:'exact', head:true});
+    const esPrimero = (count === 0 || count === null);
+    const nombre = authUser.user_metadata?.nombre || authUser.email.split('@')[0];
+    const nuevoRol = esPrimero ? 'super_admin' : 'usuario';
+    const permisos = esPrimero ? JD_PERMS_SUPER : {};
+
+    const { data: nuevo, error: errIns } = await _supaDb.from('jd_usuarios').insert({
+      id: authUser.id,
+      nombre: nombre,
+      email: authUser.email,
+      rol: nuevoRol,
+      estado: 'activo',
+      permisos: permisos,
+      fecha_creacion: new Date().toISOString(),
+      ultimo_acceso: new Date().toISOString(),
+    }).select().single();
+
+    if (nuevo) {
+      _jdCurrentUser = nuevo;
+      if (esPrimero) {
+        console.log('[JD Usuarios] ✅ Super Admin creado automáticamente:', authUser.email);
+        setTimeout(()=>{ try{ toast('👑 Bienvenido Super Admin — sistema de usuarios inicializado','success'); }catch(e){} }, 2000);
+      }
+      return nuevo;
+    }
+    // Fallback si insert falla (p.ej. conflicto de clave): asumir acceso completo
+    _jdCurrentUser = { id: authUser.id, nombre: authUser.email.split('@')[0], email: authUser.email, rol: 'super_admin', estado: 'activo', permisos: JD_PERMS_SUPER };
+    return _jdCurrentUser;
+  } catch(e) {
+    console.warn('[JD Usuarios] Error cargando perfil:', e);
+    // Fallback: no bloquear acceso si hay error de red
+    _jdCurrentUser = { id: authUser?.id, nombre: authUser?.email?.split('@')[0]||'Usuario', email: authUser?.email||'', rol: 'super_admin', estado: 'activo', permisos: JD_PERMS_SUPER };
+    return _jdCurrentUser;
+  }
+}
+
+// ── Verificaciones de acceso ─────────────────────────────────────
+function jdIsSuperAdmin() { return _jdCurrentUser && _jdCurrentUser.rol === 'super_admin'; }
+function jdHasPermission(modulo, accion='ver') {
+  if (jdIsSuperAdmin()) return true;
+  if (!_jdCurrentUser) return false;
+  const perms = _jdCurrentUser.permisos || {};
+  return !!(perms[modulo] && perms[modulo][accion]);
+}
+
+// ── Aplicar UI según el perfil del usuario ───────────────────────
+function _jdApplyUserUI() {
+  if (!_jdCurrentUser) return;
+  const email = _jdCurrentUser.email || '';
+  const nombre = _jdCurrentUser.nombre || email.split('@')[0];
+  const rol = JD_ROLES[_jdCurrentUser.rol] || {label: _jdCurrentUser.rol, color:'#6b7280'};
+
+  // Footer del sidebar
+  try {
+    const foot = document.querySelector('.sidebar-foot');
+    if (foot) foot.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:32px;height:32px;border-radius:50%;background:${rol.color};color:#111;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">${(nombre[0]||'U').toUpperCase()}</div>
+        <div style="min-width:0">
+          <div style="font-size:12px;color:#E8E8E8;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nombre}</div>
+          <div style="font-size:10px;font-weight:700" style="color:${rol.color}">${rol.label}</div>
+        </div>
+      </div>
+      <button onclick="jdSuperLogout()" style="width:100%;margin-top:8px;padding:6px;background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:#E05252;border-radius:6px;cursor:pointer;font-size:11px;font-family:Outfit,sans-serif">⬅ Cerrar sesión</button>`;
+  } catch(e) {}
+
+  // Mostrar nav item de Usuarios solo para super_admin
+  const navUsr = document.getElementById('nav-usuarios-item');
+  if (navUsr) navUsr.style.display = jdIsSuperAdmin() ? 'flex' : 'none';
+}
+
+// ── Registrar acción de auditoría ────────────────────────────────
+async function jdAuditLog(accion, afectadoId, afectadoEmail, detalle={}) {
+  if (!_supaDb || !_jdCurrentUser) return;
+  try {
+    await _supaDb.from('jd_auditoria').insert({
+      admin_id:              _jdCurrentUser.id,
+      admin_email:           _jdCurrentUser.email,
+      admin_nombre:          _jdCurrentUser.nombre,
+      accion:                accion,
+      usuario_afectado_id:   afectadoId||null,
+      usuario_afectado_email:afectadoEmail||null,
+      detalle:               detalle,
+      fecha:                 new Date().toISOString(),
+    });
+  } catch(e) { console.warn('[Auditoria]', e); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MÓDULO ADMINISTRACIÓN DE USUARIOS — UI FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+let _jdUsuariosAll = []; // cache de todos los usuarios
+
+async function jdUsuariosCargar() {
+  if (!_supaDb) return;
+  const tbody = document.getElementById('usr-tbody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#555">Cargando...</td></tr>';
+  try {
+    const { data, error } = await _supaDb.from('jd_usuarios').select('*').order('fecha_creacion', {ascending:false});
+    if (error) throw error;
+    _jdUsuariosAll = data || [];
+    _jdUsuariosRenderTabla(_jdUsuariosAll);
+    _jdUsuariosKpis(_jdUsuariosAll);
+    jdAuditoriaCargar();
+  } catch(e) {
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#ef4444">Error cargando usuarios: '+e.message+'</td></tr>';
+  }
+}
+
+function _jdUsuariosKpis(users) {
+  const el = document.getElementById('usr-kpis');
+  if (!el) return;
+  const total    = users.length;
+  const activos  = users.filter(u=>u.estado==='activo').length;
+  const inactivos= users.filter(u=>u.estado==='inactivo').length;
+  const admins   = users.filter(u=>['super_admin','admin'].includes(u.rol)).length;
+  const kpis = [
+    {lbl:'Total Usuarios', val:total, color:'#6366f1', icon:'👥'},
+    {lbl:'Activos',        val:activos,   color:'#10b981', icon:'✅'},
+    {lbl:'Inactivos',      val:inactivos, color:'#ef4444', icon:'🔴'},
+    {lbl:'Administradores',val:admins,    color:'#f59e0b', icon:'👑'},
+  ];
+  el.innerHTML = kpis.map(k=>`
+    <div style="background:#1a1d27;border:1px solid #2e3040;border-radius:10px;padding:16px;text-align:center">
+      <div style="font-size:24px">${k.icon}</div>
+      <div style="font-size:24px;font-weight:900;color:${k.color};margin:4px 0">${k.val}</div>
+      <div style="font-size:11px;color:#888">${k.lbl}</div>
+    </div>`).join('');
+}
+
+function _jdUsuariosRenderTabla(users) {
+  const tbody = document.getElementById('usr-tbody');
+  if (!tbody) return;
+  if (!users.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="padding:30px;text-align:center;color:#555">Sin usuarios registrados</td></tr>';
+    return;
+  }
+  tbody.innerHTML = users.map(u => {
+    const rol = JD_ROLES[u.rol] || {label:u.rol, color:'#6b7280'};
+    const esYo = u.id === (_jdCurrentUser?.id);
+    const fechaCrea = u.fecha_creacion ? new Date(u.fecha_creacion).toLocaleDateString('es-CO') : '—';
+    const fechaAcceso = u.ultimo_acceso ? new Date(u.ultimo_acceso).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}) : 'Nunca';
+    return `<tr style="border-top:1px solid #2e3040;${esYo?'background:rgba(99,102,241,.06)':''}">
+      <td style="padding:12px 16px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:32px;height:32px;border-radius:50%;background:${rol.color};color:#111;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">${(u.nombre[0]||'?').toUpperCase()}</div>
+          <div>
+            <div style="font-weight:600;color:#e8e8e8">${u.nombre}${esYo?' <span style="font-size:10px;color:#6366f1;background:rgba(99,102,241,.15);padding:1px 6px;border-radius:4px">Tú</span>':''}</div>
+            <div style="font-size:11px;color:#666">${u.notas||''}</div>
+          </div>
+        </div>
+      </td>
+      <td style="padding:12px 16px;color:#aaa;font-size:12px">${u.email}</td>
+      <td style="padding:12px 16px;text-align:center"><span style="background:${rol.color}22;color:${rol.color};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">${rol.label}</span></td>
+      <td style="padding:12px 16px;text-align:center"><span style="background:${u.estado==='activo'?'#10b98122':'#ef444422'};color:${u.estado==='activo'?'#10b981':'#ef4444'};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">${u.estado.toUpperCase()}</span></td>
+      <td style="padding:12px 16px;text-align:center;font-size:12px;color:#888">${fechaCrea}</td>
+      <td style="padding:12px 16px;text-align:center;font-size:12px;color:#888">${fechaAcceso}</td>
+      <td style="padding:12px 16px;text-align:center">
+        <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap">
+          <button onclick="jdUsuariosOpenEdit('${u.id}')" title="Editar" style="background:#6366f122;color:#6366f1;border:1px solid #6366f144;padding:4px 8px;border-radius:5px;cursor:pointer;font-size:11px">✏️</button>
+          <button onclick="jdPermisosOpen('${u.id}')" title="Permisos" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;padding:4px 8px;border-radius:5px;cursor:pointer;font-size:11px">🔑</button>
+          <button onclick="jdUsuariosToggleEstado('${u.id}','${u.estado}')" title="${u.estado==='activo'?'Desactivar':'Activar'}" style="background:${u.estado==='activo'?'#ef444422':'#10b98122'};color:${u.estado==='activo'?'#ef4444':'#10b981'};border:1px solid ${u.estado==='activo'?'#ef444444':'#10b98144'};padding:4px 8px;border-radius:5px;cursor:pointer;font-size:11px">${u.estado==='activo'?'🔴':'✅'}</button>
+          <button onclick="jdResetearPassword('${u.email}')" title="Restablecer contraseña" style="background:#3b82f622;color:#3b82f6;border:1px solid #3b82f644;padding:4px 8px;border-radius:5px;cursor:pointer;font-size:11px">🔑↺</button>
+          ${!esYo && u.rol!=='super_admin'?`<button onclick="jdUsuariosEliminar('${u.id}','${u.email}')" title="Eliminar" style="background:#ef444422;color:#ef4444;border:1px solid #ef444444;padding:4px 8px;border-radius:5px;cursor:pointer;font-size:11px">🗑️</button>`:''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function jdUsuariosFiltrar() {
+  const q = (document.getElementById('usr-search')?.value||'').toLowerCase();
+  const filtrados = _jdUsuariosAll.filter(u=>
+    u.nombre.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.rol.toLowerCase().includes(q)
+  );
+  _jdUsuariosRenderTabla(filtrados);
+}
+
+// ── Crear usuario ────────────────────────────────────────────────
+function jdUsuariosOpenCreate() {
+  ['cru-nombre','cru-email','cru-pass','cru-notas'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('cru-err').textContent='';
+  jdModalOpen('modal-crear-usuario');
+}
+
+async function jdUsuariosCrear() {
+  const nombre = document.getElementById('cru-nombre').value.trim();
+  const email  = document.getElementById('cru-email').value.trim();
+  const pass   = document.getElementById('cru-pass').value;
+  const rol    = document.getElementById('cru-rol').value;
+  const notas  = document.getElementById('cru-notas').value.trim();
+  const errEl  = document.getElementById('cru-err');
+  errEl.textContent = '';
+
+  if (!nombre) { errEl.textContent='⚠️ El nombre es obligatorio.'; return; }
+  if (!email || !email.includes('@')) { errEl.textContent='⚠️ Correo inválido.'; return; }
+  if (pass.length < 8) { errEl.textContent='⚠️ La contraseña debe tener al menos 8 caracteres.'; return; }
+  if (!jdIsSuperAdmin()) { errEl.textContent='⛔ Sin permisos para crear usuarios.'; return; }
+
+  errEl.textContent = '⏳ Creando usuario...';
+  try {
+    // Crear auth user en Supabase usando cliente temporal (sin afectar sesión admin)
+    const tempClient = supabase.createClient(_SUPA_URL, _SUPA_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { data: authData, error: authErr } = await tempClient.auth.signUp({ email, password: pass });
+
+    if (authErr) throw new Error('Auth: ' + authErr.message);
+    if (!authData?.user) throw new Error('No se pudo crear el usuario en Auth');
+
+    const uid = authData.user.id;
+    const permisosPorDefecto = {};
+
+    // Insertar perfil en jd_usuarios
+    const { error: profErr } = await _supaDb.from('jd_usuarios').insert({
+      id: uid,
+      nombre,
+      email,
+      rol,
+      estado: 'activo',
+      permisos: permisosPorDefecto,
+      fecha_creacion: new Date().toISOString(),
+      created_by: _jdCurrentUser.id,
+      notas,
+    });
+    if (profErr) throw new Error('Perfil: ' + profErr.message);
+
+    // Auditoría
+    await jdAuditLog('crear_usuario', uid, email, { nombre, rol });
+
+    errEl.style.color = '#10b981';
+    errEl.textContent = '✅ Usuario creado correctamente.';
+    setTimeout(()=>{ jdModalClose('modal-crear-usuario'); jdUsuariosCargar(); }, 1200);
+    try { toast('✅ Usuario ' + nombre + ' creado correctamente', 'success'); } catch(e) {}
+  } catch(e) {
+    errEl.style.color = '#ef4444';
+    errEl.textContent = '❌ ' + e.message;
+  }
+}
+
+// ── Editar usuario ───────────────────────────────────────────────
+function jdUsuariosOpenEdit(uid) {
+  const u = _jdUsuariosAll.find(x=>x.id===uid);
+  if (!u) return;
+  document.getElementById('edu-id').value = uid;
+  document.getElementById('edu-nombre').value = u.nombre;
+  document.getElementById('edu-rol').value = u.rol;
+  document.getElementById('edu-estado').value = u.estado;
+  document.getElementById('edu-notas').value = u.notas||'';
+  document.getElementById('edu-err').textContent='';
+  jdModalOpen('modal-editar-usuario');
+}
+
+async function jdUsuariosGuardarEdicion() {
+  const uid    = document.getElementById('edu-id').value;
+  const nombre = document.getElementById('edu-nombre').value.trim();
+  const rol    = document.getElementById('edu-rol').value;
+  const estado = document.getElementById('edu-estado').value;
+  const notas  = document.getElementById('edu-notas').value.trim();
+  const errEl  = document.getElementById('edu-err');
+  errEl.textContent='';
+
+  if (!nombre) { errEl.textContent='⚠️ El nombre es obligatorio.'; return; }
+  if (!jdIsSuperAdmin()) { errEl.textContent='⛔ Sin permisos.'; return; }
+
+  errEl.textContent='⏳ Guardando...';
+  try {
+    const u = _jdUsuariosAll.find(x=>x.id===uid);
+    const { error } = await _supaDb.from('jd_usuarios').update({ nombre, rol, estado, notas }).eq('id', uid);
+    if (error) throw error;
+
+    await jdAuditLog('editar_usuario', uid, u?.email, { cambios: { nombre, rol, estado, notas } });
+    errEl.style.color='#10b981';
+    errEl.textContent='✅ Cambios guardados.';
+    setTimeout(()=>{ jdModalClose('modal-editar-usuario'); jdUsuariosCargar(); }, 900);
+    try { toast('✅ Usuario actualizado', 'success'); } catch(e) {}
+  } catch(e) {
+    errEl.style.color='#ef4444';
+    errEl.textContent='❌ '+e.message;
+  }
+}
+
+// ── Activar / Desactivar ─────────────────────────────────────────
+async function jdUsuariosToggleEstado(uid, estadoActual) {
+  if (!jdIsSuperAdmin()) { alert('Sin permisos.'); return; }
+  if (uid === _jdCurrentUser?.id) { alert('No puedes desactivar tu propia cuenta.'); return; }
+  const nuevoEstado = estadoActual === 'activo' ? 'inactivo' : 'activo';
+  const u = _jdUsuariosAll.find(x=>x.id===uid);
+  if (!confirm(`¿${nuevoEstado==='inactivo'?'Desactivar':'Activar'} a ${u?.nombre||uid}?`)) return;
+  try {
+    const { error } = await _supaDb.from('jd_usuarios').update({ estado: nuevoEstado }).eq('id', uid);
+    if (error) throw error;
+    await jdAuditLog(nuevoEstado==='inactivo'?'desactivar_usuario':'activar_usuario', uid, u?.email, { estado: nuevoEstado });
+    await jdUsuariosCargar();
+    try { toast(`${nuevoEstado==='inactivo'?'🔴 Usuario desactivado':'✅ Usuario activado'}: ${u?.nombre}`, nuevoEstado==='inactivo'?'warning':'success'); } catch(e) {}
+  } catch(e) { alert('Error: '+e.message); }
+}
+
+// ── Restablecer contraseña ───────────────────────────────────────
+async function jdResetearPassword(email) {
+  if (!jdIsSuperAdmin()) { alert('Sin permisos.'); return; }
+  if (!confirm(`¿Enviar correo de restablecimiento de contraseña a ${email}?`)) return;
+  try {
+    const { error } = await _supaDb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+    if (error) throw error;
+    await jdAuditLog('reset_password', null, email, {});
+    try { toast('📧 Correo de restablecimiento enviado a ' + email, 'success'); } catch(e) {}
+    alert('✅ Se envió un correo a ' + email + ' con las instrucciones para restablecer la contraseña.');
+  } catch(e) { alert('Error: '+e.message); }
+}
+
+// ── Eliminar usuario ─────────────────────────────────────────────
+async function jdUsuariosEliminar(uid, email) {
+  if (!jdIsSuperAdmin()) { alert('Sin permisos.'); return; }
+  if (!confirm(`⚠️ ¿Eliminar perfil de ${email}?\n\nEsto elimina el perfil y el acceso. La información histórica registrada por este usuario se conserva.`)) return;
+  try {
+    const { error } = await _supaDb.from('jd_usuarios').delete().eq('id', uid);
+    if (error) throw error;
+    await jdAuditLog('eliminar_usuario', uid, email, {});
+    await jdUsuariosCargar();
+    try { toast('🗑️ Perfil de ' + email + ' eliminado', 'success'); } catch(e) {}
+  } catch(e) { alert('Error: '+e.message); }
+}
+
+// ── Gestión de permisos ──────────────────────────────────────────
+function jdPermisosOpen(uid) {
+  const u = _jdUsuariosAll.find(x=>x.id===uid);
+  if (!u) return;
+  document.getElementById('prm-uid').value = uid;
+  document.getElementById('prm-nombre-lbl').textContent = u.nombre + ' · ' + u.email;
+  document.getElementById('prm-err').textContent='';
+
+  const perms = u.permisos || {};
+  const tabla = document.getElementById('prm-tabla');
+  tabla.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;padding:8px 4px;font-size:11px;font-weight:700;color:#888;border-bottom:1px solid #2e3040;margin-bottom:4px">
+      <div>Módulo</div><div style="text-align:center;width:60px">VER</div><div style="text-align:center;width:60px">EDITAR</div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <button onclick="jdPermisosSetAll(true)" style="flex:1;background:#10b98122;color:#10b981;border:1px solid #10b98144;padding:5px;border-radius:5px;cursor:pointer;font-size:11px">✅ Todos los permisos</button>
+      <button onclick="jdPermisosSetAll(false)" style="flex:1;background:#ef444422;color:#ef4444;border:1px solid #ef444444;padding:5px;border-radius:5px;cursor:pointer;font-size:11px">🔴 Sin permisos</button>
+    </div>
+    ${JD_MODULES.map(m=>{
+      const ver    = !!(perms[m.key]?.ver);
+      const editar = !!(perms[m.key]?.editar);
+      return `<div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:6px 4px;border-bottom:1px solid #252830">
+        <div style="font-size:12px;color:#e8e8e8">${m.label}</div>
+        <div style="text-align:center;width:60px">
+          <input type="checkbox" id="prm-${m.key}-ver" ${ver?'checked':''} style="width:16px;height:16px;cursor:pointer;accent-color:#10b981">
+        </div>
+        <div style="text-align:center;width:60px">
+          <input type="checkbox" id="prm-${m.key}-editar" ${editar?'checked':''} style="width:16px;height:16px;cursor:pointer;accent-color:#6366f1">
+        </div>
+      </div>`;
+    }).join('')}`;
+
+  jdModalOpen('modal-permisos');
+}
+
+function jdPermisosSetAll(valor) {
+  JD_MODULES.forEach(m=>{
+    const ver    = document.getElementById('prm-'+m.key+'-ver');
+    const editar = document.getElementById('prm-'+m.key+'-editar');
+    if(ver) ver.checked = valor;
+    if(editar) editar.checked = valor;
+  });
+}
+
+async function jdPermisosGuardar() {
+  const uid = document.getElementById('prm-uid').value;
+  const u = _jdUsuariosAll.find(x=>x.id===uid);
+  const errEl = document.getElementById('prm-err');
+  errEl.textContent='';
+
+  const permisos = {};
+  JD_MODULES.forEach(m=>{
+    const ver    = !!(document.getElementById('prm-'+m.key+'-ver')?.checked);
+    const editar = !!(document.getElementById('prm-'+m.key+'-editar')?.checked);
+    permisos[m.key] = { ver, editar };
+  });
+
+  errEl.textContent='⏳ Guardando permisos...';
+  try {
+    const { error } = await _supaDb.from('jd_usuarios').update({ permisos }).eq('id', uid);
+    if (error) throw error;
+    await jdAuditLog('cambiar_permisos', uid, u?.email, { permisos });
+    errEl.style.color='#10b981';
+    errEl.textContent='✅ Permisos guardados.';
+    setTimeout(()=>{ jdModalClose('modal-permisos'); jdUsuariosCargar(); }, 900);
+    try { toast('🔑 Permisos actualizados para ' + u?.nombre, 'success'); } catch(e) {}
+  } catch(e) {
+    errEl.style.color='#ef4444';
+    errEl.textContent='❌ '+e.message;
+  }
+}
+
+// ── Auditoría ────────────────────────────────────────────────────
+async function jdAuditoriaCargar() {
+  const el = document.getElementById('usr-auditoria');
+  if (!el || !_supaDb) return;
+  try {
+    const { data, error } = await _supaDb.from('jd_auditoria').select('*').order('fecha',{ascending:false}).limit(100);
+    if (error) throw error;
+    const registros = data || [];
+    if (!registros.length) { el.innerHTML='<div style="padding:20px;text-align:center;color:#555">Sin registros de auditoría</div>'; return; }
+    el.innerHTML = registros.map(r=>{
+      const fecha = new Date(r.fecha).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'});
+      const accionLabel = {
+        crear_usuario:'➕ Creó usuario',
+        editar_usuario:'✏️ Editó usuario',
+        activar_usuario:'✅ Activó usuario',
+        desactivar_usuario:'🔴 Desactivó usuario',
+        cambiar_permisos:'🔑 Cambió permisos de',
+        eliminar_usuario:'🗑️ Eliminó usuario',
+        reset_password:'🔑↺ Restableció contraseña de',
+      }[r.accion] || r.accion;
+      return `<div style="padding:10px 16px;border-bottom:1px solid #252830;display:flex;align-items:flex-start;gap:10px">
+        <div style="color:#888;font-size:10px;white-space:nowrap;padding-top:1px">${fecha}</div>
+        <div>
+          <span style="font-weight:600;color:#c8a84b">${r.admin_nombre||r.admin_email}</span>
+          <span style="color:#aaa;margin:0 4px">${accionLabel}</span>
+          <span style="font-weight:600;color:#e8e8e8">${r.usuario_afectado_email||''}</span>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML='<div style="padding:20px;text-align:center;color:#ef4444">Error: '+e.message+'</div>';
+  }
+}
+
+// ── Helpers de modales ───────────────────────────────────────────
+function jdModalOpen(id) {
+  const el = document.getElementById(id);
+  if (el) { el.style.display='flex'; }
+}
+function jdModalClose(id) {
+  const el = document.getElementById(id);
+  if (el) { el.style.display='none'; }
+}
+function jdTogglePass(inputId) {
+  const el = document.getElementById(inputId);
+  if (el) el.type = el.type==='password'?'text':'password';
+}
+
+// ── Hook en goPage para cargar usuarios al entrar al módulo ──────
+const _origGoPage = typeof goPage === 'function' ? goPage : null;
+// Se parchea después de que goPage esté definida (ver más abajo)
 
 // ── Init Supabase ──
 window.addEventListener('load', async () => {
@@ -3894,15 +4552,13 @@ window.addEventListener('load', async () => {
   if (session && session.user) {
     _supaUser = session.user;
     document.getElementById('jd-auth-loading').style.display = 'block';
-    document.getElementById('jd-auth-loading').textContent = '⏳ Sesión activa. Cargando datos...';
+    document.getElementById('jd-auth-loading').textContent = '⏳ Sesión activa. Cargando perfil...';
+    await _jdLoadUserProfile(session.user);
+    document.getElementById('jd-auth-loading').textContent = '⏳ Sincronizando datos...';
     await _loadSupabaseData();
     document.getElementById('jd-auth-overlay').style.display = 'none';
     _runDCLQueue();
-    try {
-      const email = session.user.email || '';
-      const foot = document.querySelector('.sidebar-foot');
-      if (foot) foot.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:#C8A84B;color:#111;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">' + (email[0]||'U').toUpperCase() + '</div><div><div style="font-size:11px;color:#E8E8E8;font-weight:600">' + email.split('@')[0] + '</div><div style="font-size:10px;color:#C8A84B">GERENTE</div></div></div><button onclick="jdSuperLogout()" style="width:100%;margin-top:8px;padding:6px;background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:#E05252;border-radius:6px;cursor:pointer;font-size:11px;font-family:Outfit,sans-serif">⬅ Cerrar sesión</button>';
-    } catch(e) {}
+    _jdApplyUserUI();
   }
   // Setup enter key
   document.getElementById('jd-auth-pass').addEventListener('keydown', e => { if(e.key==='Enter') jdAuthLogin(); });
@@ -4004,6 +4660,7 @@ function goPage(id) {
   if(id==='historico') renderHistorico();
   if(id==='config') loadConfig();
   if(id==='monetizacion') renderMonetizacion();
+  if(id==='usuarios') { if(jdIsSuperAdmin()) jdUsuariosCargar(); else { goPage('dashboard'); try{toast('⛔ Sin acceso a Administración de Usuarios','error');}catch(e){} } }
   // Actualizar badge pendientes en todas las páginas
   try{ actualizarBadgesMon&&actualizarBadgesMon(); }catch(e){}
   if(id==='mercury') renderMercury();

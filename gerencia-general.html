@@ -17665,9 +17665,11 @@ function jdExportarBackup(){
 }
 
 // ══════════════════════════════════════════════════════════════════
-// SINCRONIZACIÓN BIDIRECCIONAL SUPABASE ← localStorage (v88)
-// Cada cambio que el sistema hace en localStorage se guarda
-// automáticamente en Supabase de forma permanente.
+// ARQUITECTURA SUPABASE-PRIMERO (v89)
+// Supabase ES la fuente de verdad. localStorage es solo caché temporal.
+// ─ Al iniciar: SIEMPRE carga datos desde Supabase → localStorage
+// ─ Al guardar: escribe en Supabase primero, luego confirma en localStorage
+// ─ Realtime: suscripción a cambios → sincronización entre computadores
 // ══════════════════════════════════════════════════════════════════
 (function initSupabaseWriteBack() {
 
@@ -17913,7 +17915,199 @@ function jdExportarBackup(){
     });
   });
 
-  console.log('[JD v88] ✅ Sincronización bidireccional activa — cambios se guardan en Supabase automáticamente.');
+  // ─────────────────────────────────────────────────────────────────
+  // TRANSFORMADORES: Supabase → formato interno del sistema (v86)
+  // Reconstruyen los objetos que el sistema espera leer de localStorage
+  // ─────────────────────────────────────────────────────────────────
+
+  function _fromSupaEstudios(rows) {
+    return (rows||[]).map(function(r) {
+      var base = { id:r.id, nombreAgencia:r.nombre||'', nombreReal:r.propietario||'',
+        documento:r.nit||'', estado:r.activo?'Activo':'Inactivo',
+        obs:r.obs||'', createdAt:r.created_at||'' };
+      return Object.assign({}, r.datos_extra||{}, base);
+    });
+  }
+
+  function _fromSupaModelos(rows) {
+    return (rows||[]).map(function(r) {
+      var base = { id:r.id, nombreAgencia:r.nombre||'', nombreReal:r.nombre_real||'',
+        estado:r.estado||'Activo', monitor:r.monitor||'',
+        paginasVinculadas:r.plataformas||[] };
+      return Object.assign({}, r.datos_extra||{}, base);
+    });
+  }
+
+  function _fromSupaLiqs(rows) {
+    return (rows||[]).map(function(r) {
+      var base = { id:r.id, estudioNombre:r.estudio_nombre||'', estudioId:r.estudio_id||null,
+        fecha:r.fecha||'', netoCOP:r.pago_estudio||0, brutoCOP:r.valor_total||0,
+        estado:r.estado||'Pendiente', pagado:!!r.pagado, pagadoEn:r.pagado_en||null,
+        pagoExterno:!!r.pago_externo, pendienteUmbral:!!r.pendiente_umbral,
+        ocultarHistorial:!!r.ocultar_historial };
+      return Object.assign({}, r.datos_extra||{}, base);
+    });
+  }
+
+  function _fromSupaBanco(rows) {
+    return (rows||[]).map(function(r) {
+      var base = { id:r.id, fecha:r.fecha||'', tipo:r.tipo||'',
+        categoria:r.categoria||'', concepto:r.descripcion||'',
+        valor:r.valor||0, referencia:r.referencia||null };
+      return Object.assign({}, r.datos_extra||{}, base);
+    });
+  }
+
+  function _fromSupaMonets(rows) {
+    return (rows||[]).map(function(r) {
+      var base = { id:r.id, fecha:r.fecha||'', plataforma:r.plataforma||'',
+        usdMonetizados:r.valor_usd||0, pesosReal:r.valor_cop||0,
+        tasaBancolombia:r.tasa_cambio||0, estado:r.estado||'Registrado' };
+      return Object.assign({}, r.datos_extra||{}, base);
+    });
+  }
+
+  // Tabla de tareas de restauración
+  var _RESTORE_TASKS = [
+    { table:'estudios',          key:'jd_estudios',          conv:_fromSupaEstudios },
+    { table:'modelos',           key:'jd_modelos',           conv:_fromSupaModelos  },
+    { table:'liquidaciones',     key:'jd_liqs',              conv:_fromSupaLiqs     },
+    { table:'banco_movimientos', key:'jd_banco_movimientos', conv:_fromSupaBanco    },
+    { table:'monetizaciones',    key:'jd_monetizaciones',    conv:_fromSupaMonets   }
+  ];
+
+  // ─────────────────────────────────────────────────────────────────
+  // CARGA DESDE SUPABASE (Supabase-primero)
+  // SIEMPRE sobreescribe localStorage con datos del servidor.
+  // No depende del número de registros locales — el servidor manda.
+  // ─────────────────────────────────────────────────────────────────
+
+  var _reRender = function() {
+    setTimeout(function() {
+      try { if (typeof renderTabla     === 'function') renderTabla();     } catch(e){}
+      try { if (typeof actualizarVista === 'function') actualizarVista(); } catch(e){}
+      try { if (typeof cargarDatos     === 'function') cargarDatos();     } catch(e){}
+      try { if (typeof refreshUI       === 'function') refreshUI();       } catch(e){}
+    }, 300);
+  };
+
+  function _loadAllFromSupabase(silent) {
+    if (!_supaDb) return;
+    if (!silent) _showSync('☁ Cargando datos del servidor…', '#52C97A');
+
+    var pending  = _RESTORE_TASKS.length;
+    var loaded   = 0;
+
+    _RESTORE_TASKS.forEach(function(task) {
+      _supaDb.from(task.table).select('*').then(function(res) {
+        pending--;
+        if (!res.error && res.data) {
+          try {
+            var converted = task.conv(res.data);
+            // SIEMPRE escribir en localStorage — el servidor es la fuente de verdad
+            _origSetItem(task.key, JSON.stringify(converted));
+            loaded++;
+            console.log('[SUPA-FIRST] ' + task.key + ': ' + converted.length + ' registros cargados desde el servidor.');
+          } catch(convErr) {
+            console.warn('[SUPA-FIRST] Error convirtiendo', task.key, convErr);
+          }
+        } else if (res.error) {
+          console.warn('[SUPA-FIRST] Error leyendo', task.table, res.error.message);
+        }
+        if (pending === 0) {
+          _hideSync();
+          if (loaded > 0) _reRender();
+          console.log('[SUPA-FIRST] ✅ ' + loaded + '/' + _RESTORE_TASKS.length + ' tablas sincronizadas desde el servidor.');
+        }
+      }).catch(function(e) {
+        pending--;
+        console.warn('[SUPA-FIRST] Excepción leyendo', task.table, e);
+        if (pending === 0) _hideSync();
+      });
+    });
+
+    // Configuración general desde la tabla configuracion
+    _supaDb.from('configuracion').select('*').then(function(res) {
+      if (!res.error && res.data) {
+        res.data.forEach(function(row) {
+          if (row.clave && row.valor !== undefined) {
+            try { _origSetItem(row.clave, JSON.stringify(row.valor)); } catch(e){}
+          }
+        });
+      }
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // REALTIME: suscripción a cambios en tablas
+  // Cuando otro computador guarda un dato, este se actualiza.
+  // ─────────────────────────────────────────────────────────────────
+
+  function _setupRealtime() {
+    if (!_supaDb || !_supaDb.channel) return;
+    var tables = ['estudios','modelos','liquidaciones','banco_movimientos','monetizaciones'];
+    var channel = _supaDb.channel('jd-realtime-sync');
+    tables.forEach(function(t) {
+      channel.on('postgres_changes',
+        { event:'*', schema:'public', table:t },
+        function(payload) {
+          console.log('[REALTIME] Cambio en', t, payload.eventType);
+          // Recargar esa tabla específica silenciosamente
+          _loadAllFromSupabase(true);
+        }
+      );
+    });
+    channel.subscribe(function(status) {
+      console.log('[REALTIME] Estado canal:', status);
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // ARRANQUE: esperar autenticación para cargar datos
+  // Se ejecuta tan pronto como el usuario esté autenticado.
+  // ─────────────────────────────────────────────────────────────────
+
+  var _alreadyLoaded = false;
+
+  function _onAuthenticated() {
+    if (_alreadyLoaded) return;
+    _alreadyLoaded = true;
+    console.log('[SUPA-FIRST] Usuario autenticado — cargando datos del servidor…');
+    _loadAllFromSupabase(false);
+    _setupRealtime();
+  }
+
+  function _waitForAuth() {
+    if (!_supaDb) { setTimeout(_waitForAuth, 600); return; }
+    _supaDb.auth.getSession().then(function(res) {
+      if (res.data && res.data.session) {
+        _onAuthenticated();
+      } else {
+        // Escuchar cuando el usuario inicie sesión
+        _supaDb.auth.onAuthStateChange(function(event, session) {
+          if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+            _onAuthenticated();
+          }
+        });
+      }
+    }).catch(function() {
+      // Si getSession falla, intentar después
+      setTimeout(_waitForAuth, 1000);
+    });
+  }
+
+  // Iniciar espera de auth inmediatamente
+  _waitForAuth();
+
+  // Función global para recargar manualmente desde el servidor
+  window.jdReloadFromServer = function() {
+    _alreadyLoaded = false; // Permitir recarga forzada
+    _loadAllFromSupabase(false);
+    console.log('[SUPA-FIRST] Recarga manual iniciada.');
+    if (typeof toast === 'function') toast('☁ Recargando datos del servidor…', 'info');
+  };
+
+  console.log('[JD v89] ✅ Arquitectura Supabase-primero activa — el servidor es la fuente de verdad.');
 })();
 
 </script>

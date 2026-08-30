@@ -17866,14 +17866,22 @@ function jdExportarBackup(){
         : Promise.resolve({error:null});
       upsP.then(function(res) {
         if (res && res.error) {
-          console.warn('[SYNC v91] Error UPSERT en', tbl, res.error.message);
+          console.warn('[SYNC v92] Error UPSERT en', tbl, res.error.message);
           _showSync('⚠ Error al guardar', '#E05252');
+          _hideSync();
         } else {
           _showSync('✓ Guardado en la nube', '#52C97A');
+          // Recargar desde Supabase para confirmar el estado real del servidor
+          // (garantiza que localStorage refleje exactamente lo que guardó el servidor)
+          setTimeout(function() {
+            if (!_pendingOps[tableKey]) { // solo si no hay más ops en cola
+              _loadAllFromSupabase(true);
+            }
+            _hideSync();
+          }, 400);
         }
-        _hideSync();
       }).catch(function(err) {
-        console.warn('[SYNC v91] Excepción UPSERT en', tbl, err);
+        console.warn('[SYNC v92] Excepción UPSERT en', tbl, err);
         _showSync('⚠ Error de conexión', '#E05252');
         _hideSync();
       });
@@ -18074,18 +18082,33 @@ function jdExportarBackup(){
         if (!res.error && res.data) {
           try {
             var converted = task.conv(res.data);
-            var serialized = JSON.stringify(converted);
-            // Escribir en localStorage via _origSetItem (no dispara el interceptor)
-            _origSetItem(task.key, serialized);
-            // CRÍTICO: actualizar _prevState con los datos del servidor.
-            // Esto garantiza que el diff posterior sea correcto:
-            // el sistema sabe exactamente qué existe en el servidor ahora mismo,
-            // y solo enviará como delta lo que el usuario cambie a partir de aquí.
+
+            // ── FIX RACE CONDITION ────────────────────────────────────
+            // Si hay ops pendientes (el usuario acaba de eliminar/crear algo
+            // pero el debounce aún no disparó), aplicarlas sobre los datos
+            // del servidor para que la UI permanezca consistente.
+            // NUNCA borrar _pendingOps aquí — el flush los enviará pronto.
+            var pending_ops = _pendingOps[task.key];
+            if (pending_ops) {
+              // Quitar registros que están siendo eliminados
+              var toDeleteIds = Object.keys(pending_ops.toDelete || {});
+              if (toDeleteIds.length > 0) {
+                converted = converted.filter(function(r) {
+                  return toDeleteIds.indexOf(String(r.id)) === -1;
+                });
+              }
+              // No re-añadir toUpsert aquí (evita conflictos de formato)
+            }
+            // ─────────────────────────────────────────────────────────
+
+            _origSetItem(task.key, JSON.stringify(converted));
+            // Actualizar prevState con lo que el usuario VE (datos del servidor
+            // menos ops pendientes) para que el próximo diff sea correcto.
             _prevState[task.key] = converted;
-            // También limpiar ops pendientes obsoletos (datos de sesión anterior)
-            _pendingOps[task.key] = null;
+            // NO limpiar _pendingOps — el flush sigue pendiente
+
             loaded++;
-            console.log('[SUPA-FIRST] ' + task.key + ': ' + converted.length + ' registros cargados. _prevState actualizado.');
+            console.log('[SUPA-FIRST] ' + task.key + ': ' + converted.length + ' registros. Ops pendientes preservadas.');
           } catch(convErr) {
             console.warn('[SUPA-FIRST] Error convirtiendo', task.key, convErr);
           }
@@ -18095,7 +18118,7 @@ function jdExportarBackup(){
         if (pending === 0) {
           _hideSync();
           if (loaded > 0) _reRender();
-          console.log('[SUPA-FIRST] ✅ ' + loaded + '/' + _RESTORE_TASKS.length + ' tablas listas. Diff-sync activo.');
+          console.log('[SUPA-FIRST] ✅ ' + loaded + '/' + _RESTORE_TASKS.length + ' tablas listas.');
         }
       }).catch(function(e) {
         pending--;
@@ -18125,16 +18148,42 @@ function jdExportarBackup(){
     if (!_supaDb || !_supaDb.channel) return;
     var tables = ['estudios','modelos','liquidaciones','banco_movimientos','monetizaciones'];
     var channel = _supaDb.channel('jd-realtime-sync');
+    var _realtimeTimer = null;
+
     tables.forEach(function(t) {
       channel.on('postgres_changes',
         { event:'*', schema:'public', table:t },
         function(payload) {
           console.log('[REALTIME] Cambio en', t, payload.eventType);
-          // Recargar esa tabla específica silenciosamente
-          _loadAllFromSupabase(true);
+
+          // Debounce: esperar 1.5s antes de recargar (da tiempo a que el
+          // flush de ops pendientes complete primero).
+          clearTimeout(_realtimeTimer);
+          _realtimeTimer = setTimeout(function() {
+            // Si hay ops pendientes (eliminaciones o inserts en cola), no
+            // recargar todavía — el flush ya está a punto de disparar y
+            // una recarga ahora traería datos viejos del servidor.
+            var hasPending = Object.keys(_pendingOps).some(function(k) {
+              var ops = _pendingOps[k];
+              if (!ops) return false;
+              return Object.keys(ops.toDelete || {}).length > 0 ||
+                     Object.keys(ops.toUpsert || {}).length > 0;
+            });
+            if (hasPending) {
+              console.log('[REALTIME] Ops pendientes detectadas — recarga diferida.');
+              // Reintentar después de que el flush complete (esperar el doble del debounce)
+              clearTimeout(_realtimeTimer);
+              _realtimeTimer = setTimeout(function() {
+                _loadAllFromSupabase(true);
+              }, 1500);
+              return;
+            }
+            _loadAllFromSupabase(true);
+          }, 1500);
         }
       );
     });
+
     channel.subscribe(function(status) {
       console.log('[REALTIME] Estado canal:', status);
     });
@@ -18185,7 +18234,7 @@ function jdExportarBackup(){
     if (typeof toast === 'function') toast('☁ Recargando datos del servidor…', 'info');
   };
 
-  console.log('[JD v91] ✅ Diff-sync activo — CREATE/UPDATE/DELETE se propagan a todos los dispositivos sin resurrection bugs.');
+  console.log('[JD v92] ✅ Race condition corregido — DELETE no resucita por recarga de realtime.');
 })();
 
 </script>

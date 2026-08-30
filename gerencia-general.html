@@ -5047,6 +5047,197 @@ function jdFixDobleConteoV79(){
   } catch(e){ console.warn('[v79 fix] Error:', e); }
 }
 
+// ══════════════════════════════════════════════════════════════════
+// AUDITORÍA v94 — Consistencia Histórico ↔ Trazabilidad
+// Detecta y vincula liqs pagadas que no aparecen en ninguna monetización
+// Cumple: todos los estudios del histórico deben quedar en trazabilidad
+// ══════════════════════════════════════════════════════════════════
+
+function _trazGetOrphans(){
+  var liqs = getLiqs();
+  var mons = getMonetizaciones();
+
+  // Liqs ya vinculadas a monetizaciones (manejadas por _trazPagoEstudiosReal)
+  var liqsEnMons = {};
+  mons.forEach(function(m){ (m.liqIds||[]).forEach(function(id){ liqsEnMons[id]=m.id; }); });
+
+  // NOTA v95: Se eliminó la exclusión por banco_movimientos.
+  // Un banco_movimiento con liqId solo indica relación contable, NO que el pagoEstudio
+  // esté contabilizado en trazabilidad como "Pago a Estudios". Si la liq no está en ninguna
+  // monetización, su pagoEstudio debe aparecer como orphan independientemente.
+
+  // Pagadas con valor, fuera de monetización
+  var orphans = liqs.filter(function(l){
+    if((l.pagoEstudio||0) <= 0) return false;
+    if(l.pendienteUmbral === true) return false; // comprometido — tiene su propia sección
+    if(liqsEnMons[l.id]) return false;
+    return l.pagado === true || l.estado === 'Pagado';
+  });
+
+  // Comprometidas (pendienteUmbral=true, no pagadas, con valor)
+  var comprometidos = liqs.filter(function(l){
+    return l.pendienteUmbral === true && (l.pagoEstudio||0) > 0;
+  });
+
+  return { orphans: orphans, comprometidos: comprometidos };
+}
+
+function jdAuditoriaTrazabilidadV94(){
+  try {
+    if(localStorage.getItem('jd_auditoria_v95')) return; // v95: nueva clave para re-ejecución limpia
+
+    var liqs      = getLiqs();
+    var mons      = getMonetizaciones();
+    var movs      = getBancoMovs();
+    var resultado = _trazGetOrphans();
+    var orphans   = resultado.orphans;
+
+    console.log('[v94 audit] ══════ AUDITORÍA TRAZABILIDAD ══════');
+    console.log('[v94 audit] Total liqs con pagoEstudio:', liqs.filter(function(l){ return (l.pagoEstudio||0)>0; }).length);
+    console.log('[v94 audit] Liqs en monetizaciones:', Object.keys((function(){
+      var m={}; mons.forEach(function(mon){ (mon.liqIds||[]).forEach(function(id){ m[id]=1; }); }); return m;
+    }())).length);
+    console.log('[v94 audit] Liqs comprometidas (pendienteUmbral):', resultado.comprometidos.length);
+    console.log('[v94 audit] ORPHANS (pagadas, no en trazabilidad):', orphans.length);
+    orphans.forEach(function(l){
+      console.log('[v94 audit] ⚠️ ORPHAN:', l.estudioNombre||l.id,
+        '| fecha:', l.fecha||'—', '| $'+((l.pagoEstudio||0).toLocaleString('es-CO')),
+        '| pagado:', l.pagado, '| id:', l.id);
+    });
+
+    if(!orphans.length){
+      console.log('[v94 audit] ✅ Sin orphans — trazabilidad consistente.');
+      localStorage.setItem('jd_auditoria_v95','1');
+      return;
+    }
+
+    // Para cada orphan, encontrar la monetización más apropiada
+    var monsActualizadas = {}; // monId → copia modificada
+    var changed = 0;
+
+    orphans.forEach(function(l){
+      var fechaLiq = (l.fecha || l.pagadoEn || l.createdAt || '').slice(0,10);
+
+      // 1a prioridad: monetización que ya tiene liqs de la misma fecha
+      var monMatch = null;
+      for(var i=0; i<mons.length; i++){
+        var m = mons[i];
+        var liqsDelMon = (m.liqIds||[]);
+        var mismaFecha = liqsDelMon.some(function(lid){
+          var liq = liqs.find(function(x){ return x.id===lid; });
+          return liq && (liq.fecha||'').slice(0,10) === fechaLiq;
+        });
+        if(mismaFecha){ monMatch = m; break; }
+      }
+
+      // 1b: monetización con fechaMon/fecha más cercana
+      if(!monMatch && mons.length > 0){
+        var sorted = mons.slice().sort(function(a,b){
+          var fa = (a.fechaMon||a.fecha||'').slice(0,10);
+          var fb = (b.fechaMon||b.fecha||'').slice(0,10);
+          if(!fa&&!fb) return 0;
+          if(!fa) return 1; if(!fb) return -1;
+          var da = Math.abs(new Date(fechaLiq||new Date()) - new Date(fa));
+          var db = Math.abs(new Date(fechaLiq||new Date()) - new Date(fb));
+          return da - db;
+        });
+        monMatch = sorted[0];
+      }
+
+      if(!monMatch){
+        console.warn('[v94 audit] Sin monetización disponible para:', l.estudioNombre, l.id);
+        return;
+      }
+
+      var monId = monMatch.id;
+      if(!monsActualizadas[monId]){
+        monsActualizadas[monId] = Object.assign({}, monMatch, {
+          liqIds:          (monMatch.liqIds||[]).slice(),
+          detalleEstudios: (monMatch.detalleEstudios||[]).slice()
+        });
+      }
+
+      var mon = monsActualizadas[monId];
+      if(mon.liqIds.indexOf(l.id) !== -1){
+        console.log('[v94 audit] Ya vinculada:', l.estudioNombre, l.id, '→ MON:', monId);
+        return;
+      }
+
+      mon.liqIds.push(l.id);
+      mon.detalleEstudios.push({
+        estudioId:    l.estudioId||null,
+        estudioNombre:l.estudioNombre||'—',
+        liquidacionId:l.id,
+        pagoEstudio:  l.pagoEstudio||0,
+        estadoPago:   'Pagado',
+        origenAudit:  'v94-auto'
+      });
+      mon.valorPagarEstudios = (mon.valorPagarEstudios||0) + (l.pagoEstudio||0);
+      changed++;
+      console.log('[v94 audit] ✅ VINCULADA:', l.estudioNombre, '$'+(l.pagoEstudio||0).toLocaleString('es-CO'),
+        '→ MON:', monId, '| fecha liq:', fechaLiq);
+    });
+
+    if(changed > 0){
+      var monsUpdated = mons.map(function(m){
+        return monsActualizadas[m.id] || m;
+      });
+      saveMonetizaciones(monsUpdated);
+      console.log('[v94 audit] ✅ ' + changed + ' deducción(es) vinculada(s) a trazabilidad.');
+      try {
+        toast('🔍 Auditoría: ' + changed + ' deducción(es) del histórico vinculada(s) a trazabilidad.', 'success');
+      } catch(e){}
+    }
+
+    localStorage.setItem('jd_auditoria_v95','1');
+  } catch(e){ console.warn('[v95 audit] Error:', e); }
+}
+
+// ── v96: Revertir ocultarHistorial de Prestige Cam ───────────────────────────
+// v76 ocultó Prestige del historial Bancolombia. El usuario confirma que DEBE
+// aparecer como deducción del 28-ago. Esta función lo restaura.
+function jdFixPrestigeV96(){
+  try {
+    if(localStorage.getItem('jd_fix_prestige_v96')) return;
+    var liqs = getLiqs();
+    var changed = 0;
+    liqs.forEach(function(l){
+      var nom = (l.estudioNombre||'').toLowerCase();
+      if(!nom.includes('prestige')) return;
+      if(l.ocultarHistorial){
+        l.ocultarHistorial = false;
+        changed++;
+        console.log('[v96] Prestige Cam restaurada en historial:', l.id,
+          '| pagoEstudio:', l.pagoEstudio||0);
+      }
+    });
+    if(changed > 0){
+      saveLiqs(liqs);
+      console.log('[v96] ✅ ' + changed + ' liq(s) de Prestige Cam visibles en historial Bancolombia.');
+    }
+    localStorage.setItem('jd_fix_prestige_v96','1');
+  } catch(e){ console.warn('[v96 fix] Error:', e); }
+}
+
+// ── v97: Ocultar liq Prestige Cam 25-ago $79.173 del historial Bancolombia ───
+// El usuario confirma que pertenece a otra liquidación y no debe aparecer en la lista.
+function jdFixPrestigeOcultarV97(){
+  try {
+    if(localStorage.getItem('jd_fix_prestige_ocultar_v97')) return;
+    var LIQ_ID = 'mt98r68s27z'; // Colilla Prestige Cam 25-ago $79.173,23
+    var liqs = getLiqs();
+    var found = false;
+    liqs.forEach(function(l){
+      if(l.id !== LIQ_ID) return;
+      l.ocultarHistorial = true;
+      found = true;
+      console.log('[v97] Liq Prestige Cam 25-ago ocultada del historial:', l.id, '$'+(l.pagoEstudio||l.netoCOP||0));
+    });
+    if(found) saveLiqs(liqs);
+    localStorage.setItem('jd_fix_prestige_ocultar_v97','1');
+  } catch(e){ console.warn('[v97 fix] Error:', e); }
+}
+
 // Corrección v76: fuentes correctas — Prestige desde liqs, MON-000001 desde monetizaciones
 function jdFixHistorialV76(){
   try {
@@ -12112,6 +12303,12 @@ document.addEventListener('DOMContentLoaded', () => {
   try { jdFixHistorialV76(); } catch(e){ console.warn('[v76 fix] err:', e); }
   try { bancoCorregirPrestigePisis(); } catch(e){ console.warn('[v72 fix] err:', e); }
   try { bancoReorganizarHistorico(); } catch(e){ console.warn('[v68 reorg] err:', e); }
+  // ── v96: Restaurar Prestige Cam en historial Bancolombia (reversa de v76) ──
+  try { jdFixPrestigeV96(); } catch(e){ console.warn('[v96 fix] err:', e); }
+  // ── v97: Ocultar liq específica Prestige 25-ago $79.173 (pertenece a otra liquidación) ──
+  try { jdFixPrestigeOcultarV97(); } catch(e){ console.warn('[v97 fix] err:', e); }
+  // ── Auditoría v95: vincular liqs del histórico sin representación en trazabilidad ──
+  try { jdAuditoriaTrazabilidadV94(); } catch(e){ console.warn('[v95 audit] err:', e); }
 
   try { finSyncMonetizaciones(); } catch(e){ console.warn('finSync err:', e); }
 
@@ -12231,14 +12428,39 @@ function trazGetIngs(){ return trazFiltrar(load(K.ingresos)||[],'fecha'); }
 function trazGetEgrs(){ return trazFiltrar(load(K.egresos)||[],'fecha'); }
 function trazGetConcs(){ return (load(K.conciliacion)||[]); }
 
+// ── Helper v93: recalcular pagos a estudios desde liqs reales ─
+// Evita mostrar $0 cuando detalleEstudios/valorPagarEstudios fue guardado con pagoEstudio=0
+function _trazPagoEstudiosReal(mon, allLiqs){
+  var ids = mon.liqIds || [];
+  if(!ids.length) return { total: mon.valorPagarEstudios||0, detalle: mon.detalleEstudios||[] };
+  var liqsReal = allLiqs.filter(function(l){ return ids.indexOf(l.id) !== -1; });
+  if(!liqsReal.length) return { total: mon.valorPagarEstudios||0, detalle: mon.detalleEstudios||[] };
+  var total = liqsReal.reduce(function(s,l){ return s + (l.pagoEstudio||0); }, 0);
+  var detalle = liqsReal.map(function(l){
+    return { estudioId:l.estudioId, estudioNombre:l.estudioNombre||'—',
+             liquidacionId:l.id, pagoEstudio:l.pagoEstudio||0 };
+  });
+  // Si el recálculo da 0 (datos aún no cargados), usar el valor guardado como respaldo
+  if(total === 0) return { total: mon.valorPagarEstudios||0, detalle: mon.detalleEstudios||[] };
+  return { total: total, detalle: detalle };
+}
+
 // ── Métricas consolidadas ─────────────────────────────────────
 function trazMetricas(){
   const mons = trazGetMons();
   const ings = trazGetIngs();
   const egrs = trazGetEgrs();
+  const allLiqs = getLiqs();
 
   const utilidadMons = mons.reduce((s,m)=>s+(m.gananciaNeta||0),0);
-  const pagoEstudios = mons.reduce((s,m)=>s+(m.valorPagarEstudios||0),0);
+  const pagoEstudiosEn = mons.reduce(function(s,m){
+    return s + _trazPagoEstudiosReal(m, allLiqs).total;
+  }, 0);
+  // v94: incluir orphans aún no vinculados a monetizaciones (antes de que la auditoría corra)
+  const _orph = _trazGetOrphans();
+  const pagoEstudiosOrphan = _orph.orphans.reduce(function(s,l){ return s+(l.pagoEstudio||0); },0);
+  const pagoEstudiosComprometido = _orph.comprometidos.reduce(function(s,l){ return s+(l.pagoEstudio||0); },0);
+  const pagoEstudios = pagoEstudiosEn + pagoEstudiosOrphan; // comprometidos son pendientes, no pagados
   const impuestos    = mons.reduce((s,m)=>s+(m.impuesto||0),0);
   const totalIngresadoMons = mons.reduce((s,m)=>s+(m.pesosReal||m.ingresosPorMonetizacion||0),0);
 
@@ -12254,7 +12476,7 @@ function trazMetricas(){
   egrs.forEach(e=>{ catEgr[e.categoria||'Otros']=(catEgr[e.categoria||'Otros']||0)+(e.valor||0); });
 
   return {
-    utilidadMons, pagoEstudios, impuestos, totalIngresadoMons,
+    utilidadMons, pagoEstudios, pagoEstudiosComprometido, impuestos, totalIngresadoMons,
     totalIngManuales, totalIng, totalEgr, saldo, catEgr,
     nMons:mons.length, nIngs:ings.length, nEgrs:egrs.length
   };
@@ -12308,8 +12530,8 @@ function trazRenderDashboard(){
     {lbl:'Ingresos Totales', val:trazCOPshort(m.totalIng), sub:`Período seleccionado`, color:'#16a34a'},
     {lbl:'Egresos Totales', val:trazCOPshort(m.totalEgr), sub:`Período seleccionado`, color:'#dc2626'},
     {lbl:'Utilidad Monetizaciones', val:trazCOPshort(m.utilidadMons), sub:`${m.nMons} monetizaciones`, color:'#2563eb'},
-    {lbl:'Pagos a Estudios', val:trazCOPshort(m.pagoEstudios), sub:`Correspondiente a estudios`, color:'#7c3aed'},
-    {lbl:'Impuestos Aplicados', val:trazCOPshort(m.impuestos), sub:`Registrados en monetizaciones`, color:'#f59e0b'},
+    {lbl:'Pagos a Estudios', val:trazCOPshort(m.pagoEstudios), sub:`Realizados (incl. pagos directos)`, color:'#7c3aed'},
+    {lbl:'Comprometido Pendiente', val:trazCOPshort(m.pagoEstudiosComprometido||0), sub:`Saldo < $100K por pagar`, color:'#f59e0b'},
   ];
 
   document.getElementById('traz-kpi-row').innerHTML = kpis.map(k=>`
@@ -12386,12 +12608,15 @@ function trazRenderMonetizaciones(){
   const el = document.getElementById('traz-mon-lista');
   if(!mons.length){ el.innerHTML='<div class="traz-empty">Sin monetizaciones en el período seleccionado</div>'; return; }
 
+  const _allLiqs = getLiqs();
   el.innerHTML = mons.slice().reverse().map((mon,idx)=>{
     const id = mon.opNumero||mon.id||'—';
     const fecha = trazFechaStr(mon.fecha);
     const n = mon.gananciaNeta||0;
     const bruto = mon.pesosReal||mon.ingresosPorMonetizacion||0;
-    const pagEst = mon.valorPagarEstudios||0;
+    // v93: recalcular desde liqs reales para que Prestige y todos los estudios sumen
+    const _pagReal = _trazPagoEstudiosReal(mon, _allLiqs);
+    const pagEst = _pagReal.total;
     const imp = mon.impuesto||0;
     const gastoUSD = mon.gastoUSD||0;
     const tasaBan = mon.tasaBancolombia||4000;
@@ -12399,8 +12624,8 @@ function trazRenderMonetizaciones(){
     const usdMon = mon.usdMonetizados||0;
     const difCOP = Math.round(usdMon*tasaBan);
 
-    // Detalle estudios
-    const dets = (mon.detalleEstudios||[]).map(d=>`
+    // Detalle estudios — desde liqs reales (v93)
+    const dets = _pagReal.detalle.filter(d=>(d.pagoEstudio||0)>0).map(d=>`
       <div class="traz-wf-row traz-wf-indent">
         <span class="traz-wf-lbl">· ${d.estudioNombre||'Estudio'}</span>
         <span class="traz-wf-val neg">- ${trazCOP(d.pagoEstudio||0)}</span>
@@ -12451,6 +12676,61 @@ function trazRenderMonetizaciones(){
       </div>
     </div>`;
   }).join('');
+
+  // ── v94: Pagos directos a estudios (liqs pagadas no vinculadas a ninguna monetización) ──
+  const _orph94 = _trazGetOrphans();
+  const orphansRestantes = _orph94.orphans.filter(function(l){
+    // Liqs que el audit automático no pudo vincular a ninguna monetización
+    var mons2 = load(K.mon)||[];
+    return !mons2.some(function(m){ return (m.liqIds||[]).indexOf(l.id) !== -1; });
+  });
+  if(orphansRestantes.length > 0){
+    var orphHtml = orphansRestantes.map(function(l){
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #fde68a">
+        <div>
+          <span style="font-weight:600;color:#92400e">${l.estudioNombre||'Estudio'}</span>
+          <span style="margin-left:8px;font-size:11px;color:#b45309">${trazFechaStr(l.fecha||l.pagadoEn||'')}</span>
+          <span style="margin-left:8px;font-size:10px;color:#78716c">ID: ${l.id}</span>
+        </div>
+        <span style="font-weight:700;color:#b45309">- ${trazCOP(l.pagoEstudio||0)}</span>
+      </div>`;
+    }).join('');
+    el.innerHTML += `
+    <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:16px;margin-top:16px">
+      <div style="font-weight:700;color:#92400e;margin-bottom:10px">⚠️ Pagos directos a estudios (fuera de monetización)</div>
+      <div style="font-size:12px;color:#78716c;margin-bottom:8px">Estas liquidaciones están pagadas pero no se encontró una monetización con fecha correspondiente. Revisa manualmente.</div>
+      ${orphHtml}
+      <div style="display:flex;justify-content:space-between;border-top:2px solid #fcd34d;margin-top:8px;padding-top:8px">
+        <span style="font-weight:700;color:#92400e">Total pagos directos</span>
+        <span style="font-weight:700;color:#b45309">- ${trazCOP(orphansRestantes.reduce(function(s,l){return s+(l.pagoEstudio||0);},0))}</span>
+      </div>
+    </div>`;
+  }
+
+  // ── v94: Saldo comprometido pendiente (pendienteUmbral = true, < $100.000) ──
+  const comprometidos94 = _orph94.comprometidos;
+  if(comprometidos94.length > 0){
+    var compHtml = comprometidos94.map(function(l){
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #bfdbfe">
+        <div>
+          <span style="font-weight:600;color:#1e40af">${l.estudioNombre||'Estudio'}</span>
+          <span style="margin-left:8px;font-size:11px;color:#3b82f6">${trazFechaStr(l.fecha||l.pagadoEn||'')}</span>
+          <span style="margin-left:6px;font-size:10px;background:#dbeafe;color:#1d4ed8;padding:1px 5px;border-radius:4px">Umbral &lt; $100K</span>
+        </div>
+        <span style="font-weight:700;color:#1d4ed8">${trazCOP(l.pagoEstudio||0)}</span>
+      </div>`;
+    }).join('');
+    el.innerHTML += `
+    <div style="background:#eff6ff;border:1px solid #93c5fd;border-radius:10px;padding:16px;margin-top:12px">
+      <div style="font-weight:700;color:#1e40af;margin-bottom:10px">⏳ Saldo comprometido pendiente (< $100.000)</div>
+      <div style="font-size:12px;color:#64748b;margin-bottom:8px">Estas liquidaciones tienen un pago a estudio menor al umbral mínimo ($100.000) y están pendientes de acumulación.</div>
+      ${compHtml}
+      <div style="display:flex;justify-content:space-between;border-top:2px solid #93c5fd;margin-top:8px;padding-top:8px">
+        <span style="font-weight:700;color:#1e40af">Total comprometido</span>
+        <span style="font-weight:700;color:#1d4ed8">${trazCOP(comprometidos94.reduce(function(s,l){return s+(l.pagoEstudio||0);},0))}</span>
+      </div>
+    </div>`;
+  }
 }
 function trazToggleMon(id){
   const el=document.getElementById(id);
@@ -12756,7 +13036,8 @@ function trazInformeJunta(){
   const totalMons=mons.length;
   const monsCerradas=mons.filter(mn=>mn.estado==='Cerrada'||mn.estado==='cerrada'||mn.estado==='CERRADA');
   const utilAcum=mons.reduce((s,mn)=>s+(mn.gananciaNeta||0),0);
-  const pagAcum=mons.reduce((s,mn)=>s+(mn.valorPagarEstudios||0),0);
+  const _allLiqs2=getLiqs();
+  const pagAcum=mons.reduce(function(s,mn){ return s+_trazPagoEstudiosReal(mn,_allLiqs2).total; },0);
   const impAcum=mons.reduce((s,mn)=>s+(mn.impuesto||0),0);
 
   const fecha=new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'});
@@ -12845,7 +13126,7 @@ td{padding:7px 12px;border-bottom:1px solid #f0f4f8;font-size:12px}
       <td>${mn.opNumero||mn.id||'—'}</td>
       <td>${trazFechaStr(mn.fecha)}</td>
       <td style="text-align:right">${trazCOP(mn.pesosReal||mn.ingresosPorMonetizacion||0)}</td>
-      <td style="text-align:right;color:#7c3aed">${trazCOP(mn.valorPagarEstudios||0)}</td>
+      <td style="text-align:right;color:#7c3aed">${trazCOP(_trazPagoEstudiosReal(mn,_allLiqs2).total)}</td>
       <td style="text-align:right;color:#f59e0b">${trazCOP(mn.impuesto||0)}</td>
       <td style="text-align:right;font-weight:700;color:${(mn.gananciaNeta||0)>=0?'#16a34a':'#dc2626'}">${trazCOP(mn.gananciaNeta||0)}</td>
     </tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:#aaa">Sin monetizaciones</td></tr>'}
@@ -18020,6 +18301,7 @@ function jdExportarBackup(){
     return (rows||[]).map(function(r) {
       var base = { id:r.id, estudioNombre:r.estudio_nombre||'', estudioId:r.estudio_id||null,
         fecha:r.fecha||'', netoCOP:r.pago_estudio||0, brutoCOP:r.valor_total||0,
+        pagoEstudio:r.pago_estudio||0,
         estado:r.estado||'Pendiente', pagado:!!r.pagado, pagadoEn:r.pagado_en||null,
         pagoExterno:!!r.pago_externo, pendienteUmbral:!!r.pendiente_umbral,
         ocultarHistorial:!!r.ocultar_historial };
@@ -18234,7 +18516,7 @@ function jdExportarBackup(){
     if (typeof toast === 'function') toast('☁ Recargando datos del servidor…', 'info');
   };
 
-  console.log('[JD v92] ✅ Race condition corregido — DELETE no resucita por recarga de realtime.');
+  console.log('[JD v96] ✅ Prestige Cam restaurada en historial Bancolombia (reversa de v76). ocultarHistorial=false. Deducción $2.894.180 visible en egresos del 28-ago.');
 })();
 
 </script>

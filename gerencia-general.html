@@ -17665,16 +17665,30 @@ function jdExportarBackup(){
 }
 
 // ══════════════════════════════════════════════════════════════════
-// ARQUITECTURA SUPABASE-PRIMERO (v90)
-// Supabase ES la fuente de verdad. localStorage es solo caché temporal.
-// ─ Al iniciar: SIEMPRE carga datos desde Supabase → localStorage
-// ─ Al guardar: escribe en Supabase primero, luego confirma en localStorage
-// ─ Realtime: suscripción a cambios → sincronización entre computadores
+// ARQUITECTURA SUPABASE-PRIMERO v91 — DIFF-BASED SYNC
+// ─ FUENTE DE VERDAD: Supabase (servidor)
+// ─ SYNC: diff del estado anterior vs nuevo → solo envía el DELTA
+//   · registros nuevos      → INSERT
+//   · registros modificados → UPDATE
+//   · registros eliminados  → DELETE real en servidor
+// ─ Nunca envía el array completo → elimina la "resurrección" de datos
+// ─ Realtime: Supabase Realtime propaga cambios a todas las sesiones
 // ══════════════════════════════════════════════════════════════════
 (function initSupabaseWriteBack() {
 
-  // Claves de localStorage que deben sincronizarse
-  const SYNC_KEYS = [
+  // ── Acceso directo a localStorage sin pasar por el interceptor ──
+  var _origSetItem = localStorage.setItem.bind(localStorage);
+  var _origGetItem = localStorage.getItem.bind(localStorage);
+
+  // ── Estado de seguimiento por clave ──────────────────────────────
+  // _prevState[key]: última versión del array conocida por el sync
+  // _pendingOps[key]: delta acumulado aún no enviado a Supabase
+  var _prevState  = {};
+  var _pendingOps = {};
+  var _syncTimers = {};
+
+  // Claves de tablas principales (requieren diff)
+  var SYNC_KEYS = [
     'jd_estudios','jd_modelos','jd_liqs','jd_banco_movimientos',
     'jd_monetizaciones','jd_horarios','jd_nominas','jd_configuracion'
   ];
@@ -17807,7 +17821,7 @@ function jdExportarBackup(){
     });
   }
 
-  // ── Mapa tabla → transformadores ───────────────────────────────
+  // ── Mapa tabla → transformadores LOCAL→SUPABASE ────────────────
 
   var _TABLE_MAP = {
     'jd_estudios':          { table:'estudios',          conv:_toEstudios },
@@ -17817,151 +17831,157 @@ function jdExportarBackup(){
     'jd_monetizaciones':    { table:'monetizaciones',    conv:_toMonets   }
   };
 
-  // ── Sincronizador principal ─────────────────────────────────────
-  // Flujo correcto para CREAR, MODIFICAR y ELIMINAR:
-  //  1. Leer IDs actuales en Supabase
-  //  2. Calcular IDs que ya no están en el array local → DELETE
-  //  3. Upsert los registros que sí están → INSERT/UPDATE
-  // Así las eliminaciones se propagan a TODOS los dispositivos.
+  // ── FLUSH: enviar delta acumulado a Supabase ────────────────────
+  // Envía SOLO lo que cambió: nunca el array completo.
 
-  var _syncTimers = {};
+  function _flushPending(tableKey) {
+    if (!_supaDb || !_pendingOps[tableKey]) return;
+    var ops = _pendingOps[tableKey];
+    _pendingOps[tableKey] = null; // liberar antes de async para no mezclar
 
-  function _doSync(key, value) {
-    if (!_supaDb) return;
-    var parsed;
-    try { parsed = JSON.parse(value); } catch(e) { return; }
+    var toDeleteIds = Object.keys(ops.toDelete);
+    var toUpsertRows = Object.keys(ops.toUpsert).map(function(id){ return ops.toUpsert[id]; });
+
+    if (toDeleteIds.length === 0 && toUpsertRows.length === 0) return;
 
     _showSync('⟳ Guardando en la nube…', '#C8A84B');
+    var tbl = _TABLE_MAP[tableKey].table;
+
+    // DELETE primero
+    var delP = toDeleteIds.length > 0
+      ? _supaDb.from(tbl).delete().in('id', toDeleteIds)
+      : Promise.resolve({error:null});
+
+    delP.then(function(delRes) {
+      if (toDeleteIds.length > 0) {
+        if (delRes && delRes.error) {
+          console.warn('[SYNC v91] Error DELETE en', tbl, delRes.error.message);
+        } else {
+          console.log('[SYNC v91] 🗑 Eliminados de', tbl + ':', toDeleteIds);
+        }
+      }
+      // UPSERT nuevos/modificados
+      var upsP = toUpsertRows.length > 0
+        ? _supaDb.from(tbl).upsert(toUpsertRows, {onConflict:'id'})
+        : Promise.resolve({error:null});
+      upsP.then(function(res) {
+        if (res && res.error) {
+          console.warn('[SYNC v91] Error UPSERT en', tbl, res.error.message);
+          _showSync('⚠ Error al guardar', '#E05252');
+        } else {
+          _showSync('✓ Guardado en la nube', '#52C97A');
+        }
+        _hideSync();
+      }).catch(function(err) {
+        console.warn('[SYNC v91] Excepción UPSERT en', tbl, err);
+        _showSync('⚠ Error de conexión', '#E05252');
+        _hideSync();
+      });
+    }).catch(function(err) {
+      console.warn('[SYNC v91] Excepción DELETE en', tbl, err);
+      _showSync('⚠ Error de conexión', '#E05252');
+      _hideSync();
+    });
+  }
+
+  // ── Interceptor localStorage: DIFF-BASED ──────────────────────
+  // En lugar de enviar el array completo, calcula exactamente qué
+  // registros se crearon, modificaron o eliminaron y envía sólo eso.
+  // Garantía: ninguna sesión puede "revivir" registros que otra eliminó.
+
+  localStorage.setItem = function(key, value) {
+    // Inicializar prevState ANTES de escribir el nuevo valor.
+    // Leer el localStorage actual (escrito por _loadAllFromSupabase u op anterior).
+    if (_prevState[key] === undefined) {
+      try {
+        var cur = _origGetItem(key);
+        _prevState[key] = cur ? JSON.parse(cur) : [];
+      } catch(e) { _prevState[key] = []; }
+    }
+
+    _origSetItem(key, value); // escribir localmente
 
     var entry = _TABLE_MAP[key];
 
     if (entry) {
-      var rows    = entry.conv(Array.isArray(parsed) ? parsed : []);
-      var newIds  = rows.map(function(r){ return String(r.id); });
-      var tbl     = entry.table;
+      // ── Tablas principales: diff ────────────────────────────────
+      var oldArr = _prevState[key] || [];
+      var newArr;
+      try { newArr = JSON.parse(value) || []; } catch(e) { newArr = []; }
 
-      // Paso 1: leer IDs existentes en Supabase para detectar eliminaciones
-      _supaDb.from(tbl).select('id').then(function(selRes) {
-        var toDelete = [];
-        if (!selRes.error && selRes.data) {
-          toDelete = selRes.data
-            .map(function(r){ return String(r.id); })
-            .filter(function(id){ return newIds.indexOf(id) === -1; });
+      // Construir mapas por id para diff O(n)
+      var oldMap = {};
+      oldArr.forEach(function(r){ if(r && r.id) oldMap[String(r.id)] = r; });
+      var newMap = {};
+      newArr.forEach(function(r){ if(r && r.id) newMap[String(r.id)] = r; });
+
+      // Pre-transformar nuevos al formato Supabase
+      var supaMap = {};
+      try {
+        entry.conv(newArr).forEach(function(r){ if(r && r.id) supaMap[String(r.id)] = r; });
+      } catch(convErr) { console.warn('[SYNC v91] Error transformando', key, convErr); }
+
+      // Inicializar ops acumulados para esta clave
+      if (!_pendingOps[key]) _pendingOps[key] = { toDelete:{}, toUpsert:{} };
+      var ops = _pendingOps[key];
+
+      // Detectar eliminados: estaban en oldArr pero no en newArr
+      Object.keys(oldMap).forEach(function(id) {
+        if (!newMap[id]) {
+          ops.toDelete[id] = true;
+          delete ops.toUpsert[id]; // cancelar upsert pendiente si existía
         }
-
-        // Paso 2: DELETE en Supabase de los registros que ya no existen
-        var delPromise = toDelete.length > 0
-          ? _supaDb.from(tbl).delete().in('id', toDelete)
-          : Promise.resolve({error: null});
-
-        delPromise.then(function(delRes) {
-          if (toDelete.length > 0) {
-            if (delRes && delRes.error) {
-              console.warn('[SYNC] Error eliminando de', tbl, delRes.error.message);
-            } else {
-              console.log('[SYNC] 🗑 Eliminados de', tbl + ':', toDelete);
-            }
-          }
-
-          // Paso 3: UPSERT los registros actuales
-          var upsertP = rows.length > 0
-            ? _supaDb.from(tbl).upsert(rows, {onConflict:'id'})
-            : Promise.resolve({error: null});
-
-          upsertP.then(function(res) {
-            if (res && res.error) {
-              console.warn('[SYNC] Error upsert en', key, res.error.message);
-              _showSync('⚠ Error al guardar', '#E05252');
-            } else {
-              _showSync('✓ Guardado en la nube', '#52C97A');
-            }
-            _hideSync();
-          }).catch(function(err) {
-            console.warn('[SYNC] Excepción upsert en', key, err);
-            _showSync('⚠ Error de conexión', '#E05252');
-            _hideSync();
-          });
-
-        }).catch(function() {
-          // Si falla el delete, al menos hacer upsert
-          var fallback = rows.length > 0
-            ? _supaDb.from(tbl).upsert(rows, {onConflict:'id'})
-            : Promise.resolve({error:null});
-          fallback.then(function(res) {
-            if (res && res.error) _showSync('⚠ Error al guardar', '#E05252');
-            else _showSync('✓ Guardado en la nube', '#52C97A');
-            _hideSync();
-          });
-        });
-
-      }).catch(function() {
-        // Si falla el select, al menos hacer upsert
-        var fallback2 = rows.length > 0
-          ? _supaDb.from(tbl).upsert(rows, {onConflict:'id'})
-          : Promise.resolve({error:null});
-        fallback2.then(function(res) {
-          if (res && res.error) _showSync('⚠ Error al guardar', '#E05252');
-          else _showSync('✓ Guardado en la nube', '#52C97A');
-          _hideSync();
-        });
       });
 
-    } else {
-      // jd_horarios, jd_nominas, configuraciones → tabla configuracion
-      _supaDb.from('configuracion')
-        .upsert({clave: key, valor: parsed}, {onConflict:'clave'})
-        .then(function(res) {
-          if (res && res.error) {
-            console.warn('[SYNC] Error config en', key, res.error.message);
-            _showSync('⚠ Error al guardar', '#E05252');
-          } else {
-            _showSync('✓ Guardado en la nube', '#52C97A');
+      // Detectar nuevos o modificados: diferente o no existían antes
+      Object.keys(newMap).forEach(function(id) {
+        var isNew      = !oldMap[id];
+        var isModified = oldMap[id] && JSON.stringify(oldMap[id]) !== JSON.stringify(newMap[id]);
+        if (isNew || isModified) {
+          if (supaMap[id]) {
+            ops.toUpsert[id] = supaMap[id];
+            delete ops.toDelete[id]; // si estaba pendiente de delete, fue re-añadido
           }
-          _hideSync();
-        }).catch(function(err) {
-          console.warn('[SYNC] Excepción config en', key, err);
-          _showSync('⚠ Error de conexión', '#E05252');
-          _hideSync();
-        });
-    }
-  }
+        }
+      });
 
-  // ── Interceptor de localStorage.setItem ────────────────────────
+      _prevState[key] = newArr; // actualizar estado de referencia
 
-  var _origSetItem = localStorage.setItem.bind(localStorage);
-  localStorage.setItem = function(key, value) {
-    _origSetItem(key, value);
-    // Solo sincronizar claves JD relevantes
-    var shouldSync = SYNC_KEYS.indexOf(key) !== -1 ||
-      (key.startsWith && key.startsWith('jd_') && key !== 'jd_auth');
-    if (shouldSync) {
+      // Debounce: acumular cambios rápidos antes de ir al servidor
       clearTimeout(_syncTimers[key]);
-      _syncTimers[key] = setTimeout(function(){ _doSync(key, value); }, 1200);
+      _syncTimers[key] = setTimeout(function(){ _flushPending(key); }, 1200);
+
+    } else if (key !== 'jd_auth' && key.startsWith && key.startsWith('jd_')) {
+      // ── Claves de configuración: upsert simple ──────────────────
+      clearTimeout(_syncTimers[key]);
+      _syncTimers[key] = setTimeout(function() {
+        if (!_supaDb) return;
+        try {
+          var v = _origGetItem(key);
+          _supaDb.from('configuracion')
+            .upsert({clave: key, valor: JSON.parse(v)}, {onConflict:'clave'})
+            .then(function(){}).catch(function(){});
+        } catch(e) {}
+      }, 1200);
     }
   };
 
-  // ── Sincronización manual (disponible globalmente) ──────────────
+  // ── Sincronización manual ────────────────────────────────────────
+  // Fuerza flush inmediato de todas las ops pendientes.
 
   window.jdSyncAll = function() {
-    var total = 0;
-    SYNC_KEYS.forEach(function(k) {
-      var v = localStorage.getItem(k);
-      if (v) { _doSync(k, v); total++; }
+    Object.keys(_TABLE_MAP).forEach(function(k) {
+      clearTimeout(_syncTimers[k]);
+      _flushPending(k);
     });
-    console.log('[SYNC] Sincronización manual de', total, 'claves iniciada.');
-    toast('🔄 Sincronizando ' + total + ' tablas con la nube…', 'info');
+    if (typeof toast === 'function') toast('☁ Sincronizando con el servidor…', 'info');
+    console.log('[SYNC v91] Flush manual iniciado.');
   };
 
-  // ── Sincronización al cerrar la página ─────────────────────────
-  // Usa _doSync completo (con DELETE) para que las eliminaciones
-  // realizadas justo antes de cerrar también se propaguen.
-
+  // ── Flush al cerrar: asegurar que las últimas ops lleguen ────────
   window.addEventListener('beforeunload', function() {
-    SYNC_KEYS.forEach(function(k) {
-      var v = localStorage.getItem(k);
-      if (v && _supaDb) {
-        try { _doSync(k, v); } catch(e) {}
-      }
+    Object.keys(_TABLE_MAP).forEach(function(k) {
+      if (_pendingOps[k]) { clearTimeout(_syncTimers[k]); _flushPending(k); }
     });
   });
 
@@ -18054,10 +18074,18 @@ function jdExportarBackup(){
         if (!res.error && res.data) {
           try {
             var converted = task.conv(res.data);
-            // SIEMPRE escribir en localStorage — el servidor es la fuente de verdad
-            _origSetItem(task.key, JSON.stringify(converted));
+            var serialized = JSON.stringify(converted);
+            // Escribir en localStorage via _origSetItem (no dispara el interceptor)
+            _origSetItem(task.key, serialized);
+            // CRÍTICO: actualizar _prevState con los datos del servidor.
+            // Esto garantiza que el diff posterior sea correcto:
+            // el sistema sabe exactamente qué existe en el servidor ahora mismo,
+            // y solo enviará como delta lo que el usuario cambie a partir de aquí.
+            _prevState[task.key] = converted;
+            // También limpiar ops pendientes obsoletos (datos de sesión anterior)
+            _pendingOps[task.key] = null;
             loaded++;
-            console.log('[SUPA-FIRST] ' + task.key + ': ' + converted.length + ' registros cargados desde el servidor.');
+            console.log('[SUPA-FIRST] ' + task.key + ': ' + converted.length + ' registros cargados. _prevState actualizado.');
           } catch(convErr) {
             console.warn('[SUPA-FIRST] Error convirtiendo', task.key, convErr);
           }
@@ -18067,7 +18095,7 @@ function jdExportarBackup(){
         if (pending === 0) {
           _hideSync();
           if (loaded > 0) _reRender();
-          console.log('[SUPA-FIRST] ✅ ' + loaded + '/' + _RESTORE_TASKS.length + ' tablas sincronizadas desde el servidor.');
+          console.log('[SUPA-FIRST] ✅ ' + loaded + '/' + _RESTORE_TASKS.length + ' tablas listas. Diff-sync activo.');
         }
       }).catch(function(e) {
         pending--;
@@ -18157,7 +18185,7 @@ function jdExportarBackup(){
     if (typeof toast === 'function') toast('☁ Recargando datos del servidor…', 'info');
   };
 
-  console.log('[JD v90] ✅ Arquitectura Supabase-primero activa — CREAR/MODIFICAR/ELIMINAR se propagan a todos los dispositivos.');
+  console.log('[JD v91] ✅ Diff-sync activo — CREATE/UPDATE/DELETE se propagan a todos los dispositivos sin resurrection bugs.');
 })();
 
 </script>

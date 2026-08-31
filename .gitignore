@@ -10,3 +10,6 @@ __pycache__/
 # Archivos de Office temporales
 ~$*.docx
 ~$*.xlsx
+
+# Clave privada local (nunca subir a GitHub)
+secrets_local.py

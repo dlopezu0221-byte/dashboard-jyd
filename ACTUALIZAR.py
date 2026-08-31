@@ -20,6 +20,7 @@ NO commit/push hasta validación del usuario.
 """
 
 import openpyxl, re, base64, json, os, copy
+import urllib.request, urllib.error, urllib.parse
 from datetime import datetime, date, timedelta
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -33,6 +34,86 @@ DASHBOARDS = {
     'gold':   os.path.join(SCRIPT_DIR, 'estudios', 'goldonline078939',     'index.html'),
     'cyv':    os.path.join(SCRIPT_DIR, 'estudios', 'cyv-studios837357',    'index.html'),
 }
+
+# ═══════════════════════════════════════════════════════════════════
+# SUPABASE COLILLAS — Clave de servicio (necesaria para leer liquidaciones)
+# Obtén tu clave en: Supabase Dashboard → Project Settings → API → service_role key
+# NUNCA publiques esta clave en archivos HTML.
+# ═══════════════════════════════════════════════════════════════════
+SUPA_URL  = 'https://mqafwoaghwhnvorerjha.supabase.co'
+SUPA_ANON = 'sb_publishable_aFR9VQR68If1Nc-ZO0cI6w_FgDLLsNP'
+SUPA_SERVICE_KEY = ''  # NO poner la clave aquí — usar secrets_local.py
+# Intenta leer la clave desde un archivo local (no se sube a GitHub)
+try:
+    import importlib.util as _ilu, os as _os
+    _sp = _os.path.join(SCRIPT_DIR, 'secrets_local.py')
+    if _os.path.exists(_sp):
+        _spec = _ilu.spec_from_file_location('secrets_local', _sp)
+        _sm   = _ilu.module_from_spec(_spec)
+        _spec.loader.exec_module(_sm)
+        SUPA_SERVICE_KEY = getattr(_sm, 'SUPA_SERVICE_KEY', '')
+except Exception as _e:
+    print(f'  ⚠  No se pudo leer secrets_local.py: {_e}')
+
+def fetch_colillas_for_estudio(estudio_id):
+    """
+    Consulta liquidaciones de Supabase para un estudio.
+    Requiere SUPA_SERVICE_KEY para bypasear RLS.
+    Si no está configurada, devuelve lista vacía y muestra advertencia.
+    """
+    key = SUPA_SERVICE_KEY.strip()
+    if not key:
+        print(f"  ⚠  SUPA_SERVICE_KEY no configurada — COLILLAS_DATA_B64 quedará vacío para {estudio_id}")
+        print(f"      Agrega tu service_role key de Supabase en la variable SUPA_SERVICE_KEY (línea ~40 de ACTUALIZAR.py)")
+        return []
+    try:
+        url = (f"{SUPA_URL}/rest/v1/liquidaciones"
+               f"?estudio_id=eq.{urllib.parse.quote(estudio_id)}"
+               f"&colillaGenerada_datos_extra=eq.true"  # filter via JSON embedded
+               f"&select=*&order=fecha.desc")
+        # Query all liquidaciones for this estudio and filter colillaGenerada in Python
+        url_all = (f"{SUPA_URL}/rest/v1/liquidaciones"
+                   f"?estudio_id=eq.{urllib.parse.quote(estudio_id)}"
+                   f"&select=*&order=fecha.desc")
+        req = urllib.request.Request(url_all, headers={
+            'apikey': key,
+            'Authorization': f'Bearer {key}',
+            'Content-Type': 'application/json',
+        })
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            rows = json.loads(resp.read().decode('utf-8'))
+        
+        # Map to the same structure the JS expects
+        result = []
+        for r in rows:
+            extras = r.get('datos_extra') or {}
+            if not extras.get('colillaGenerada'):
+                continue
+            obj = dict(extras)
+            obj.update({
+                'id':               r.get('id'),
+                'estudioNombre':    r.get('estudio_nombre') or estudio_id,
+                'estudioId':        r.get('estudio_id') or estudio_id,
+                'fecha':            r.get('fecha') or '',
+                'netoCOP':          r.get('pago_estudio') or 0,
+                'brutoCOP':         r.get('valor_total') or 0,
+                'pagoEstudio':      r.get('pago_estudio') or 0,
+                'estado':           r.get('estado') or 'Pendiente',
+                'pagado':           bool(r.get('pagado')),
+                'pagadoEn':         r.get('pagado_en'),
+                'pagoExterno':      bool(r.get('pago_externo')),
+                'pendienteUmbral':  bool(r.get('pendiente_umbral')),
+                'ocultarHistorial': bool(r.get('ocultar_historial')),
+                'colillaGenerada':  True,
+            })
+            result.append(obj)
+        
+        print(f"  ✅ Colillas para {estudio_id}: {len(result)} encontradas")
+        return result
+    except Exception as e:
+        print(f"  ⚠  Error al obtener colillas para {estudio_id}: {e}")
+        return []
+
 
 MES     = 'Julio'
 MES_AGO = 'Agosto'
@@ -1142,6 +1223,24 @@ def main():
                 for m in meses_activos:
                     top20g = recalc_top20g(top20g, g_aliados, m)
                 html = set_var(html, 'TOP20G', top20g, t20_q)
+
+        # ── COLILLAS DE PAGO (inyectar datos embebidos) ───────────
+        _estudio_id_map = {
+            'fornax': 'fornax-studios345929',
+            'gold':   'goldonline078939',
+            'cyv':    'cyv-studios837357',
+        }
+        _eid = _estudio_id_map.get(dash_key, '')
+        if _eid:
+            _colillas = fetch_colillas_for_estudio(_eid)
+            _col_b64  = base64.b64encode(
+                json.dumps(_colillas, ensure_ascii=False).encode('utf-8')
+            ).decode('ascii')
+            html = re.sub(
+                r"var COLILLAS_DATA_B64='[^']*'",
+                f"var COLILLAS_DATA_B64='{_col_b64}'",
+                html, count=1
+            )
 
         html = patch_meses_dmes(html, meses_activos)
         html = inject_timestamp(html, ts_str, cutoff_str)

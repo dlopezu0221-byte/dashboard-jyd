@@ -17846,26 +17846,28 @@ function bancoRenderFlujo(){
       const saldoCell   = esPend
         ? `<span style="color:var(--muted);font-size:10px">(sin cambio)</span>`
         : cop(t.saldoTras||0);
-      // 💬 Observación — solo si el movimiento tiene obs guardada
-      const obsIcon = t.obs ? `<span class="traz-obs-ico" data-obs="${(t.obs||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}" onmouseenter="trazShowObsPopover(event,this)" onmouseleave="trazHideObsPopover()" onclick="trazShowObsModal(this)" style="margin-left:6px">💬</span>` : '';
+      // 💬 Botón de observación — en columna acciones para que siempre sea visible
+      const obsVal = (t.obs||'').trim();
+      const btnObs = obsVal
+        ? `<button data-obs="${obsVal.replace(/"/g,'&quot;').replace(/'/g,'&#39;')}" onmouseenter="trazShowObsPopover(event,this)" onmouseleave="trazHideObsPopover()" onclick="trazShowObsModal(this)" style="background:none;border:none;color:#60a5fa;cursor:pointer;font-size:14px;padding:2px 4px" title="Ver observación">💬</button>` : '';
       // 🖨️ Botón colilla explícito para filas de liquidación
       const btnColilla = t.liqId ? `<button onclick="trazAbrirColilla('${t.liqId}')" style="background:none;border:1px solid rgba(200,168,75,.5);color:var(--gold);cursor:pointer;font-size:11px;padding:2px 7px;border-radius:5px;line-height:1.4" title="Ver colilla de pago">🖨️</button>` : '';
       const accionesCol = t.origen==='MANUAL'
-        ? `${btnSoporte}${btnColilla}<button onclick="bancoEliminarMovimiento('${t.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:13px;padding:2px 6px" title="Eliminar">🗑</button>`
-        : `${btnSoporte}${btnColilla}`;
+        ? `${btnObs}${btnSoporte}${btnColilla}<button onclick="bancoEliminarMovimiento('${t.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:13px;padding:2px 6px" title="Eliminar">🗑</button>`
+        : `${btnObs}${btnSoporte}${btnColilla}`;
       return `<tr style="background:${bgRow};${borderRow}border-bottom:1px solid rgba(255,255,255,.04)">
         <td style="padding:8px 10px;white-space:nowrap;color:var(--muted);font-size:11px">${t.fecha||'—'}</td>
         <td style="padding:8px 10px"><span style="color:${col};font-weight:800;font-size:11px">${badgeLabel}</span></td>
         <td style="padding:8px 10px;font-size:11px">${t.categoria||'—'}</td>
         <td style="padding:8px 10px;max-width:280px">
-          <div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.concepto||''}">${t.concepto||'—'}${obsIcon}</div>
+          <div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.concepto||''}">${t.concepto||'—'}</div>
           ${t.trazabilidad?`<div style="font-size:10px;color:var(--muted);margin-top:2px">🔗 ${t.trazabilidad}</div>`:''}
         </td>
         <td style="padding:8px 10px;text-align:right;font-weight:700;color:var(--success)">${entradaCell}</td>
         <td style="padding:8px 10px;text-align:right;font-weight:700;color:${esPend?'#f59e0b':'var(--danger)'}">${salidaCell}</td>
         <td style="padding:8px 10px;text-align:right;font-weight:800;color:${sCol}">${saldoCell}</td>
         <td style="padding:8px 10px;font-size:10px;color:var(--muted)">${origenIcon} ${origenLabel}</td>
-        <td style="padding:4px 6px;display:flex;gap:4px;align-items:center">${accionesCol}</td>
+        <td style="padding:4px 6px;white-space:nowrap">${accionesCol}</td>
       </tr>`;
     }).join('')}
     </tbody>

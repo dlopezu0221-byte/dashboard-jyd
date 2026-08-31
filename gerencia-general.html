@@ -428,6 +428,7 @@ td[style*="text-align:right"], th[style*="text-align:right"] {
       <div class="nav-subgroup2 open" id="ng-fx-admin">
         <div class="nav-item nav-sub" onclick="goPage('modelos')"><span class="ico">👤</span>Modelos</div>
         <div class="nav-item nav-sub" onclick="goPage('horarios')"><span class="ico">📅</span>Horarios</div>
+        <div class="nav-item nav-sub" onclick="goPage('estadisticas')"><span class="ico">📊</span>Estadísticas y Datos</div>
       </div>
     </div>
 
@@ -2297,6 +2298,31 @@ td[style*="text-align:right"], th[style*="text-align:right"] {
       <button class="btn btn-secondary btn-sm" onclick="horExportPDFModelo(window._mpmId)">📄 PDF Horario</button>
       <button class="btn btn-secondary" onclick="openModalModelo(window._mpmId)" style="margin-left:8px">✏️ Editar Modelo</button>
     </div>
+  </div>
+</div>
+
+<!-- ══════════════════ ESTADÍSTICAS Y DATOS ══════════════════ -->
+<div id="page-estadisticas" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">📊 <span>Estadísticas y Datos</span></div>
+      <div class="page-sub">Dashboard de monitores y producción — Fornax</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-secondary btn-sm" onclick="estadisticasRecargar()" title="Recargar dashboard">🔄 Recargar</button>
+      <button class="btn btn-secondary btn-sm" onclick="estadisticasAbrirNueva()" title="Abrir en nueva pestaña">↗ Nueva pestaña</button>
+    </div>
+  </div>
+  <div style="position:relative;width:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:4px">
+    <div id="est-loading" style="display:flex;align-items:center;justify-content:center;gap:12px;padding:48px;color:var(--muted);font-size:14px">
+      <span style="font-size:24px">⏳</span> Cargando estadísticas…
+    </div>
+    <iframe id="est-iframe"
+      src=""
+      style="display:none;width:100%;height:calc(100vh - 160px);min-height:600px;border:none;border-radius:12px"
+      onload="document.getElementById('est-loading').style.display='none';this.style.display='block'"
+      onerror="document.getElementById('est-loading').innerHTML='⚠️ No se pudo cargar el módulo. Verifica que hayas ejecutado MONITORES.py y PUBLICAR.bat recientemente.'">
+    </iframe>
   </div>
 </div>
 
@@ -4704,6 +4730,31 @@ function goPage(id) {
   if(id==='flujo') renderFlujo();
   if(id==='informe-financiero') renderInformeFinanciero();
   if(id==='control-financiero') renderControlFinanciero();
+  if(id==='estadisticas') renderEstadisticas();
+}
+
+function renderEstadisticas(){
+  var iframe = document.getElementById('est-iframe');
+  var loading = document.getElementById('est-loading');
+  if(!iframe) return;
+  loading.style.display = 'flex';
+  iframe.style.display = 'none';
+  // Fuerza recarga siempre al entrar al módulo
+  var base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '');
+  iframe.src = base + '/monitores/index.html?t=' + Date.now();
+}
+function estadisticasRecargar(){
+  var iframe = document.getElementById('est-iframe');
+  var loading = document.getElementById('est-loading');
+  if(!iframe) return;
+  loading.style.display = 'flex';
+  iframe.style.display = 'none';
+  var base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '');
+  iframe.src = base + '/monitores/index.html?t=' + Date.now();
+}
+function estadisticasAbrirNueva(){
+  var base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '');
+  window.open(base + '/monitores/index.html', '_blank');
 }
 
 function openModal(id){ document.getElementById(id).classList.add('open'); }

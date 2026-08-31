@@ -14937,6 +14937,10 @@ function merTab(tab){
 
 function renderMercury(){
   merTab('dashboard');
+  // Siempre recargar desde Supabase al abrir Mercury para garantizar datos actualizados
+  if (_supaDb) {
+    _reloadMercuryFromSupabase().catch(e => console.warn('[SUPA] renderMercury reload:', e));
+  }
 }
 
 // ─── DASHBOARD ─────────────────────────────────────────────────────────────

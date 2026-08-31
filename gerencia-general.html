@@ -17575,7 +17575,7 @@ function bancoRenderFlujo(){
       id:'liq_'+l.id, fecha:l.pagadoEn||l.fechaPago||l.fecha||'', tipo:'EGRESO',
       categoria:'Pagos a Modelos y Estudios', beneficiario:l.estudioNombre||'—',
       concepto:`📄 Colilla ${l.id} — ${l.estudioNombre||'—'}${l.periodo?' · '+l.periodo:''}`,
-      valor:l.pagoEstudio||0, origen:'LIQ',
+      valor:l.pagoEstudio||0, origen:'LIQ', liqId:l.id, obs:l.obs||'',
       trazabilidad:`Bancolombia → Egreso → Colilla ${l.id} → ${l.estudioNombre||'—'}`
     });
   });
@@ -17587,7 +17587,7 @@ function bancoRenderFlujo(){
         id:'blq_'+m.id+'_'+l.id, fecha:m.fecha||'', tipo:'EGRESO',
         categoria:'Pagos a Modelos y Estudios', beneficiario:l.estudioNombre||'—',
         concepto:`📄 Colilla ${l.id} — ${l.estudioNombre||'—'}${l.periodo?' · '+l.periodo:''}`,
-        valor:l.pagoEstudio||0, origen:'BLOQUE',
+        valor:l.pagoEstudio||0, origen:'BLOQUE', liqId:l.id, obs:l.obs||'',
         trazabilidad:`Bancolombia → Egreso → Bloque ${m.id} → Colilla ${l.id} → ${l.estudioNombre||'—'}`
       });
     });
@@ -17598,7 +17598,7 @@ function bancoRenderFlujo(){
       id:'pend_'+l.id, fecha:l.pendienteDesde||l.fecha||'', tipo:'PENDIENTE',
       categoria:'Pagos a Modelos y Estudios', beneficiario:l.estudioNombre||'—',
       concepto:`📌 PENDIENTE — Colilla ${l.id} — ${l.estudioNombre||'—'}${l.periodo?' · '+l.periodo:''}`,
-      valor:l.pagoEstudio||0, origen:'COMPROMETIDO',
+      valor:l.pagoEstudio||0, origen:'COMPROMETIDO', liqId:l.id, obs:l.obs||'',
       trazabilidad:`Saldo Comprometido → Pendiente umbral $100.000 → Colilla ${l.id} → ${l.estudioNombre||'—'}`
     });
   });
@@ -17846,12 +17846,23 @@ function bancoRenderFlujo(){
       const saldoCell   = esPend
         ? `<span style="color:var(--muted);font-size:10px">(sin cambio)</span>`
         : cop(t.saldoTras||0);
+      // 💬 Observación
+      const obsIcon = t.obs ? `<span class="traz-obs-ico" data-obs="${(t.obs||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}" onmouseenter="trazShowObsPopover(event,this)" onmouseleave="trazHideObsPopover()" onclick="trazShowObsModal(this)" style="margin-left:6px">💬</span>` : '';
+      // 🖨️ Colilla clickeable: sustituir estudioNombre en concepto por enlace
+      let conceptoHTML = t.concepto||'—';
+      if(t.liqId && t.beneficiario && t.beneficiario!=='—'){
+        const safeName = (t.beneficiario||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        conceptoHTML = conceptoHTML.replace(
+          t.beneficiario,
+          `<span class="traz-modelo-link" onclick="trazAbrirColilla('${t.liqId}')" title="Ver colilla de pago">${safeName}</span>`
+        );
+      }
       return `<tr style="background:${bgRow};${borderRow}border-bottom:1px solid rgba(255,255,255,.04)">
         <td style="padding:8px 10px;white-space:nowrap;color:var(--muted);font-size:11px">${t.fecha||'—'}</td>
         <td style="padding:8px 10px"><span style="color:${col};font-weight:800;font-size:11px">${badgeLabel}</span></td>
         <td style="padding:8px 10px;font-size:11px">${t.categoria||'—'}</td>
         <td style="padding:8px 10px;max-width:280px">
-          <div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.concepto||''}">${t.concepto||'—'}</div>
+          <div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.concepto||''}">${conceptoHTML}${obsIcon}</div>
           ${t.trazabilidad?`<div style="font-size:10px;color:var(--muted);margin-top:2px">🔗 ${t.trazabilidad}</div>`:''}
         </td>
         <td style="padding:8px 10px;text-align:right;font-weight:700;color:var(--success)">${entradaCell}</td>

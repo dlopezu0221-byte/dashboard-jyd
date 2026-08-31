@@ -32,7 +32,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
 .page{flex:1;display:flex;overflow:hidden;align-items:stretch}
 .module{display:none;flex:1;overflow:hidden}
-.module.active{display:flex;height:100%;min-height:0}
+.module.active{display:flex;height:calc(100vh - var(--nav) - var(--tabs));min-height:0;align-items:stretch}
 aside{width:var(--sb);flex-shrink:0;background:var(--card);border-right:1px solid var(--border);
   display:flex;flex-direction:column;overflow-y:auto;height:100%;-webkit-overflow-scrolling:touch}
 .sb-sec{padding:16px;border-bottom:1px solid var(--border)}
@@ -165,7 +165,7 @@ table.ctbl td.zc{color:rgba(255,255,255,.2)}
   body{overflow:auto;height:auto;min-height:100vh}
   .page{flex-direction:column;overflow:visible;height:auto}
   .module{flex-direction:column;overflow:visible;height:auto}
-  .module.active{display:flex;height:100%;min-height:0}
+  .module.active{display:flex;height:calc(100vh - var(--nav) - var(--tabs));min-height:0;align-items:stretch}
   aside{width:100%;height:auto;border-right:none;border-bottom:1px solid var(--border)}
   main{min-height:55vh;overflow:visible}
   .main-body{overflow:visible;padding:10px 12px 40px}

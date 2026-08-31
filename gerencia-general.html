@@ -4039,32 +4039,526 @@ function _supaToLocalStorage(sbData) {
         }
       } catch(e) {}
     });
+    // Mercury PIN desde configuracion — Supabase siempre manda
+    const pinRow = sbData.config.find(r => r.clave === 'jd_mercury_pin');
+    if (pinRow && pinRow.valor) {
+      localStorage.setItem('jd_mercury_pin', pinRow.valor);
+    }
     console.log('[SUPA] config:', sbData.config.length, 'claves');
+  }
+  // mercury_ingresos + mercury_egresos → jd_mercury — Supabase siempre manda
+  {
+    const existingMer = JSON.parse(localStorage.getItem('jd_mercury') || '{}');
+    const ingresos = (sbData.merIngs || []).map(r => ({
+      id: r.id,
+      fecha: r.fecha || '',
+      moneda: r.moneda || 'USD',
+      valorBruto: r.valor_bruto || 0,
+      valorRecibido: r.valor_recibido || 0,
+      totalCreditos: r.total_creditos || 0,
+      totalDeducciones: r.total_deducciones || 0,
+      totalDistribuido: r.total_distribuido || 0,
+      paginas: typeof r.paginas === 'string' ? JSON.parse(r.paginas || '[]') : (r.paginas || []),
+      distribucion: typeof r.distribucion === 'string' ? JSON.parse(r.distribucion || '[]') : (r.distribucion || []),
+      referencia: r.referencia || '',
+      obs: r.obs || '',
+      createdAt: r.created_at || '',
+    }));
+    const egresos = (sbData.merEgrs || []).map(r => ({
+      id: r.id,
+      fecha: r.fecha || '',
+      moneda: r.moneda || 'USD',
+      valor: r.valor || 0,
+      valorCOP: r.valor_cop || 0,
+      tasaCambio: r.tasa_cambio || 0,
+      banco: r.banco || '',
+      cuenta: r.cuenta || '',
+      beneficiario: r.beneficiario || '',
+      categoria: r.categoria || '',
+      concepto: r.concepto || '',
+      referencia: r.referencia || '',
+      estado: r.estado || 'Registrado',
+      obs: r.obs || '',
+      createdAt: r.created_at || '',
+    }));
+    const merData = {
+      ingresos,
+      egresos,
+      ahorros: existingMer.ahorros || [],
+      auditLog: existingMer.auditLog || [],
+    };
+    localStorage.setItem('jd_mercury', JSON.stringify(merData));
+    console.log('[SUPA] mercury_ingresos:', ingresos.length, '| mercury_egresos:', egresos.length);
+  }
+  // mercury_favoritos → jd_mercury_fav — Supabase siempre manda
+  if (sbData.merFavs && sbData.merFavs.length) {
+    const favs = sbData.merFavs.map(f => ({
+      nombre: f.nombre || '',
+      banco: f.banco || '',
+      cuenta: f.cuenta || '',
+    }));
+    localStorage.setItem('jd_mercury_fav', JSON.stringify(favs));
+    console.log('[SUPA] mercury_favoritos:', favs.length);
+  }
+  // ingresos de caja → jd_ingresos — Supabase siempre manda
+  if (sbData.cajaIngs && sbData.cajaIngs.length) {
+    const ingresos = sbData.cajaIngs.map(r => ({
+      id: r.id,
+      fecha: r.fecha || '',
+      tipo: r.tipo || 'MANUAL',
+      categoria: r.categoria || '',
+      concepto: r.concepto || '',
+      valor: r.valor || 0,
+      copNetos: r.cop_netos || r.valor || 0,
+      comisionesCOP: r.comisiones_cop || 0,
+      cuentaBancaria: r.cuenta_bancaria || '',
+      referencia: r.referencia || '',
+      referenciaBanco: r.referencia_banco || '',
+      monId: r.mon_id || null,
+      responsable: r.responsable || '',
+      obs: r.obs || '',
+      autoOrigenBancolombia: r.auto_origen_bancolombia || null,
+      autoOrigen: (r.datos_extra && r.datos_extra.autoOrigen) || null,
+      createdAt: r.created_at || '',
+    }));
+    localStorage.setItem('jd_ingresos', JSON.stringify(ingresos));
+    console.log('[SUPA] ingresos de caja:', ingresos.length);
+  }
+  // egresos de caja → jd_egresos — Supabase siempre manda
+  if (sbData.cajaEgrs && sbData.cajaEgrs.length) {
+    const egresos = sbData.cajaEgrs.map(r => ({
+      id: r.id,
+      fecha: r.fecha || '',
+      categoria: r.categoria || '',
+      subcategoria: r.subcategoria || '',
+      beneficiario: r.beneficiario || '',
+      concepto: r.concepto || '',
+      valor: r.valor || 0,
+      cuentaBancaria: r.cuenta_bancaria || '',
+      referencia: r.referencia || '',
+      responsable: r.responsable || '',
+      obs: r.obs || '',
+      otroCategoria: r.otro_categoria || '',
+      soporteNombre: r.soporte_nombre || '',
+      soporteSize: r.soporte_size || 0,
+      soporteTipo: r.soporte_tipo || '',
+      createdAt: r.created_at || '',
+    }));
+    localStorage.setItem('jd_egresos', JSON.stringify(egresos));
+    console.log('[SUPA] egresos de caja:', egresos.length);
+  }
+  // prestamos → jd_prest — Supabase siempre manda
+  if (sbData.prestamos && sbData.prestamos.length) {
+    const prest = sbData.prestamos.map(r => ({
+      id: r.id,
+      estudioId: r.estudio_id || '',
+      estudioNombre: r.estudio_nombre || '',
+      monto: r.valor || 0,
+      valor: r.valor || 0,
+      cuotas: r.cuotas || 0,
+      valorCuota: r.valor_cuota || 0,
+      frecuencia: r.frecuencia || '',
+      fechaInicio: r.fecha_inicio || '',
+      saldo: r.saldo || 0,
+      estado: r.estado || 'Activo',
+      pagos: typeof r.pagos === 'string' ? JSON.parse(r.pagos || '[]') : (r.pagos || []),
+      notas: r.notas || '',
+    }));
+    localStorage.setItem('jd_prest', JSON.stringify(prest));
+    console.log('[SUPA] préstamos:', prest.length);
+  }
+  // ahorros → jd_ahorros — Supabase siempre manda
+  if (sbData.ahorros && sbData.ahorros.length) {
+    const ahorros = sbData.ahorros.map(r => ({
+      id: r.id,
+      estudioId: r.estudio_id || '',
+      estudioNombre: r.estudio_nombre || '',
+      valor: r.valor || 0,
+      saldoCOP: r.saldo_cop || 0,
+      metodo: r.metodo || 'fijo_cop',
+      estado: r.estado || 'Activo',
+      movimientos: typeof r.movimientos === 'string' ? JSON.parse(r.movimientos || '[]') : (r.movimientos || []),
+      createdAt: r.created_at || '',
+    }));
+    localStorage.setItem('jd_ahorros', JSON.stringify(ahorros));
+    console.log('[SUPA] ahorros:', ahorros.length);
+  }
+  // sexshop_ventas → jd_ss — Supabase siempre manda
+  if (sbData.ss && sbData.ss.length) {
+    const ss = sbData.ss.map(r => ({
+      id: r.id,
+      estudioId: r.estudio_id || '',
+      estudioNombre: r.estudio_nombre || '',
+      concepto: r.concepto || '',
+      monto: r.monto || 0,
+      cuotas: r.cuotas || 0,
+      estado: r.estado || 'Activo',
+      fecha: r.fecha || '',
+      pagos: typeof r.pagos === 'string' ? JSON.parse(r.pagos || '[]') : (r.pagos || []),
+      createdAt: r.created_at || '',
+    }));
+    localStorage.setItem('jd_ss', JSON.stringify(ss));
+    console.log('[SUPA] sex-shop ventas:', ss.length);
+  }
+  // conciliacion → jd_conciliacion — Supabase siempre manda
+  if (sbData.concil && sbData.concil.length) {
+    const concil = sbData.concil.map(r => ({
+      id: r.id, fecha: r.fecha || '', cuenta: r.cuenta || '',
+      saldoSistema: r.saldo_sistema || 0, saldoBanco: r.saldo_banco || 0,
+      diferencia: r.diferencia || 0, obs: r.obs || '',
+      createdAt: r.created_at || '',
+    }));
+    localStorage.setItem('jd_conciliacion', JSON.stringify(concil));
+    console.log('[SUPA] conciliacion:', concil.length);
+  }
+  // nominas → jd_nominas — Supabase siempre manda
+  if (sbData.noms && sbData.noms.length) {
+    const noms = sbData.noms.map(r => ({
+      id: r.id, fecha: r.fecha || '', beneficiario: r.beneficiario || '',
+      periodo: r.periodo || '', concepto: r.concepto || '',
+      valor: r.valor || 0, estado: r.estado || 'Pendiente',
+      pagadoEn: r.pagado_en || null, pagoMovId: r.pago_mov_id || null,
+      createdAt: r.created_at || '',
+    }));
+    localStorage.setItem('jd_nominas', JSON.stringify(noms));
+    console.log('[SUPA] nominas:', noms.length);
+  }
+  // horarios → jd_horarios — Supabase siempre manda
+  if (sbData.hors && sbData.hors.length) {
+    const hors = sbData.hors.map(r => ({
+      id: r.id, modeloId: r.modelo_id || '', modeloNombre: r.modelo_nombre || '',
+      habitacion: r.habitacion || '', dia: r.dia || '', semana: r.semana || '',
+      desde: r.desde || '', hasta: r.hasta || '', obs: r.obs || '',
+      grupoId: r.grupo_id || null,
+      diasExcluidos: typeof r.dias_excluidos === 'string' ? JSON.parse(r.dias_excluidos || '[]') : (r.dias_excluidos || []),
+      createdAt: r.created_at || '', updatedAt: r.updated_at || '',
+    }));
+    localStorage.setItem('jd_horarios', JSON.stringify(hors));
+    console.log('[SUPA] horarios:', hors.length);
+  }
+  // perfiles_ext → jd_perfiles_ext — Supabase siempre manda
+  if (sbData.perfs && sbData.perfs.length) {
+    const existing = JSON.parse(localStorage.getItem('jd_perfiles_ext') || '{}');
+    sbData.perfs.forEach(r => {
+      const mId = r.modelo_id;
+      if (!mId) return;
+      existing[mId] = Object.assign(existing[mId] || {}, {
+        ciudad: r.ciudad || '',
+        correo: r.correo || '',
+        tipoContrato: r.tipo_contrato || '',
+        obsContrato: r.obs_contrato || '',
+        estadoContrato: r.estado_contrato || '',
+        entrevistador: r.entrevistador || '',
+        obsEntrevista: r.obs_entrevista || '',
+        resultadoEntrevista: r.resultado_entrevista || '',
+        estadoVinculacion: r.estado_vinculacion || 'Interesado',
+        ...(r.datos_extra || {}),
+      });
+    });
+    localStorage.setItem('jd_perfiles_ext', JSON.stringify(existing));
+    console.log('[SUPA] perfiles_ext:', sbData.perfs.length);
+  }
+  // financiero_snapshots → jd_financiero_snapshots — Supabase siempre manda
+  if (sbData.snaps && sbData.snaps.length) {
+    const existing = JSON.parse(localStorage.getItem('jd_financiero_snapshots') || '{}');
+    sbData.snaps.forEach(r => {
+      existing[r.mes] = {
+        mes: r.mes, ts: r.ts || '',
+        ingresosBrutos: r.ingresos_brutos || 0,
+        totalPesosMon: r.total_pesos_mon || 0,
+        pagosModelos: r.pagos_modelos || 0,
+        costosTotales: r.costos_totales || 0,
+        utilidadBruta: r.utilidad_bruta || 0,
+        impuestos: r.impuestos || 0,
+        utilidadNeta: r.utilidad_neta || 0,
+        margenNeto: r.margen_neto || 0,
+      };
+    });
+    localStorage.setItem('jd_financiero_snapshots', JSON.stringify(existing));
+    console.log('[SUPA] financiero_snapshots:', sbData.snaps.length);
   }
 }
 
 async function _loadSupabaseData() {
   try {
-    const [estRes, modRes, liqRes, bancoRes, monetRes, cfgRes] = await Promise.all([
+    const [estRes, modRes, liqRes, bancoRes, monetRes, cfgRes, merIngRes, merEgrRes, merFavRes, ingCajaRes, egrCajaRes, prestRes, ahorrosRes, ssRes, concilRes, nomsRes, horsRes, perfsRes, snapsRes] = await Promise.all([
       _supaDb.from('estudios').select('*'),
       _supaDb.from('modelos').select('*'),
       _supaDb.from('liquidaciones').select('*').order('fecha', {ascending:false}),
       _supaDb.from('banco_movimientos').select('*').order('fecha', {ascending:false}),
       _supaDb.from('monetizaciones').select('*').order('fecha', {ascending:false}),
       _supaDb.from('configuracion').select('*'),
+      _supaDb.from('mercury_ingresos').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('mercury_egresos').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('mercury_favoritos').select('*'),
+      _supaDb.from('ingresos').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('egresos').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('prestamos').select('*'),
+      _supaDb.from('ahorros').select('*'),
+      _supaDb.from('sexshop_ventas').select('*'),
+      _supaDb.from('conciliacion').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('nominas').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('horarios').select('*'),
+      _supaDb.from('perfiles_ext').select('*'),
+      _supaDb.from('financiero_snapshots').select('*'),
     ]);
     _supaToLocalStorage({
-      estudios: estRes.data || [],
-      modelos:  modRes.data || [],
-      liqs:     liqRes.data || [],
-      banco:    bancoRes.data || [],
-      monets:   monetRes.data || [],
-      config:   cfgRes.data || [],
+      estudios:   estRes.data || [],
+      modelos:    modRes.data || [],
+      liqs:       liqRes.data || [],
+      banco:      bancoRes.data || [],
+      monets:     monetRes.data || [],
+      config:     cfgRes.data || [],
+      merIngs:    merIngRes.data || [],
+      merEgrs:    merEgrRes.data || [],
+      merFavs:    merFavRes.data || [],
+      cajaIngs:   ingCajaRes.data || [],
+      cajaEgrs:   egrCajaRes.data || [],
+      prestamos:  prestRes.data || [],
+      ahorros:    ahorrosRes.data || [],
+      ss:         ssRes.data || [],
+      concil:     concilRes.data || [],
+      noms:       nomsRes.data || [],
+      hors:       horsRes.data || [],
+      perfs:      perfsRes.data || [],
+      snaps:      snapsRes.data || [],
     });
     console.log('[SUPA] Datos cargados correctamente');
   } catch(e) {
     console.warn('[SUPA] Error cargando datos:', e);
   }
+}
+
+// ── Helpers para reconstruir objetos Mercury desde filas Supabase ──
+function _merIngFromRow(r) {
+  return {
+    id: r.id, fecha: r.fecha || '', moneda: r.moneda || 'USD',
+    valorBruto: r.valor_bruto || 0, valorRecibido: r.valor_recibido || 0,
+    totalCreditos: r.total_creditos || 0, totalDeducciones: r.total_deducciones || 0,
+    totalDistribuido: r.total_distribuido || 0,
+    paginas: typeof r.paginas === 'string' ? JSON.parse(r.paginas || '[]') : (r.paginas || []),
+    distribucion: typeof r.distribucion === 'string' ? JSON.parse(r.distribucion || '[]') : (r.distribucion || []),
+    referencia: r.referencia || '', obs: r.obs || '', createdAt: r.created_at || '',
+  };
+}
+function _merEgrFromRow(r) {
+  return {
+    id: r.id, fecha: r.fecha || '', moneda: r.moneda || 'USD',
+    valor: r.valor || 0, valorCOP: r.valor_cop || 0, tasaCambio: r.tasa_cambio || 0,
+    banco: r.banco || '', cuenta: r.cuenta || '', beneficiario: r.beneficiario || '',
+    categoria: r.categoria || '', concepto: r.concepto || '',
+    referencia: r.referencia || '', estado: r.estado || 'Registrado',
+    obs: r.obs || '', createdAt: r.created_at || '',
+  };
+}
+
+// ── Recarga Mercury desde Supabase y refresca la vista si está abierta ──
+async function _reloadMercuryFromSupabase() {
+  try {
+    const [ingRes, egrRes] = await Promise.all([
+      _supaDb.from('mercury_ingresos').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('mercury_egresos').select('*').order('fecha', {ascending:false}),
+    ]);
+    const existingMer = JSON.parse(localStorage.getItem('jd_mercury') || '{}');
+    const merData = {
+      ingresos:  (ingRes.data  || []).map(_merIngFromRow),
+      egresos:   (egrRes.data  || []).map(_merEgrFromRow),
+      ahorros:   existingMer.ahorros  || [],
+      auditLog:  existingMer.auditLog || [],
+    };
+    localStorage.setItem('jd_mercury', JSON.stringify(merData));
+    console.log('[SUPA RT] Mercury recargado:', merData.ingresos.length, 'ing /', merData.egresos.length, 'egr');
+    // Refrescar pantalla si el módulo Mercury está visible
+    try { if (typeof merRenderDashboard === 'function') merRenderDashboard(); } catch(e) {}
+    try { if (typeof merRender === 'function') merRender(); } catch(e) {}
+  } catch(e) { console.warn('[SUPA RT] Error recargando Mercury:', e); }
+}
+
+async function _reloadCajaFromSupabase() {
+  try {
+    const [ingRes, egrRes] = await Promise.all([
+      _supaDb.from('ingresos').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('egresos').select('*').order('fecha', {ascending:false}),
+    ]);
+    if (ingRes.data && ingRes.data.length) {
+      const ingresos = ingRes.data.map(r => ({
+        id: r.id, fecha: r.fecha || '', tipo: r.tipo || 'MANUAL',
+        categoria: r.categoria || '', concepto: r.concepto || '', valor: r.valor || 0,
+        copNetos: r.cop_netos || r.valor || 0, comisionesCOP: r.comisiones_cop || 0,
+        cuentaBancaria: r.cuenta_bancaria || '', referencia: r.referencia || '',
+        referenciaBanco: r.referencia_banco || '', monId: r.mon_id || null,
+        responsable: r.responsable || '', obs: r.obs || '',
+        autoOrigenBancolombia: r.auto_origen_bancolombia || null,
+        autoOrigen: (r.datos_extra && r.datos_extra.autoOrigen) || null,
+        createdAt: r.created_at || '',
+      }));
+      localStorage.setItem('jd_ingresos', JSON.stringify(ingresos));
+    }
+    if (egrRes.data && egrRes.data.length) {
+      const egresos = egrRes.data.map(r => ({
+        id: r.id, fecha: r.fecha || '', categoria: r.categoria || '',
+        subcategoria: r.subcategoria || '', beneficiario: r.beneficiario || '',
+        concepto: r.concepto || '', valor: r.valor || 0,
+        cuentaBancaria: r.cuenta_bancaria || '', referencia: r.referencia || '',
+        responsable: r.responsable || '', obs: r.obs || '',
+        otroCategoria: r.otro_categoria || '', soporteNombre: r.soporte_nombre || '',
+        soporteSize: r.soporte_size || 0, soporteTipo: r.soporte_tipo || '',
+        createdAt: r.created_at || '',
+      }));
+      localStorage.setItem('jd_egresos', JSON.stringify(egresos));
+    }
+    console.log('[SUPA RT] Caja recargada:', (ingRes.data||[]).length, 'ing /', (egrRes.data||[]).length, 'egr');
+    try { if (typeof renderIngresos === 'function') renderIngresos(); } catch(e) {}
+    try { if (typeof renderEgresos  === 'function') renderEgresos();  } catch(e) {}
+  } catch(e) { console.warn('[SUPA RT] Error recargando caja:', e); }
+}
+
+async function _reloadMercuryFavoritosFromSupabase() {
+  try {
+    const { data } = await _supaDb.from('mercury_favoritos').select('*');
+    if (data && data.length) {
+      const favs = data.map(f => ({ nombre: f.nombre || '', banco: f.banco || '', cuenta: f.cuenta || '' }));
+      localStorage.setItem('jd_mercury_fav', JSON.stringify(favs));
+      console.log('[SUPA RT] Favoritos recargados:', favs.length);
+      try { if (typeof merRenderFavSelect === 'function') merRenderFavSelect(); } catch(e) {}
+    }
+  } catch(e) { console.warn('[SUPA RT] Error recargando favoritos:', e); }
+}
+
+async function _reloadPrestAhorSSFromSupabase() {
+  try {
+    const [prestRes, ahorrosRes, ssRes] = await Promise.all([
+      _supaDb.from('prestamos').select('*'),
+      _supaDb.from('ahorros').select('*'),
+      _supaDb.from('sexshop_ventas').select('*'),
+    ]);
+    if (prestRes.data && prestRes.data.length) {
+      const prest = prestRes.data.map(r => ({
+        id: r.id, estudioId: r.estudio_id || '', estudioNombre: r.estudio_nombre || '',
+        valor: r.valor || 0, cuotas: r.cuotas || 0, valorCuota: r.valor_cuota || 0,
+        frecuencia: r.frecuencia || '', fechaInicio: r.fecha_inicio || '',
+        saldo: r.saldo || 0, estado: r.estado || '',
+        pagos: (() => { try { return typeof r.pagos === 'string' ? JSON.parse(r.pagos) : (r.pagos || []); } catch(e){ return []; } })(),
+        notas: r.notas || '',
+      }));
+      localStorage.setItem(K.prest, JSON.stringify(prest));
+    }
+    if (ahorrosRes.data && ahorrosRes.data.length) {
+      const ahorros = ahorrosRes.data.map(r => ({
+        id: r.id, estudioId: r.estudio_id || '', estudioNombre: r.estudio_nombre || '',
+        valor: r.valor || 0, saldoCOP: r.saldo_cop || 0, metodo: r.metodo || '',
+        estado: r.estado || '',
+        movimientos: (() => { try { return typeof r.movimientos === 'string' ? JSON.parse(r.movimientos) : (r.movimientos || []); } catch(e){ return []; } })(),
+        createdAt: r.created_at || '',
+      }));
+      localStorage.setItem(K.ahorros, JSON.stringify(ahorros));
+    }
+    if (ssRes.data && ssRes.data.length) {
+      const ss = ssRes.data.map(r => ({
+        id: r.id, estudioId: r.estudio_id || '', estudioNombre: r.estudio_nombre || '',
+        concepto: r.concepto || '', monto: r.monto || 0, cuotas: r.cuotas || 0,
+        estado: r.estado || '', fecha: r.fecha || '',
+        pagos: (() => { try { return typeof r.pagos === 'string' ? JSON.parse(r.pagos) : (r.pagos || []); } catch(e){ return []; } })(),
+        createdAt: r.created_at || '',
+      }));
+      localStorage.setItem(K.ss, JSON.stringify(ss));
+    }
+    console.log('[SUPA RT] Préstamos/Ahorros/SS recargados');
+    try { if (typeof renderPrestamos === 'function') renderPrestamos(); } catch(e) {}
+    try { if (typeof renderAhorros === 'function') renderAhorros(); } catch(e) {}
+    try { if (typeof renderSS === 'function') renderSS(); } catch(e) {}
+  } catch(e) { console.warn('[SUPA RT] Error recargando Préstamos/Ahorros/SS:', e); }
+}
+
+async function _reloadConcilNomHorSnap() {
+  try {
+    const [concilRes, nomsRes, horsRes, perfsRes, snapsRes] = await Promise.all([
+      _supaDb.from('conciliacion').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('nominas').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('horarios').select('*'),
+      _supaDb.from('perfiles_ext').select('*'),
+      _supaDb.from('financiero_snapshots').select('*'),
+    ]);
+    _supaToLocalStorage({
+      concil: concilRes.data || [], noms: nomsRes.data || [],
+      hors: horsRes.data || [], perfs: perfsRes.data || [], snaps: snapsRes.data || [],
+    });
+    console.log('[SUPA RT] Conciliación/Nóminas/Horarios/Perfiles/Snapshots recargados');
+    try { if (typeof renderConciliacion === 'function') renderConciliacion(); } catch(e) {}
+    try { if (typeof renderHorarios === 'function') renderHorarios(); } catch(e) {}
+    try { if (typeof renderPerfiles === 'function') renderPerfiles(); } catch(e) {}
+  } catch(e) { console.warn('[SUPA RT] Error recargando módulos finales:', e); }
+}
+
+// ── Suscripción Realtime — actualiza este dispositivo cuando otro guarda datos ──
+let _supaRealtimeChannel = null;
+function _setupSupabaseRealtime() {
+  if (!_supaDb) return;
+  // Limpiar canal previo si existía (ej: re-login)
+  if (_supaRealtimeChannel) {
+    _supaDb.removeChannel(_supaRealtimeChannel);
+    _supaRealtimeChannel = null;
+  }
+  _supaRealtimeChannel = _supaDb.channel('jd-all-sync')
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'mercury_ingresos' },
+      () => { console.log('[SUPA RT] mercury_ingresos'); _reloadMercuryFromSupabase(); }
+    )
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'mercury_egresos' },
+      () => { console.log('[SUPA RT] mercury_egresos'); _reloadMercuryFromSupabase(); }
+    )
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'mercury_favoritos' },
+      () => { console.log('[SUPA RT] mercury_favoritos'); _reloadMercuryFavoritosFromSupabase(); }
+    )
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'ingresos' },
+      () => { console.log('[SUPA RT] ingresos caja'); _reloadCajaFromSupabase(); }
+    )
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'egresos' },
+      () => { console.log('[SUPA RT] egresos caja'); _reloadCajaFromSupabase(); }
+    )
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'prestamos' },
+      () => { console.log('[SUPA RT] prestamos'); _reloadPrestAhorSSFromSupabase(); }
+    )
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'ahorros' },
+      () => { console.log('[SUPA RT] ahorros'); _reloadPrestAhorSSFromSupabase(); }
+    )
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'sexshop_ventas' },
+      () => { console.log('[SUPA RT] sexshop_ventas'); _reloadPrestAhorSSFromSupabase(); }
+    )
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'conciliacion' },
+      () => { console.log('[SUPA RT] conciliacion'); _reloadConcilNomHorSnap(); }
+    )
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'nominas' },
+      () => { console.log('[SUPA RT] nominas'); _reloadConcilNomHorSnap(); }
+    )
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'horarios' },
+      () => { console.log('[SUPA RT] horarios'); _reloadConcilNomHorSnap(); }
+    )
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'perfiles_ext' },
+      () => { console.log('[SUPA RT] perfiles_ext'); _reloadConcilNomHorSnap(); }
+    )
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'financiero_snapshots' },
+      () => { console.log('[SUPA RT] financiero_snapshots'); _reloadConcilNomHorSnap(); }
+    )
+    .subscribe(status => {
+      if (status === 'SUBSCRIBED') {
+        console.log('[SUPA RT] ✅ Realtime activo — todos los módulos sincronizados');
+      } else {
+        console.log('[SUPA RT] Estado canal:', status);
+      }
+    });
 }
 
 async function jdAuthLogin() {
@@ -4089,6 +4583,7 @@ async function jdAuthLogin() {
   if (perfil.estado === 'inactivo') { loading.style.display='none'; err.textContent='🔴 Tu cuenta está inactiva. Contacta al administrador.'; await _supaDb.auth.signOut(); _supaUser=null; return; }
   loading.textContent = '⏳ Sincronizando datos desde Supabase...';
   await _loadSupabaseData();
+  _setupSupabaseRealtime();
   loading.textContent = '✅ Datos listos. Iniciando sistema...';
   setTimeout(() => {
     document.getElementById('jd-auth-overlay').style.display = 'none';
@@ -5011,7 +5506,19 @@ function exportEstudios(){
 // PRÉSTAMOS
 // ============================================================
 function getPrest(){ return load(K.prest)||[]; }
-function savePrest(data){ save(K.prest,data); }
+function savePrest(data){
+  save(K.prest,data);
+  if(_supaDb)(async()=>{try{
+    const rows=(data||[]).map(p=>({
+      id:p.id, estudio_id:p.estudioId||'', estudio_nombre:p.estudioNombre||'',
+      valor:p.valor||p.monto||0, cuotas:p.cuotas||0, valor_cuota:p.valorCuota||0,
+      frecuencia:p.frecuencia||null, fecha_inicio:p.fechaInicio||null,
+      saldo:p.saldo||0, estado:p.estado||'',
+      pagos:JSON.stringify(p.pagos||[]), notas:p.notas||null
+    }));
+    if(rows.length) await _supaDb.from('prestamos').upsert(rows,{onConflict:'id'});
+  }catch(e){console.warn('[SUPA] savePrest error:',e);}})();
+}
 
 function filterPrest(status, tabEl){
   prestFilter.status = status;
@@ -5178,7 +5685,19 @@ function deletePrest(id){
 // AHORROS
 // ============================================================
 function getAhorros(){ return load(K.ahorros)||[]; }
-function saveAhorros(data){ save(K.ahorros,data); }
+function saveAhorros(data){
+  save(K.ahorros,data);
+  if(_supaDb)(async()=>{try{
+    const rows=(data||[]).map(a=>({
+      id:a.id, estudio_id:a.estudioId||'', estudio_nombre:a.estudioNombre||'',
+      valor:a.valor||0, saldo_cop:a.saldoCOP||0, metodo:a.metodo||'',
+      estado:a.estado||'',
+      movimientos:JSON.stringify(a.movimientos||[]),
+      created_at:a.createdAt||new Date().toISOString()
+    }));
+    if(rows.length) await _supaDb.from('ahorros').upsert(rows,{onConflict:'id'});
+  }catch(e){console.warn('[SUPA] saveAhorros error:',e);}})();
+}
 
 function toggleAhoMetodo(){
   const m=document.getElementById('aho-metodo').value;
@@ -5332,7 +5851,19 @@ function exportAhorros(){
 // SEX-SHOP
 // ============================================================
 function getSS(){ return load(K.ss)||[]; }
-function saveSS_all(data){ save(K.ss,data); }
+function saveSS_all(data){
+  save(K.ss,data);
+  if(_supaDb)(async()=>{try{
+    const rows=(data||[]).map(v=>({
+      id:v.id, estudio_id:v.estudioId||'', estudio_nombre:v.estudioNombre||'',
+      concepto:v.concepto||'', monto:v.monto||0, cuotas:v.cuotas||0,
+      estado:v.estado||'', fecha:v.fecha||null,
+      pagos:JSON.stringify(v.pagos||[]),
+      created_at:v.createdAt||new Date().toISOString()
+    }));
+    if(rows.length) await _supaDb.from('sexshop_ventas').upsert(rows,{onConflict:'id'});
+  }catch(e){console.warn('[SUPA] saveSS_all error:',e);}})();
+}
 
 function filterSS(status, tabEl){
   ssFilter.status=status;
@@ -8349,10 +8880,10 @@ function abonoSexshop(eid, monto) {
 
 function getEstudios(){ return load(K.estudios)||[]; }
 function getPrestamos(){ return load(K.prest)||[]; }
-function savePrestamos(d){ save(K.prest,d); }
+function savePrestamos(d){ savePrest(d); }
 function getAhorros(){ return load(K.ahorros)||[]; }
 function getSSItems(){ return load(K.ss)||[]; }
-function saveSSItems(d){ save(K.ss,d); }
+function saveSSItems(d){ saveSS_all(d); }
 
 // ════════════════════════════════════════════════════════════
 // WIZARD-SPECIFIC CSS
@@ -10627,7 +11158,21 @@ let HOR_EDIT_ID = null;
 let HOR_SEMANA_OFFSET = 0;
 
 function getHorarios(){ return load(K.horarios)||[]; }
-function saveHorarios(d){ save(K.horarios,d); }
+function saveHorarios(d){
+  save(K.horarios,d);
+  if(_supaDb)(async()=>{try{
+    const rows=(d||[]).map(h=>({
+      id:h.id, modelo_id:h.modeloId||'', modelo_nombre:h.modeloNombre||'',
+      habitacion:h.habitacion||'', dia:h.dia||'', semana:h.semana||'',
+      desde:h.desde||'', hasta:h.hasta||'', obs:h.obs||'',
+      grupo_id:h.grupoId||null,
+      dias_excluidos:JSON.stringify(h.diasExcluidos||[]),
+      created_at:h.createdAt||new Date().toISOString(),
+      updated_at:h.updatedAt||new Date().toISOString()
+    }));
+    if(rows.length) await _supaDb.from('horarios').upsert(rows,{onConflict:'id'});
+  }catch(e){console.warn('[SUPA] saveHorarios error:',e);}})();
+}
 function getModelos(){ return load(K.modelos)||[]; }
 function saveModelos(arr){ save(K.modelos, arr); }
 
@@ -11202,6 +11747,7 @@ function horGuardar(){
 function horEliminar(id){
   if(!confirm('¿Eliminar esta asignación?')) return;
   saveHorarios(getHorarios().filter(h=>h.id!==id));
+  if(_supaDb)(async()=>{try{ await _supaDb.from('horarios').delete().eq('id',id); }catch(e){console.warn('[SUPA] delete horario:',e);}})();
   renderHorarios();
   toast('Asignación eliminada','warn');
 }
@@ -11637,7 +12183,24 @@ function abrirPerfilModelo(id){
 let PERF_EDIT_ID = null;
 
 function getPerfilesExt(){ return load(K.perfilesExt)||{}; }
-function savePerfilesExt(d){ save(K.perfilesExt,d); }
+function savePerfilesExt(d){
+  save(K.perfilesExt,d);
+  if(_supaDb)(async()=>{try{
+    const rows=Object.entries(d||{}).map(([mId,p])=>({
+      modelo_id:mId,
+      ciudad:p.ciudad||'', correo:p.correo||'',
+      tipo_contrato:p.tipoContrato||'', obs_contrato:p.obsContrato||'',
+      estado_contrato:p.estadoContrato||'', entrevistador:p.entrevistador||'',
+      obs_entrevista:p.obsEntrevista||'', resultado_entrevista:p.resultadoEntrevista||'',
+      estado_vinculacion:p.estadoVinculacion||'Interesado',
+      datos_extra:{
+        fechaEntrevista:p.fechaEntrevista||'', fechaContrato:p.fechaContrato||'',
+        inicioContrato:p.inicioContrato||'', timeline:p.timeline||[]
+      }
+    }));
+    if(rows.length) await _supaDb.from('perfiles_ext').upsert(rows,{onConflict:'modelo_id'});
+  }catch(e){console.warn('[SUPA] savePerfilesExt error:',e);}})();
+}
 
 function renderPerfiles(){
   const estudios = getEstudios();
@@ -11946,11 +12509,80 @@ function perfGuardar(){
 // FINANZAS — HELPERS
 // ============================================================
 function getIngresos(){ return load(K.ingresos)||[]; }
-function saveIngresos(d){ save(K.ingresos,d); }
+function saveIngresos(d){
+  save(K.ingresos, d);
+  if (_supaDb && d && d.length) {
+    (async () => {
+      try {
+        const rows = d.map(r => ({
+          id: r.id,
+          fecha: r.fecha || null,
+          tipo: r.tipo || 'MANUAL',
+          categoria: r.categoria || '',
+          concepto: r.concepto || '',
+          valor: r.valor || 0,
+          cop_netos: r.copNetos || r.valor || 0,
+          comisiones_cop: r.comisionesCOP || 0,
+          cuenta_bancaria: r.cuentaBancaria || '',
+          referencia: r.referencia || '',
+          referencia_banco: r.referenciaBanco || '',
+          mon_id: r.monId || null,
+          responsable: r.responsable || '',
+          obs: r.obs || '',
+          auto_origen_bancolombia: r.autoOrigenBancolombia || null,
+          created_at: r.createdAt || new Date().toISOString(),
+          datos_extra: { autoOrigen: r.autoOrigen || null, updatedAt: r.updatedAt || null },
+        }));
+        const { error } = await _supaDb.from('ingresos').upsert(rows, { onConflict: 'id' });
+        if (error) console.warn('[SUPA] ingresos caja upsert error:', error.message);
+      } catch(e) { console.warn('[SUPA] saveIngresos sync error:', e); }
+    })();
+  }
+}
 function getEgresos(){ return load(K.egresos)||[]; }
-function saveEgresos(d){ save(K.egresos,d); }
+function saveEgresos(d){
+  save(K.egresos, d);
+  if (_supaDb && d && d.length) {
+    (async () => {
+      try {
+        const rows = d.map(r => ({
+          id: r.id,
+          fecha: r.fecha || null,
+          categoria: r.categoria || '',
+          subcategoria: r.subcategoria || '',
+          beneficiario: r.beneficiario || '',
+          concepto: r.concepto || '',
+          valor: r.valor || 0,
+          cuenta_bancaria: r.cuentaBancaria || '',
+          referencia: r.referencia || '',
+          responsable: r.responsable || '',
+          obs: r.obs || '',
+          otro_categoria: r.otroCategoria || '',
+          soporte_nombre: r.soporteNombre || '',
+          soporte_size: r.soporteSize || 0,
+          soporte_tipo: r.soporteTipo || '',
+          created_at: r.createdAt || new Date().toISOString(),
+          datos_extra: {},
+        }));
+        const { error } = await _supaDb.from('egresos').upsert(rows, { onConflict: 'id' });
+        if (error) console.warn('[SUPA] egresos caja upsert error:', error.message);
+      } catch(e) { console.warn('[SUPA] saveEgresos sync error:', e); }
+    })();
+  }
+}
 function getConciliacion(){ return load(K.conciliacion)||[]; }
-function saveConciliacion(d){ save(K.conciliacion,d); }
+function saveConciliacion(d){
+  save(K.conciliacion,d);
+  if(_supaDb)(async()=>{try{
+    const rows=(d||[]).map(r=>({
+      id:r.id, fecha:r.fecha||null, cuenta:r.cuenta||'',
+      saldo_banco:r.saldoBanco||0, saldo_sistema:r.saldoSistema||0,
+      diferencia:r.diferencia||0, obs:r.obs||'',
+      created_at:r.createdAt||new Date().toISOString()
+    }));
+    if(rows.length) await _supaDb.from('conciliacion').upsert(rows,{onConflict:'id'});
+  }catch(e){console.warn('[SUPA] saveConciliacion error:',e);}})();
+}
 
 function finCalcSaldo(){
   const ing = getIngresos().reduce((s,i)=>s+(i.valor||0),0);
@@ -13142,6 +13774,7 @@ function conGuardar(){
 function conEliminar(id){
   if(!confirm('¿Eliminar este registro de conciliación?')) return;
   saveConciliacion(getConciliacion().filter(c=>c.id!==id));
+  if(_supaDb)(async()=>{try{ await _supaDb.from('conciliacion').delete().eq('id',id); }catch(e){console.warn('[SUPA] delete conciliacion:',e);}})();
   renderConciliacion();
 }
 
@@ -14098,9 +14731,73 @@ function getMerData(){
   }
   return d;
 }
-function saveMerData(d){ save(K.mer, d); }
+function saveMerData(d){
+  save(K.mer, d);
+  // Dual-write: sincronizar ingresos y egresos a Supabase en background
+  if (_supaDb) {
+    (async () => {
+      try {
+        // Upsert ingresos
+        if (d.ingresos && d.ingresos.length) {
+          const rows = d.ingresos.map(r => ({
+            id: r.id,
+            fecha: r.fecha || null,
+            moneda: r.moneda || 'USD',
+            valor_bruto: r.valorBruto || 0,
+            valor_recibido: r.valorRecibido || 0,
+            total_creditos: r.totalCreditos || 0,
+            total_deducciones: r.totalDeducciones || 0,
+            total_distribuido: r.totalDistribuido || 0,
+            paginas: JSON.stringify(r.paginas || []),
+            distribucion: JSON.stringify(r.distribucion || []),
+            referencia: r.referencia || '',
+            obs: r.obs || '',
+            created_at: r.createdAt || new Date().toISOString(),
+          }));
+          const { error } = await _supaDb.from('mercury_ingresos').upsert(rows, { onConflict: 'id' });
+          if (error) console.warn('[SUPA] mercury_ingresos upsert error:', error.message);
+        }
+        // Upsert egresos
+        if (d.egresos && d.egresos.length) {
+          const rows = d.egresos.map(r => ({
+            id: r.id,
+            fecha: r.fecha || null,
+            moneda: r.moneda || 'USD',
+            valor: r.valor || 0,
+            valor_cop: r.valorCOP || 0,
+            tasa_cambio: r.tasaCambio || 0,
+            banco: r.banco || '',
+            cuenta: r.cuenta || '',
+            beneficiario: r.beneficiario || '',
+            categoria: r.categoria || '',
+            concepto: r.concepto || '',
+            referencia: r.referencia || '',
+            estado: r.estado || 'Registrado',
+            obs: r.obs || '',
+            created_at: r.createdAt || new Date().toISOString(),
+          }));
+          const { error } = await _supaDb.from('mercury_egresos').upsert(rows, { onConflict: 'id' });
+          if (error) console.warn('[SUPA] mercury_egresos upsert error:', error.message);
+        }
+      } catch(e) { console.warn('[SUPA] saveMerData sync error:', e); }
+    })();
+  }
+}
 function getMerPin(){ return load(K.merPin) || null; }
-function saveMerPin(p){ save(K.merPin, p); }
+function saveMerPin(p){
+  save(K.merPin, p);
+  // Dual-write: sincronizar PIN a Supabase
+  if (_supaDb && p) {
+    (async () => {
+      try {
+        const { error } = await _supaDb.from('configuracion')
+          .update({ mercury_pin: p })
+          .eq('clave', 'jd_mercury_pin');
+        if (error) console.warn('[SUPA] saveMerPin error:', error.message);
+      } catch(e) { console.warn('[SUPA] saveMerPin sync error:', e); }
+    })();
+  }
+}
 
 // ─── ID generators ─────────────────────────────────────────────────────────
 function merNextId(tipo){
@@ -14581,7 +15278,28 @@ function merEliminarAhorro(id){
 const MER_FAV_KEY = 'jd_mercury_fav';
 
 function merGetFavoritos(){ return JSON.parse(localStorage.getItem(MER_FAV_KEY)||'[]'); }
-function merSaveFavoritos(favs){ localStorage.setItem(MER_FAV_KEY, JSON.stringify(favs)); }
+function merSaveFavoritos(favs){
+  localStorage.setItem(MER_FAV_KEY, JSON.stringify(favs));
+  // Dual-write: sincronizar favoritos a Supabase en background
+  if (_supaDb) {
+    (async () => {
+      try {
+        // Borrar todos y reinsertar (favoritos son pocos, no tienen PK natural)
+        await _supaDb.from('mercury_favoritos').delete().neq('nombre', '__placeholder__');
+        if (favs && favs.length) {
+          const rows = favs.map(f => ({
+            nombre: f.nombre || '',
+            banco: f.banco || '',
+            cuenta: f.cuenta || '',
+            guardado_en: new Date().toISOString(),
+          }));
+          const { error } = await _supaDb.from('mercury_favoritos').insert(rows);
+          if (error) console.warn('[SUPA] mercury_favoritos insert error:', error.message);
+        }
+      } catch(e) { console.warn('[SUPA] merSaveFavoritos sync error:', e); }
+    })();
+  }
+}
 
 function merRenderFavSelect(){
   const sel = document.getElementById('mer-egr-fav-sel');
@@ -17528,6 +18246,20 @@ function finGuardarSnapshot(){
     margenNeto: ingresosBrutos>0?utilidadNeta/ingresosBrutos*100:0
   };
   localStorage.setItem(FIN_SNAP_KEY, JSON.stringify(snaps));
+  if(_supaDb)(async()=>{try{
+    const snap=snaps[mesKey];
+    await _supaDb.from('financiero_snapshots').upsert([{
+      mes:snap.mes, ts:snap.ts,
+      ingresos_brutos:snap.ingresosBrutos||0,
+      total_pesos_mon:snap.totalPesosMon||0,
+      pagos_modelos:snap.pagosModelos||0,
+      costos_totales:snap.costosTotales||0,
+      utilidad_bruta:snap.utilidadBruta||0,
+      impuestos:snap.impuestos||0,
+      utilidad_neta:snap.utilidadNeta||0,
+      margen_neto:snap.margenNeto||0
+    }],{onConflict:'mes'});
+  }catch(e){console.warn('[SUPA] finGuardarSnapshot error:',e);}})();
 }
 
 function finGetSnapshots(){
@@ -17960,7 +18692,19 @@ function bancoMovTipoChange(){
 // ── NÓMINAS: store simple ────────────────────────────────────────────────────
 const NOM_KEY = 'jd_nominas';
 function getNominas(){ return JSON.parse(localStorage.getItem(NOM_KEY)||'[]'); }
-function saveNominas(d){ localStorage.setItem(NOM_KEY, JSON.stringify(d)); }
+function saveNominas(d){
+  localStorage.setItem(NOM_KEY, JSON.stringify(d));
+  if(_supaDb)(async()=>{try{
+    const rows=(d||[]).map(n=>({
+      id:n.id, fecha:n.fecha||null, beneficiario:n.beneficiario||'',
+      periodo:n.periodo||'', concepto:n.concepto||'',
+      valor:n.valor||0, estado:n.estado||'Pendiente',
+      pagado_en:n.pagadoEn||null, pago_mov_id:n.pagoMovId||null,
+      created_at:n.createdAt||new Date().toISOString()
+    }));
+    if(rows.length) await _supaDb.from('nominas').upsert(rows,{onConflict:'id'});
+  }catch(e){console.warn('[SUPA] saveNominas error:',e);}})();
+}
 
 function nomNextId(){
   const all = getNominas();

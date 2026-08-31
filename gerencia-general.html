@@ -247,6 +247,11 @@ tr.hl td{background:rgba(200,168,75,.06)!important}
 .traz-hist-dot.ing{background:#16a34a}
 .traz-hist-dot.egr{background:#dc2626}
 .traz-hist-dot.mon{background:#2563eb}
+.traz-obs-ico{cursor:pointer;margin-left:5px;font-size:11px;opacity:.75;transition:opacity .15s;vertical-align:middle}
+.traz-obs-ico:hover{opacity:1}
+.traz-modelo-link{cursor:pointer;color:#2563eb;text-decoration:underline;font-weight:700;transition:color .15s}
+.traz-modelo-link:hover{color:#1d4ed8}
+#traz-obs-popover{position:fixed;z-index:9999;background:#1e293b;color:#f8fafc;padding:10px 14px;border-radius:8px;font-size:12px;line-height:1.5;max-width:320px;box-shadow:0 4px 20px rgba(0,0,0,.35);pointer-events:none;display:none;word-break:break-word}
 .traz-empty{text-align:center;padding:40px;color:#aaa;font-size:13px}
 
 /* ══════════════════════════════════════════════════════════════
@@ -2019,6 +2024,8 @@ td[style*="text-align:right"], th[style*="text-align:right"] {
 
 <!-- COLILLA PRINT AREA -->
 <div id="colilla-area" style="display:none"></div>
+<!-- TRAZ OBS POPOVER -->
+<div id="traz-obs-popover"></div>
 
 <!-- CONFIRM DIALOG -->
 <div class="overlay" id="modal-confirm">
@@ -13506,7 +13513,7 @@ function trazRenderMonetizaciones(){
     // Detalle estudios — desde liqs reales (v93)
     const dets = _pagReal.detalle.filter(d=>(d.pagoEstudio||0)>0).map(d=>`
       <div class="traz-wf-row traz-wf-indent">
-        <span class="traz-wf-lbl">· ${d.estudioNombre||'Estudio'}</span>
+        <span class="traz-wf-lbl">· ${d.liquidacionId?`<span class="traz-modelo-link" onclick="trazAbrirColilla('${d.liquidacionId}')" title="Ver colilla de pago">${d.estudioNombre||'Estudio'}</span>`:d.estudioNombre||'Estudio'}</span>
         <span class="traz-wf-val neg">- ${trazCOP(d.pagoEstudio||0)}</span>
       </div>`).join('');
 
@@ -13697,7 +13704,7 @@ function trazRenderMovimientos(){
     <div class="traz-hist-row">
       <div class="traz-hist-dot ${i.tipo==='MONETIZACION'?'mon':'ing'}"></div>
       <div style="flex:1">
-        <div style="font-weight:600;font-size:12px">${i.concepto||i.categoria||'Ingreso'}</div>
+        <div style="font-weight:600;font-size:12px">${i.concepto||i.categoria||'Ingreso'}${i.obs?`<span class="traz-obs-ico" data-obs="${(i.obs||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}" onmouseenter="trazShowObsPopover(event,this)" onmouseleave="trazHideObsPopover()" onclick="trazShowObsModal(this)">💬</span>`:''}</div>
         <div style="font-size:10px;color:#888">${trazFechaStr(i.fecha)} · ${i.cuentaBancaria||''} ${i.tipo==='MONETIZACION'?'· Auto-monetización':''}</div>
       </div>
       <div style="font-weight:700;color:#16a34a;font-size:13px;white-space:nowrap">+ ${trazCOP(i.valor||0)}</div>
@@ -13707,7 +13714,7 @@ function trazRenderMovimientos(){
     <div class="traz-hist-row">
       <div class="traz-hist-dot egr"></div>
       <div style="flex:1">
-        <div style="font-weight:600;font-size:12px">${e.concepto||e.categoria||'Egreso'}</div>
+        <div style="font-weight:600;font-size:12px">${e.concepto||e.categoria||'Egreso'}${e.obs?`<span class="traz-obs-ico" data-obs="${(e.obs||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}" onmouseenter="trazShowObsPopover(event,this)" onmouseleave="trazHideObsPopover()" onclick="trazShowObsModal(this)">💬</span>`:''}</div>
         <div style="font-size:10px;color:#888">${trazFechaStr(e.fecha)} · ${e.beneficiario||''} · ${e.cuentaBancaria||''}</div>
       </div>
       <div style="font-weight:700;color:#dc2626;font-size:13px;white-space:nowrap">- ${trazCOP(e.valor||0)}</div>
@@ -13905,6 +13912,48 @@ function trazRegistrarConciliacion(){
   save(K.conciliacion,concs);
   if(typeof toast==='function') toast('Conciliación registrada','success');
   trazRenderConciliacion();
+}
+
+// ── TRAZABILIDAD: OBSERVACIONES + COLILLAS ──────────────────
+function trazShowObsPopover(evt, el){
+  var pop = document.getElementById('traz-obs-popover');
+  if(!pop) return;
+  var obs = el.getAttribute('data-obs') || '';
+  if(!obs) return;
+  pop.textContent = obs;
+  pop.style.display = 'block';
+  var x = evt.clientX + 12;
+  var y = evt.clientY + 12;
+  if(x + 340 > window.innerWidth) x = evt.clientX - 340;
+  if(y + 80 > window.innerHeight) y = evt.clientY - 80;
+  pop.style.left = x + 'px';
+  pop.style.top = y + 'px';
+}
+function trazHideObsPopover(){
+  var pop = document.getElementById('traz-obs-popover');
+  if(pop) pop.style.display = 'none';
+}
+function trazShowObsModal(el){
+  var obs = el.getAttribute('data-obs') || '';
+  if(!obs) return;
+  var existing = document.getElementById('traz-obs-modal-overlay');
+  if(existing) existing.remove();
+  var ov = document.createElement('div');
+  ov.id = 'traz-obs-modal-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10000;display:flex;align-items:center;justify-content:center';
+  ov.innerHTML = '<div style="background:#fff;border-radius:14px;padding:24px 28px;max-width:440px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.25)">'
+    + '<div style="font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">💬 Observación</div>'
+    + '<div style="font-size:14px;color:#1e293b;line-height:1.6;white-space:pre-wrap">' + obs.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>'
+    + '<div style="text-align:right;margin-top:18px"><button onclick="document.getElementById(\'traz-obs-modal-overlay\').remove()" style="padding:8px 20px;background:#1F3864;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">Cerrar</button></div>'
+    + '</div>';
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+}
+function trazAbrirColilla(liqId){
+  if(!liqId){ if(typeof toast==='function') toast('Colilla no disponible para este registro','warn'); return; }
+  var l = (getLiqs()||[]).find(function(x){ return x.id===liqId; });
+  if(!l){ if(typeof toast==='function') toast('Colilla no encontrada — puede haber sido eliminada','warn'); return; }
+  generarColilla(l);
 }
 
 // ── INFORME JUNTA ─────────────────────────────────────────────

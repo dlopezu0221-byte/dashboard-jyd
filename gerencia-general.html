@@ -3383,6 +3383,32 @@ td[style*="text-align:right"], th[style*="text-align:right"] {
       </div>
     </div>
 
+    <!-- ── SOPORTE DOCUMENTAL BANCOLOMBIA ── -->
+    <div id="mbm-soporte-box" style="margin:0 24px 16px;padding:16px;border:1.5px dashed var(--border);border-radius:10px;background:rgba(200,168,75,.04)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <span style="font-size:18px">📎</span>
+        <span style="font-weight:700;font-size:13px;color:var(--gold)">SOPORTE DOCUMENTAL</span>
+        <span style="font-size:11px;color:var(--muted);margin-left:auto">PDF · JPG · PNG · XLSX · DOCX</span>
+      </div>
+      <div id="mbm-soporte-empty">
+        <label for="mbm-soporte-input" style="cursor:pointer">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+            <span style="font-size:20px">📂</span>
+            <div>
+              <div style="font-weight:600;font-size:13px">Adjuntar comprobante</div>
+              <div style="font-size:11px;color:var(--muted)">Extracto, transferencia, recibo, factura…</div>
+            </div>
+          </div>
+        </label>
+        <input type="file" id="mbm-soporte-input" accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls,.doc,.docx" style="display:none" multiple onchange="jdMbmSoporteCargar(this)">
+      </div>
+      <div id="mbm-soporte-lista" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
+      <div id="mbm-soporte-existentes" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase">Soportes guardados</div>
+        <div id="mbm-soporte-existentes-lista"></div>
+      </div>
+    </div>
+
     <!-- Footer -->
     <div style="padding:16px 24px;background:var(--surface);border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end">
       <button class="btn btn-ghost" onclick="closeModal('modal-banco-mov')" style="border-radius:10px;padding:10px 20px">Cancelar</button>
@@ -4034,6 +4060,7 @@ async function jdAuthLogin() {
     document.getElementById('jd-auth-overlay').style.display = 'none';
     _runDCLQueue();
     _jdApplyUserUI();
+    jdSoportesCargarCache().catch(function(e){ console.warn('[soportes init]',e); });
   }, 500);
 }
 
@@ -4561,6 +4588,7 @@ window.addEventListener('load', async () => {
     document.getElementById('jd-auth-overlay').style.display = 'none';
     _runDCLQueue();
     _jdApplyUserUI();
+    jdSoportesCargarCache().catch(function(e){ console.warn('[soportes init]',e); });
   }
   // Setup enter key
   document.getElementById('jd-auth-pass').addEventListener('keydown', e => { if(e.key==='Enter') jdAuthLogin(); });
@@ -12737,6 +12765,146 @@ function egrDescargarSoporte(){
 }
 // ── FIN SOPORTE DOCUMENTAL ────────────────────────────────────────────────
 
+// ══════════════════════════════════════════════════════════════════════════
+// SOPORTES BANCOLOMBIA (Supabase Storage) — v99
+// ══════════════════════════════════════════════════════════════════════════
+window._mbmSoporteFiles = [];
+window._jdSoportesCache = {};
+
+function jdMbmSoporteCargar(input){
+  var files = Array.from(input.files||[]);
+  if(!files.length) return;
+  var MAX = 10*1024*1024;
+  files.forEach(function(f){
+    if(f.size > MAX){ toast('Archivo "'+f.name+'" muy grande (máx. 10 MB)','error'); return; }
+    window._mbmSoporteFiles.push(f);
+  });
+  input.value = '';
+  jdMbmSoporteRenderLista();
+}
+
+function jdMbmSoporteRenderLista(){
+  var lista = document.getElementById('mbm-soporte-lista');
+  if(!lista) return;
+  var files = window._mbmSoporteFiles||[];
+  if(!files.length){ lista.innerHTML=''; return; }
+  lista.innerHTML = files.map(function(f,i){
+    var sz = f.size<1024?f.size+' B':f.size<1048576?(f.size/1024).toFixed(1)+' KB':(f.size/1048576).toFixed(1)+' MB';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card);border:1.5px solid var(--gold);border-radius:8px">'
+      +'<span style="font-size:18px">'+egrExtIcon(f.name)+'</span>'
+      +'<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+f.name+'</div>'
+      +'<div style="font-size:10px;color:var(--muted)">'+sz+'</div></div>'
+      +'<button onclick="window._mbmSoporteFiles.splice('+i+',1);jdMbmSoporteRenderLista()" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:18px;line-height:1">×</button></div>';
+  }).join('');
+}
+
+async function jdMbmSoporteSubir(movId){
+  var files = window._mbmSoporteFiles||[];
+  if(!files.length) return;
+  if(!_supaDb){ toast('Sin conexión a base de datos','error'); return; }
+  var userId = _supaUser&&_supaUser.id;
+  var userEmail = (_jdCurrentUser&&_jdCurrentUser.email)||(_supaUser&&_supaUser.email)||'';
+  for(var i=0;i<files.length;i++){
+    var file = files[i];
+    try {
+      var ts = Date.now();
+      var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+      var path = (userId||'anon')+'/'+movId+'/'+ts+'_'+safeName;
+      var upRes = await _supaDb.storage.from('jd-soportes').upload(path, file, {upsert:false});
+      if(upRes.error){ toast('Error subiendo "'+file.name+'": '+upRes.error.message,'error'); continue; }
+      var meta = { mov_id:movId, nombre:file.name, tipo:file.type||'application/octet-stream',
+                   tamanio:file.size, usuario_id:userId, usuario_email:userEmail, storage_path:path };
+      var metaRes = await _supaDb.from('jd_soportes').insert(meta);
+      if(metaRes.error) toast('Archivo subido pero error en metadatos: '+metaRes.error.message,'warn');
+    } catch(e){ toast('Error con "'+file.name+'": '+e.message,'error'); }
+  }
+  window._mbmSoporteFiles = [];
+  jdMbmSoporteRenderLista();
+  await jdSoportesCargarCache();
+}
+
+async function jdSoportesCargarCache(){
+  if(!_supaDb) return;
+  try {
+    var res = await _supaDb.from('jd_soportes').select('id,mov_id,nombre,tipo,tamanio,fecha_carga,storage_path');
+    window._jdSoportesCache = {};
+    var data = res.data||[];
+    data.forEach(function(s){
+      if(!window._jdSoportesCache[s.mov_id]) window._jdSoportesCache[s.mov_id]=[];
+      window._jdSoportesCache[s.mov_id].push(s);
+    });
+    bancoRenderFlujo();
+  } catch(e){ console.warn('[soportes cache]', e); }
+}
+
+async function jdVerSoporteMovimiento(movId){
+  if(!_supaDb){ toast('Sin conexión','error'); return; }
+  var soportes = (window._jdSoportesCache&&window._jdSoportesCache[movId])||[];
+  if(!soportes.length){ toast('Este movimiento no tiene soportes','warn'); return; }
+  if(soportes.length===1){
+    await jdAbrirSoporteSupabase(soportes[0]);
+  } else {
+    var lista = soportes.map(function(s,i){
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;cursor:pointer;margin-bottom:6px" onclick="jdAbrirSoporteSupabase(window._jdSoportesCache[\''+movId+'\']['+i+'])">'
+        +'<span style="font-size:22px">'+egrExtIcon(s.nombre)+'</span>'
+        +'<div style="flex:1"><div style="font-weight:600;font-size:13px">'+s.nombre+'</div>'
+        +'<div style="font-size:10px;color:var(--muted)">'+new Date(s.fecha_carga).toLocaleDateString('es-CO')+'</div></div>'
+        +'<span style="font-size:12px;color:var(--gold)">👁 Ver</span></div>';
+    }).join('');
+    var cont = document.getElementById('msv-contenido');
+    document.getElementById('msv-title').textContent = '📎 Soportes del movimiento';
+    cont.innerHTML = '<div style="padding:20px;width:100%">'+lista+'</div>';
+    document.getElementById('msv-download').style.display='none';
+    openModal('modal-soporte-visor');
+  }
+}
+
+async function jdAbrirSoporteSupabase(soporte){
+  if(!_supaDb) return;
+  try {
+    var res = await _supaDb.storage.from('jd-soportes').createSignedUrl(soporte.storage_path, 3600);
+    if(res.error||!(res.data&&res.data.signedUrl)){ toast('No se pudo obtener el soporte: '+(res.error?res.error.message:''),'error'); return; }
+    var url = res.data.signedUrl;
+    var nombre = soporte.nombre;
+    var tipo = soporte.tipo||'';
+    var cont = document.getElementById('msv-contenido');
+    document.getElementById('msv-title').textContent = '📎 '+nombre;
+    document.getElementById('msv-download').style.display='';
+    window._egrVisorNombre = nombre;
+    window._egrVisorData = url;
+    if(tipo.startsWith('image/')||/\.(jpg|jpeg|png|gif|webp)$/i.test(nombre)){
+      cont.innerHTML='<img src="'+url+'" style="max-width:100%;max-height:70vh;object-fit:contain;border-radius:8px;padding:16px">';
+    } else if(tipo==='application/pdf'||nombre.endsWith('.pdf')){
+      cont.innerHTML='<iframe src="'+url+'" style="width:100%;height:100%;min-height:520px;border:none"></iframe>';
+    } else {
+      cont.innerHTML='<div style="text-align:center;padding:40px"><div style="font-size:48px;margin-bottom:16px">'+egrExtIcon(nombre)+'</div>'
+        +'<div style="font-weight:700;margin-bottom:8px">'+nombre+'</div>'
+        +'<div style="color:var(--muted);margin-bottom:20px;font-size:13px">Haz clic en Descargar para abrir este archivo.</div>'
+        +'<a href="'+url+'" target="_blank" class="btn btn-primary">⬇️ Descargar</a></div>';
+    }
+    openModal('modal-soporte-visor');
+  } catch(e){ toast('Error abriendo soporte: '+e.message,'error'); }
+}
+
+function jdMbmSoporteMostrarExistentes(movId){
+  var extBox = document.getElementById('mbm-soporte-existentes');
+  var extLista = document.getElementById('mbm-soporte-existentes-lista');
+  if(!extBox||!extLista) return;
+  var sopts = (window._jdSoportesCache&&movId&&window._jdSoportesCache[movId])||[];
+  if(sopts.length){
+    extLista.innerHTML = sopts.map(function(s,i){
+      return '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--card);border:1px solid var(--border);border-radius:6px;margin-bottom:4px">'
+        +'<span>'+egrExtIcon(s.nombre)+'</span>'
+        +'<div style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+s.nombre+'</div>'
+        +'<button onclick="jdAbrirSoporteSupabase(window._jdSoportesCache[\''+movId+'\']['+i+'])" class="btn btn-secondary btn-sm">👁 Ver</button></div>';
+    }).join('');
+    extBox.style.display='block';
+  } else {
+    extBox.style.display='none';
+  }
+}
+// ══════════════════════════════════════════════════════════════════════════
+
 function finExportEgresos(){
   const lista = getEgresos();
   if(!lista.length){ toast('Sin egresos para exportar','warn'); return; }
@@ -17567,8 +17735,10 @@ function bancoRenderFlujo(){
         ? 'rgba(245,158,11,.06)'
         : i%2===0?'transparent':'rgba(255,255,255,.02)';
       const borderRow = esPend ? 'border-left:3px solid #f59e0b;' : '';
+      const hasSoporte = !!(window._jdSoportesCache&&window._jdSoportesCache[t.id]&&window._jdSoportesCache[t.id].length);
+      const btnSoporte = hasSoporte?`<button onclick="jdVerSoporteMovimiento('${t.id}')" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:13px;padding:2px 6px" title="Ver comprobante">📎</button>`:'';
       const acciones = t.origen==='MANUAL'
-        ?`<button onclick="bancoEliminarMovimiento('${t.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:13px;padding:2px 6px" title="Eliminar">🗑</button>`:'';
+        ?`${btnSoporte}<button onclick="bancoEliminarMovimiento('${t.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:13px;padding:2px 6px" title="Eliminar">🗑</button>`:btnSoporte;
       const badgeLabel = esIng ? '▲ INGRESO' : esPend ? '📌 COMPROMETIDO' : '▼ EGRESO';
       const entradaCell = esIng ? cop(t.valor||0) : '—';
       const salidaCell  = esEgr ? cop(t.valor||0) : esPend ? `<span style="color:#f59e0b;font-style:italic">${cop(t.valor||0)}</span>` : '—';
@@ -17650,6 +17820,11 @@ function bancoAbrirMovimiento(id, tipoDefault){
   const nomHid = document.getElementById('mbm-nominaId'); if(nomHid) nomHid.value = m?.nominaId||'';
   bancoMovTipoChange();
   bancoMovCategoriaChange();
+  // Reset soportes pendientes
+  window._mbmSoporteFiles = [];
+  jdMbmSoporteRenderLista();
+  // Mostrar soportes guardados si es edición
+  jdMbmSoporteMostrarExistentes(id||null);
   openModal('modal-banco-mov');
 }
 
@@ -18130,6 +18305,10 @@ function bancoGuardarMovimiento(){
     movs.push(obj);
   }
   saveBancoMovs(movs);
+  // ── Subir soportes documentales si los hay ───────────────────────────────
+  if(window._mbmSoporteFiles&&window._mbmSoporteFiles.length){
+    jdMbmSoporteSubir(movId).catch(function(e){ console.warn('[soporte upload]',e); });
+  }
 
   // ── Marcar TODAS las colillas del bloque como PAGADAS ────────────────────
   if(liqObjs.length>0){

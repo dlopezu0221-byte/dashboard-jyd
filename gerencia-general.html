@@ -17853,8 +17853,9 @@ function bancoRenderFlujo(){
       // 🖨️ Botón colilla explícito para filas de liquidación
       const btnColilla = t.liqId ? `<button onclick="trazAbrirColilla('${t.liqId}')" style="background:none;border:1px solid rgba(200,168,75,.5);color:var(--gold);cursor:pointer;font-size:11px;padding:2px 7px;border-radius:5px;line-height:1.4" title="Ver colilla de pago">🖨️</button>` : '';
       const accionesCol = t.origen==='MANUAL'
-        ? `${btnObs}${btnSoporte}${btnColilla}<button onclick="bancoEliminarMovimiento('${t.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:13px;padding:2px 6px" title="Eliminar">🗑</button>`
-        : `${btnObs}${btnSoporte}${btnColilla}`;
+        ? `${btnSoporte}<button onclick="bancoEliminarMovimiento('${t.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:13px;padding:2px 6px" title="Eliminar">🗑</button>`
+        : `${btnSoporte}`;
+      const concepExtras = (btnObs||btnColilla) ? `<div style="margin-top:3px;display:flex;gap:4px;align-items:center">${btnObs}${btnColilla}</div>` : '';
       return `<tr style="background:${bgRow};${borderRow}border-bottom:1px solid rgba(255,255,255,.04)">
         <td style="padding:8px 10px;white-space:nowrap;color:var(--muted);font-size:11px">${t.fecha||'—'}</td>
         <td style="padding:8px 10px"><span style="color:${col};font-weight:800;font-size:11px">${badgeLabel}</span></td>
@@ -17862,6 +17863,7 @@ function bancoRenderFlujo(){
         <td style="padding:8px 10px;max-width:280px">
           <div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.concepto||''}">${t.concepto||'—'}</div>
           ${t.trazabilidad?`<div style="font-size:10px;color:var(--muted);margin-top:2px">🔗 ${t.trazabilidad}</div>`:''}
+          ${concepExtras}
         </td>
         <td style="padding:8px 10px;text-align:right;font-weight:700;color:var(--success)">${entradaCell}</td>
         <td style="padding:8px 10px;text-align:right;font-weight:700;color:${esPend?'#f59e0b':'var(--danger)'}">${salidaCell}</td>

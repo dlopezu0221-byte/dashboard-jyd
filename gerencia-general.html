@@ -4373,14 +4373,19 @@ async function _reloadMercuryFromSupabase() {
     const existingMer = JSON.parse(localStorage.getItem('jd_mercury') || '{}');
     const ingresos = (ingRes.data || []).map(_merIngFromRow);
     const egresos  = (egrRes.data  || []).map(_merEgrFromRow);
-    const merData = {
-      ingresos,
-      egresos,
-      ahorros:   existingMer.ahorros  || [],
-      auditLog:  existingMer.auditLog || [],
-    };
-    localStorage.setItem('jd_mercury', JSON.stringify(merData));
-    console.log('[SUPA RT] Mercury recargado:', ingresos.length, 'ing /', egresos.length, 'egr');
+    // GUARD: solo actualizar localStorage si Supabase retorna datos reales.
+    if (ingresos.length > 0 || egresos.length > 0) {
+      const merData = {
+        ingresos,
+        egresos,
+        ahorros:   existingMer.ahorros  || [],
+        auditLog:  existingMer.auditLog || [],
+      };
+      localStorage.setItem('jd_mercury', JSON.stringify(merData));
+      console.log('[SUPA RT] Mercury recargado:', ingresos.length, 'ing /', egresos.length, 'egr');
+    } else {
+      console.warn('[SUPA RT] Mercury: Supabase devolvio 0 registros → preservando localStorage (ing:', (existingMer.ingresos||[]).length, '/ egr:', (existingMer.egresos||[]).length, ')');
+    }
   } catch(e) { console.warn('[SUPA RT] Error recargando Mercury:', e); }
 }
 

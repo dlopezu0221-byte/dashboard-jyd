@@ -4051,7 +4051,7 @@ function _supaToLocalStorage(sbData) {
   // Si retorna 0 registros (RLS bloqueando, tabla vacía, red caída),
   // se PRESERVAN los datos existentes — nunca se pisan con vacío.
   {
-    const existingMer = JSON.parse(localStorage.getItem('jd_mercury') || '{}');
+    const existingMer = (() => { try { return JSON.parse(localStorage.getItem('jd_mercury') || '{}')} catch(e) { console.warn('[SUPA] jd_mercury corrupted, resetting'); localStorage.removeItem('jd_mercury'); return {}; } })();
     const ingresos = (sbData.merIngs || []).map(r => ({
       id: r.id,
       fecha: r.fecha || '',
@@ -4370,7 +4370,7 @@ async function _reloadMercuryFromSupabase() {
     ]);
     if (ingRes.error) console.warn('[SUPA] mercury_ingresos error:', ingRes.error);
     if (egrRes.error) console.warn('[SUPA] mercury_egresos error:', egrRes.error);
-    const existingMer = JSON.parse(localStorage.getItem('jd_mercury') || '{}');
+    const existingMer = (() => { try { return JSON.parse(localStorage.getItem('jd_mercury') || '{}')} catch(e) { console.warn('[SUPA] jd_mercury corrupted, resetting'); localStorage.removeItem('jd_mercury'); return {}; } })();
     const ingresos = (ingRes.data || []).map(_merIngFromRow);
     const egresos  = (egrRes.data  || []).map(_merEgrFromRow);
     // GUARD: solo actualizar localStorage si Supabase retorna datos reales.

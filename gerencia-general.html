@@ -4359,18 +4359,19 @@ async function _reloadMercuryFromSupabase() {
       _supaDb.from('mercury_ingresos').select('*').order('fecha', {ascending:false}),
       _supaDb.from('mercury_egresos').select('*').order('fecha', {ascending:false}),
     ]);
+    if (ingRes.error) console.warn('[SUPA] mercury_ingresos error:', ingRes.error);
+    if (egrRes.error) console.warn('[SUPA] mercury_egresos error:', egrRes.error);
     const existingMer = JSON.parse(localStorage.getItem('jd_mercury') || '{}');
+    const ingresos = (ingRes.data || []).map(_merIngFromRow);
+    const egresos  = (egrRes.data  || []).map(_merEgrFromRow);
     const merData = {
-      ingresos:  (ingRes.data  || []).map(_merIngFromRow),
-      egresos:   (egrRes.data  || []).map(_merEgrFromRow),
+      ingresos,
+      egresos,
       ahorros:   existingMer.ahorros  || [],
       auditLog:  existingMer.auditLog || [],
     };
     localStorage.setItem('jd_mercury', JSON.stringify(merData));
-    console.log('[SUPA RT] Mercury recargado:', merData.ingresos.length, 'ing /', merData.egresos.length, 'egr');
-    // Refrescar pantalla si el módulo Mercury está visible
-    try { if (typeof merRenderDashboard === 'function') merRenderDashboard(); } catch(e) {}
-    try { if (typeof merRender === 'function') merRender(); } catch(e) {}
+    console.log('[SUPA RT] Mercury recargado:', ingresos.length, 'ing /', egresos.length, 'egr');
   } catch(e) { console.warn('[SUPA RT] Error recargando Mercury:', e); }
 }
 
@@ -14935,12 +14936,21 @@ function merTab(tab){
   else if(tab==='auditoria') merRenderAuditoria();
 }
 
-function renderMercury(){
-  merTab('dashboard');
-  // Siempre recargar desde Supabase al abrir Mercury para garantizar datos actualizados
+async function renderMercury(){
+  // Mostrar loading mientras se cargan datos de Supabase
+  const elD = document.getElementById('mer-view-dashboard');
+  if (elD) elD.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:14px">⏳ Cargando datos Mercury...</div>';
+  // Mostrar tabs primero (sin contenido)
+  ['dashboard','ingresos','egresos','reserva','conciliacion','estado','informes','auditoria'].forEach(t=>{
+    const v=document.getElementById('mer-view-'+t); const b=document.getElementById('mer-tab-'+t);
+    if(v) v.style.display=t==='dashboard'?'':'none';
+    if(b){b.style.borderBottom=t==='dashboard'?'3px solid #3b82f6':'';b.style.color=t==='dashboard'?'#3b82f6':'';b.style.fontWeight=t==='dashboard'?'700':'';}
+  });
+  // Cargar desde Supabase primero, luego renderizar
   if (_supaDb) {
-    _reloadMercuryFromSupabase().catch(e => console.warn('[SUPA] renderMercury reload:', e));
+    try { await _reloadMercuryFromSupabase(); } catch(e) { console.warn('[SUPA] renderMercury reload:', e); }
   }
+  merTab('dashboard');
 }
 
 // ─── DASHBOARD ─────────────────────────────────────────────────────────────

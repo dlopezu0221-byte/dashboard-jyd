@@ -713,6 +713,14 @@ section{padding:56px 0 0}
 .re-block.missed .re-block-pct{color:rgba(239,68,68,.7)}
 .re-block.in-progress .re-block-pct{color:rgba(245,184,0,.7)}
 .re-block-icon{font-size:16px;display:block;margin-bottom:2px}
+.sf-badge{display:inline-block;font-size:12px;cursor:pointer;margin-top:5px;position:relative;line-height:1}
+.sf-badge .sf-tip{display:none;position:absolute;bottom:130%;left:50%;transform:translateX(-50%);
+  width:230px;background:#1e293b;border:1px solid rgba(245,184,0,.5);border-radius:10px;
+  padding:11px 13px;font-size:10px;line-height:1.6;color:#cbd5e1;text-align:left;z-index:9999;
+  box-shadow:0 8px 28px rgba(0,0,0,.7);white-space:normal}
+.sf-badge .sf-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  border:7px solid transparent;border-top-color:#1e293b}
+.sf-badge:hover .sf-tip,.sf-badge:focus .sf-tip{display:block}
 .re-stats{display:flex;gap:20px;margin-bottom:20px;flex-wrap:wrap}
 .re-stat{text-align:center}
 .re-stat-num{font-size:28px;font-weight:800}
@@ -781,16 +789,22 @@ def h_bar(val, max_val, color='#F5B800', height=8):
     return (f'<div style="height:{height}px;background:rgba(255,255,255,.08);border-radius:{height//2}px;overflow:hidden">'
             f'<div style="height:{height}px;width:{w}%;background:{color};border-radius:{height//2}px"></div></div>')
 
-def h_re_block(period_label, credits, re, status):
+def h_re_block(period_label, credits, re, status, sf_note=None):
     icon = {'achieved':'✅','missed':'❌','in-progress':'⏳','pending':'—'}[status]
     p = pct(credits, re)
     cr_str = fmt(credits) if credits else ('—' if status == 'pending' else '0')
     pct_str = f'{p:.1f}%' if credits else ''
+    sf_html = ''
+    if sf_note:
+        sf_html = (f'<div class="sf-badge" tabindex="0">☁️'
+                   f'<div class="sf-tip"><strong style="color:#F5B800">⚡ Summer Fest</strong><br/>{sf_note}</div>'
+                   f'</div>')
     return (f'<div class="re-block {status}">'
             f'<span class="re-block-icon">{icon}</span>'
             f'<div class="re-block-period">{period_label}</div>'
             f'<div class="re-block-credits">{cr_str}</div>'
             f'<div class="re-block-pct">{pct_str}</div>'
+            f'{sf_html}'
             f'</div>')
 
 def h_monthly_bar_chart(monthly_all, current_mes):
@@ -1040,7 +1054,17 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
 
     # Current period info — usa data_cutoff.day (no today.day)
     mc_label = MESES_CAP.get(current_mes, current_mes.capitalize())
-    day_num = data_cutoff.day if hasattr(data_cutoff, 'day') else (today.day - 1)
+    # día dentro de current_mes: si data_cutoff pertenece a un mes distinto → mes nuevo sin datos
+    _MNUM_BH = {'ENERO':1,'FEBRERO':2,'MARZO':3,'ABRIL':4,'MAYO':5,'JUNIO':6,
+                'JULIO':7,'AGOSTO':8,'SEPTIEMBRE':9,'OCTUBRE':10,'NOVIEMBRE':11,'DICIEMBRE':12}
+    _cur_mes_num = _MNUM_BH.get(current_mes, 0)
+    if hasattr(data_cutoff, 'month') and data_cutoff.month == _cur_mes_num:
+        day_num = data_cutoff.day
+    elif hasattr(today, 'month') and today.month == _cur_mes_num:
+        day_num = max(today.day - 1, 0)
+    else:
+        day_num = 0  # mes nuevo sin datos todavía
+    _mes_cerrado = (day_num == 0)  # True cuando current_mes es período futuro sin datos aún
     is_q1 = day_num <= 15
     q1_complete = is_q1 and day_num == 15  # día 15 = último día de Q1 → período finalizado
     days_elapsed = day_num if is_q1 else day_num - 15
@@ -1169,7 +1193,7 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
       <div class="hero-badge">⭐ Nivel {nivel} · {studio}</div>
       <h1>{model}</h1>
       <p class="hero-sub">{nombre_real} &nbsp;·&nbsp; {modalidad} &nbsp;·&nbsp; {plataforma}</p>
-      <p class="hero-intro">Este espacio reúne tu evolución, tus logros y los resultados que has construido dentro de {studio}. Informe generado el <strong>{today_str}</strong> · Datos con corte al <strong>{data_cutoff_str}</strong>. {MESES_CAP.get(prev_mes, '')} completamente cerrado · {mc_label} en progreso.</p>
+      <p class="hero-intro">Este espacio reúne tu evolución, tus logros y los resultados que has construido dentro de {studio}. Informe generado el <strong>{today_str}</strong> · Datos con corte al <strong>{data_cutoff_str}</strong>. {MESES_CAP.get(prev_mes, '')} completamente cerrado{(' · ' + mc_label + ' en progreso') if day_num > 0 else ''}.</p>
       <div class="hero-tags">
         <span class="tag tag-platform">{plataforma}</span>
         <span class="tag tag-modality">Modalidad {modalidad}</span>
@@ -1182,8 +1206,8 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
       <div class="aside-row"><span class="aside-label">Nivel Fornax Nova</span><span class="aside-val">{nivel}</span></div>
       <div class="aside-row"><span class="aside-label">Plataforma</span><span class="aside-val">{plataforma}</span></div>
       <div class="aside-row"><span class="aside-label">RE asignado</span><span class="aside-val">{fmt(re)} cr/quincena</span></div>
-      <div class="aside-row"><span class="aside-label">Bono de Racha</span><span class="aside-val" style="color:#22C55E;font-size:11px">{"🏆 USD " + str(bono_earned) + " ganado" if bono_earned else "En construcción"}</span></div>
-      <div class="aside-row"><span class="aside-label">{mc_label} ({1}-{day_num} {mc_label[:3].lower()})</span><span class="aside-val" style="font-size:12px;color:#3B82F6">{fmt(cur_credits)} cr ({cur_pct:.1f}%)</span></div>
+      <div class="aside-row"><span class="aside-label">Bono de Racha</span><span class="aside-val" style="color:{'#22C55E' if bono_earned else ('#EF4444' if _mes_cerrado else '#64748B')};font-size:11px">{"🏆 USD " + str(bono_earned) + " — " + MESES_CAP.get(prev_mes,'') if bono_earned else ("❌ No alcanzado" if _mes_cerrado else "En construcción")}</span></div>
+      {f'<div class="aside-row"><span class="aside-label">{mc_label} (1–{day_num} {mc_label[:3].lower()})</span><span class="aside-val" style="font-size:12px;color:#3B82F6">{fmt(cur_credits)} cr ({cur_pct:.1f}%)</span></div>' if day_num > 0 else '<div class="aside-row"><span class="aside-label">' + MESES_CAP.get(prev_mes,"") + ' (cierre)</span><span class="aside-val" style="font-size:12px;color:#22C55E">' + fmt(monthly_all.get(prev_mes, {}).get("total", 0)) + ' cr</span></div>'}
     </div>
   </section>
 
@@ -1192,7 +1216,7 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
     <div class="section-header">
       <h2><span class="icon">⚡</span> Tu Proceso en un Vistazo</h2>
       <div class="section-divider"></div>
-      <p>Indicadores clave al {today_str}. {MESES_CAP.get(prev_mes,'')} cerrado · {mc_label} en progreso.</p>
+      <p>Indicadores clave al {today_str}. {MESES_CAP.get(prev_mes,'')} cerrado{(' · ' + mc_label + ' en progreso') if day_num > 0 else ' — período cerrado'}.</p>
     </div>
     <div class="kpi-grid">
       <div class="kpi-card" style="--accent-color:var(--gold)">
@@ -1244,7 +1268,7 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
         <label for="rb-quincena" class="toggle-btn">Por Quincena</label>
       </div>
       <div id="view-monthly">
-        <div class="chart-card-title">Producción Mensual — {(MESES_CAP.get(closed_meses[0],"") + " a ") if closed_meses else ""}{MESES_CAP.get(prev_mes, mc_label)} {today.year if hasattr(today,"year") else 2026} + {mc_label} en curso</div>
+        <div class="chart-card-title">Producción Mensual — {(MESES_CAP.get(closed_meses[0],"") + " a ") if closed_meses else ""}{MESES_CAP.get(prev_mes, mc_label)} {today.year if hasattr(today,"year") else 2026}{(' + ' + mc_label + ' en curso') if day_num > 0 else ' — Período cerrado'}</div>
         <div class="chart-card-sub">Total de créditos producidos por mes</div>
         {h_monthly_bar_chart(monthly_all, current_mes)}
       </div>
@@ -1334,7 +1358,19 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
     <div class="re-timeline">'''
 
     for q in quincenas:
-        html += h_re_block(q['label'], q['credits'], q.get('re', re), q['status'])
+        # Tooltip Summer Fest para Q2 de Agosto en modelos que viajaron
+        _sf_note = None
+        _re_for_block = q.get('re', re)
+        if q.get('mes') == 'AGOSTO' and q.get('q') == 'q2' and model in SUMMERFEST_RE_Q2_AGOSTO:
+            _re_sf = SUMMERFEST_RE_Q2_AGOSTO[model]
+            _re_for_block = _re_sf  # usar RE ajustado para el % del bloque
+            _sf_note = (f'RE ajustado: <strong style="color:#F5B800">{fmt(_re_sf)} cr</strong>'
+                        f' (vs {fmt(re)} cr estándar)<br/>'
+                        f'Cálculo: RE × 10/16 días efectivos<br/>'
+                        f'Motivo: el modelo participó en el <strong>Summer Fest</strong> '
+                        f'durante parte de la quincena. El período se evaluó sobre '
+                        f'10 días disponibles de los 16 totales del Q2 Agosto.')
+        html += h_re_block(q['label'], q['credits'], _re_for_block, q['status'], sf_note=_sf_note)
 
     # Add current quincena: si Q1 cerró el día 15, mostrar Q2 como pendiente
     if q1_complete:
@@ -1405,10 +1441,14 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
   </section>'''
 
     # ── Bono de Racha ──────────────────────────────────────────────────────────
-    bono_title = f"🏆 GANADOR BONO DE RACHA — {MESES_CAP.get(prev_mes,'').upper()}" if bono_earned else f"💪 BONO DE RACHA EN CONSTRUCCIÓN"
+    bono_title = (f"🏆 GANADOR BONO DE RACHA — {MESES_CAP.get(prev_mes,'').upper()}" if bono_earned
+                  else (f"❌ BONO DE RACHA NO ALCANZADO — {MESES_CAP.get(prev_mes,'').upper()}" if _mes_cerrado
+                        else f"💪 BONO DE RACHA EN CONSTRUCCIÓN"))
     bono_subtitle = (f"Cumpliste el RE en <strong style='color:#F5B800'>ambas quincenas de {MESES_CAP.get(prev_mes,'')}</strong>. USD {bono_earned} confirmados."
                      if bono_earned else
-                     f"Construye quincenas consecutivas con RE cumplido para desbloquear el bono.")
+                     (f"No se alcanzó el RE en ambas quincenas de {MESES_CAP.get(prev_mes,'')}. El ciclo reinicia en el siguiente período."
+                      if _mes_cerrado else
+                      f"Construye quincenas consecutivas con RE cumplido para desbloquear el bono."))
     bono_banner_style = ('background:linear-gradient(135deg,rgba(245,184,0,.2),rgba(245,184,0,.05));border:2px solid #F5B800'
                          if bono_earned else
                          'background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.3)')
@@ -1762,6 +1802,21 @@ def main(model_targets=None):
     prev_idx = MESES.index(current_mes) - 1 if current_mes in MESES else 0
     prev_mes = MESES[prev_idx] if prev_idx >= 0 else MESES[0]
 
+    # Auto-cierre: si hoy ya pasó el último día de current_mes, cerrarlo y avanzar
+    from calendar import monthrange as _mrange
+    _MNUM = {'ENERO':1,'FEBRERO':2,'MARZO':3,'ABRIL':4,'MAYO':5,'JUNIO':6,
+             'JULIO':7,'AGOSTO':8,'SEPTIEMBRE':9,'OCTUBRE':10,'NOVIEMBRE':11,'DICIEMBRE':12}
+    if current_mes in _MNUM:
+        _mn = _MNUM[current_mes]
+        _last_day_of_mes = _mrange(today.year, _mn)[1]
+        _mes_end = today.replace(month=_mn, day=_last_day_of_mes)
+        if today > _mes_end:
+            _next_i = MESES.index(current_mes) + 1
+            if _next_i < len(MESES):
+                prev_mes = current_mes
+                current_mes = MESES[_next_i]
+                print(f"  📅 Cierre automático: {MESES_CAP.get(prev_mes,'')} CERRADO → período actual: {MESES_CAP.get(current_mes,'')}")
+
     print(f"  📅 Mes actual detectado: {MESES_CAP.get(current_mes, current_mes)}")
     print(f"  📅 Mes previo: {MESES_CAP.get(prev_mes, prev_mes)}")
 
@@ -1827,6 +1882,9 @@ def main(model_targets=None):
                 if credits == 0 and cred > 0: credits = cred
                 # Usar RE histórico si el modelo tenía un RE diferente en ese mes
                 re_val = HISTORICAL_RE.get(model_name, {}).get(m, profile['re'])
+                # Para Q2 de AGOSTO, usar RE ajustado Summer Fest si el modelo aplica
+                if m == 'AGOSTO' and qn == 'q2' and model_name in SUMMERFEST_RE_Q2_AGOSTO:
+                    re_val = SUMMERFEST_RE_Q2_AGOSTO[model_name]
                 # Si el mes está en HISTORICAL_RE para este modelo, recalcular SIEMPRE
                 # desde créditos: la hoja de quincena puede haberse generado con RE incorrecto
                 if m in HISTORICAL_RE.get(model_name, {}):

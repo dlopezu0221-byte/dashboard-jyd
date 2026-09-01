@@ -4289,28 +4289,33 @@ function _supaToLocalStorage(sbData) {
 }
 
 async function _loadSupabaseData() {
+  // Promise.allSettled: un fallo individual NO mata las demás consultas
+  const settled = await Promise.allSettled([
+    _supaDb.from('estudios').select('*'),
+    _supaDb.from('modelos').select('*'),
+    _supaDb.from('liquidaciones').select('*').order('fecha', {ascending:false}),
+    _supaDb.from('banco_movimientos').select('*').order('fecha', {ascending:false}),
+    _supaDb.from('monetizaciones').select('*').order('fecha', {ascending:false}),
+    _supaDb.from('configuracion').select('*'),
+    _supaDb.from('mercury_ingresos').select('*').order('fecha', {ascending:false}),
+    _supaDb.from('mercury_egresos').select('*').order('fecha', {ascending:false}),
+    _supaDb.from('mercury_favoritos').select('*'),
+    _supaDb.from('ingresos').select('*').order('fecha', {ascending:false}),
+    _supaDb.from('egresos').select('*').order('fecha', {ascending:false}),
+    _supaDb.from('prestamos').select('*'),
+    _supaDb.from('ahorros').select('*'),
+    _supaDb.from('sexshop_ventas').select('*'),
+    _supaDb.from('conciliacion').select('*').order('fecha', {ascending:false}),
+    _supaDb.from('nominas').select('*').order('fecha', {ascending:false}),
+    _supaDb.from('horarios').select('*'),
+    _supaDb.from('perfiles_ext').select('*'),
+    _supaDb.from('financiero_snapshots').select('*'),
+  ]);
+  const ok = s => (s.status === 'fulfilled' ? s.value : {data:[], error:s.reason});
+  const [estRes,modRes,liqRes,bancoRes,monetRes,cfgRes,merIngRes,merEgrRes,merFavRes,
+         ingCajaRes,egrCajaRes,prestRes,ahorrosRes,ssRes,concilRes,nomsRes,horsRes,perfsRes,snapsRes] = settled.map(ok);
+  settled.forEach((s,i)=>{ if(s.status==='rejected') console.warn('[SUPA] Query',i,'rechazada:',s.reason); });
   try {
-    const [estRes, modRes, liqRes, bancoRes, monetRes, cfgRes, merIngRes, merEgrRes, merFavRes, ingCajaRes, egrCajaRes, prestRes, ahorrosRes, ssRes, concilRes, nomsRes, horsRes, perfsRes, snapsRes] = await Promise.all([
-      _supaDb.from('estudios').select('*'),
-      _supaDb.from('modelos').select('*'),
-      _supaDb.from('liquidaciones').select('*').order('fecha', {ascending:false}),
-      _supaDb.from('banco_movimientos').select('*').order('fecha', {ascending:false}),
-      _supaDb.from('monetizaciones').select('*').order('fecha', {ascending:false}),
-      _supaDb.from('configuracion').select('*'),
-      _supaDb.from('mercury_ingresos').select('*').order('fecha', {ascending:false}),
-      _supaDb.from('mercury_egresos').select('*').order('fecha', {ascending:false}),
-      _supaDb.from('mercury_favoritos').select('*'),
-      _supaDb.from('ingresos').select('*').order('fecha', {ascending:false}),
-      _supaDb.from('egresos').select('*').order('fecha', {ascending:false}),
-      _supaDb.from('prestamos').select('*'),
-      _supaDb.from('ahorros').select('*'),
-      _supaDb.from('sexshop_ventas').select('*'),
-      _supaDb.from('conciliacion').select('*').order('fecha', {ascending:false}),
-      _supaDb.from('nominas').select('*').order('fecha', {ascending:false}),
-      _supaDb.from('horarios').select('*'),
-      _supaDb.from('perfiles_ext').select('*'),
-      _supaDb.from('financiero_snapshots').select('*'),
-    ]);
     _supaToLocalStorage({
       estudios:   estRes.data || [],
       modelos:    modRes.data || [],
@@ -4332,9 +4337,9 @@ async function _loadSupabaseData() {
       perfs:      perfsRes.data || [],
       snaps:      snapsRes.data || [],
     });
-    console.log('[SUPA] Datos cargados correctamente');
+    console.log('[SUPA] Datos cargados: merIngs='+( merIngRes.data||[]).length+' merEgrs='+(merEgrRes.data||[]).length);
   } catch(e) {
-    console.warn('[SUPA] Error cargando datos:', e);
+    console.warn('[SUPA] Error en _supaToLocalStorage:', e);
   }
 }
 

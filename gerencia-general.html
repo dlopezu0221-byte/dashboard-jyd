@@ -4046,7 +4046,10 @@ function _supaToLocalStorage(sbData) {
     }
     console.log('[SUPA] config:', sbData.config.length, 'claves');
   }
-  // mercury_ingresos + mercury_egresos → jd_mercury — Supabase siempre manda
+  // mercury_ingresos + mercury_egresos → jd_mercury
+  // GUARD: solo sobreescribir localStorage si Supabase retorna datos reales.
+  // Si retorna 0 registros (RLS bloqueando, tabla vacía, red caída),
+  // se PRESERVAN los datos existentes — nunca se pisan con vacío.
   {
     const existingMer = JSON.parse(localStorage.getItem('jd_mercury') || '{}');
     const ingresos = (sbData.merIngs || []).map(r => ({
@@ -4081,14 +4084,20 @@ function _supaToLocalStorage(sbData) {
       obs: r.obs || '',
       createdAt: r.created_at || '',
     }));
-    const merData = {
-      ingresos,
-      egresos,
-      ahorros: existingMer.ahorros || [],
-      auditLog: existingMer.auditLog || [],
-    };
-    localStorage.setItem('jd_mercury', JSON.stringify(merData));
-    console.log('[SUPA] mercury_ingresos:', ingresos.length, '| mercury_egresos:', egresos.length);
+    if (ingresos.length > 0 || egresos.length > 0) {
+      // Supabase tiene datos reales → actualizar localStorage
+      const merData = {
+        ingresos,
+        egresos,
+        ahorros: existingMer.ahorros || [],
+        auditLog: existingMer.auditLog || [],
+      };
+      localStorage.setItem('jd_mercury', JSON.stringify(merData));
+      console.log('[SUPA] mercury_ingresos:', ingresos.length, '| mercury_egresos:', egresos.length, '→ localStorage actualizado');
+    } else {
+      // Supabase devolvió vacío → preservar localStorage existente (NO sobreescribir)
+      console.warn('[SUPA] mercury: Supabase devolvio 0 registros → preservando localStorage existente (ingresos:', (existingMer.ingresos||[]).length, '| egresos:', (existingMer.egresos||[]).length, ')');
+    }
   }
   // mercury_favoritos → jd_mercury_fav — Supabase siempre manda
   if (sbData.merFavs && sbData.merFavs.length) {

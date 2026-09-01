@@ -1085,7 +1085,7 @@ def build_html(profile, monthly_all, quincenas, top20, daily, today, current_mes
     consecutive_at_close = 0
     for q in reversed(quincenas):
         if q.get('status') == 'achieved': consecutive_at_close += 1
-        elif q.get('status') in ('missed',): consecutive_at_close = 0; break
+        elif q.get('status') in ('missed',): break
         else: break
 
     # Bono cycle info
@@ -1883,11 +1883,13 @@ def main(model_targets=None):
                 # Usar RE histórico si el modelo tenía un RE diferente en ese mes
                 re_val = HISTORICAL_RE.get(model_name, {}).get(m, profile['re'])
                 # Para Q2 de AGOSTO, usar RE ajustado Summer Fest si el modelo aplica
+                # y forzar recálculo desde créditos (status_str del Excel usa RE estándar)
                 if m == 'AGOSTO' and qn == 'q2' and model_name in SUMMERFEST_RE_Q2_AGOSTO:
                     re_val = SUMMERFEST_RE_Q2_AGOSTO[model_name]
+                    status = 'achieved' if cred >= re_val else 'missed'
                 # Si el mes está en HISTORICAL_RE para este modelo, recalcular SIEMPRE
                 # desde créditos: la hoja de quincena puede haberse generado con RE incorrecto
-                if m in HISTORICAL_RE.get(model_name, {}):
+                elif m in HISTORICAL_RE.get(model_name, {}):
                     status = 'achieved' if cred >= re_val else 'missed'
                 elif not status_str:
                     status = 'achieved' if cred >= re_val else 'missed'

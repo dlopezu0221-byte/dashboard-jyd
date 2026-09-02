@@ -348,6 +348,31 @@ td[style*="text-align:right"], th[style*="text-align:right"] {
   width: 100%;
   box-sizing: border-box;
 }
+
+/* ── PERFIL COMPLETO MODELO — PANEL LATERAL ── */
+.pmc-layout { display: grid; grid-template-columns: 250px 1fr; gap: 18px; align-items: start; }
+.pmc-sidebar { position: sticky; top: 120px; }
+.pmc-profile-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px 16px; text-align: center; margin-bottom: 12px; }
+.pmc-avatar-big { width: 72px; height: 72px; border-radius: 50%; background: var(--gold); color: #000; font-size: 28px; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; }
+.pmc-nav { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+.pmc-nav-item { display: flex; align-items: center; gap: 10px; padding: 11px 15px; cursor: pointer; color: var(--muted); font-size: 13px; transition: all .15s; border-left: 3px solid transparent; }
+.pmc-nav-item:hover { color: var(--text); background: rgba(255,255,255,.04); }
+.pmc-nav-item.active { color: var(--gold); border-left-color: var(--gold); background: rgba(200,168,75,.07); font-weight: 600; }
+.pmc-section { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.pmc-section-title { font-size: 13px; font-weight: 700; color: var(--gold); margin-bottom: 14px; text-transform: uppercase; letter-spacing: .5px; }
+.pmc-field { margin-bottom: 12px; }
+.pmc-field label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .4px; }
+.pmc-field input, .pmc-field select, .pmc-field textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; color: var(--text); font-size: 13px; }
+.pmc-field textarea { resize: vertical; min-height: 60px; }
+.pmc-kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 12px; }
+.pmc-kpi { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; text-align: center; }
+.pmc-kpi-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; }
+.pmc-kpi-val { font-size: 20px; font-weight: 800; color: var(--gold); }
+.pmc-badge-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin: 6px 0; }
+@media (max-width: 900px) {
+  .pmc-layout { grid-template-columns: 1fr; }
+  .pmc-sidebar { position: static; }
+}
 </style>
 </head>
 <body>
@@ -1615,6 +1640,53 @@ td[style*="text-align:right"], th[style*="text-align:right"] {
 </div>
 <!-- END PAGES -->
 <!-- ══════════════════ MODELOS ══════════════════ -->
+
+<!-- ══════════════════ PERFIL COMPLETO MODELO ══════════════════ -->
+<div id="page-perfil-modelo-completo" class="page">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="btn btn-ghost btn-sm" onclick="goPage('modelos')">← Volver a Modelos</button>
+      <span style="color:var(--muted);font-size:13px">Perfil Completo del Modelo</span>
+    </div>
+    <button class="btn btn-danger btn-sm" onclick="_pmcEliminar()">🗑 Eliminar Modelo</button>
+  </div>
+  <div class="pmc-layout">
+    <!-- SIDEBAR IZQUIERDO -->
+    <div class="pmc-sidebar">
+      <!-- Tarjeta de perfil -->
+      <div class="pmc-profile-card">
+        <div class="pmc-avatar-big" id="pmc-avatar">?</div>
+        <div id="pmc-nombre-artistico" style="font-size:15px;font-weight:700;margin-bottom:2px">—</div>
+        <div id="pmc-nombre-real" style="font-size:12px;color:var(--muted);margin-bottom:8px">—</div>
+        <div class="pmc-badge-row" id="pmc-badges-row"></div>
+        <div class="pmc-kpi-grid" id="pmc-kpis-row"></div>
+      </div>
+      <!-- Navegación -->
+      <div class="pmc-nav" id="pmc-nav">
+        <div class="pmc-nav-item active" onclick="_pmcTab('datos',this)">👤 Datos Personales</div>
+        <div class="pmc-nav-item" onclick="_pmcTab('identificacion',this)">🪪 Identificación</div>
+        <div class="pmc-nav-item" onclick="_pmcTab('laboral',this)">💼 Laboral</div>
+        <div class="pmc-nav-item" onclick="_pmcTab('tipo',this)">🎭 Tipo &amp; Porcentaje</div>
+        <div class="pmc-nav-item" onclick="_pmcTab('acceso',this)">🔐 Acceso Portal</div>
+        <div class="pmc-nav-item" onclick="_pmcTab('bancos',this)">🏦 Bancos</div>
+        <div class="pmc-nav-item" onclick="_pmcTab('metas',this)">🎯 Metas</div>
+        <div class="pmc-nav-item" onclick="_pmcTab('plataformas',this)">🌐 Plataformas</div>
+        <div class="pmc-nav-item" onclick="_pmcTab('pagos',this)">💰 Pagos</div>
+        <div class="pmc-nav-item" onclick="_pmcTab('colillas',this)">🧾 Colillas</div>
+        <div class="pmc-nav-item" onclick="_pmcTab('sexshop',this)">🛍 Sex Shop</div>
+      </div>
+      <!-- Estado portal -->
+      <div id="pmc-sidebar-acceso" style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:12px">
+        <div style="color:var(--muted);margin-bottom:4px">Portal Modelo</div>
+        <div id="pmc-sidebar-acceso-estado" style="font-weight:700;margin-bottom:8px">—</div>
+        <button class="btn btn-ghost btn-sm" style="width:100%" onclick="_pmcTab('acceso',document.querySelectorAll('.pmc-nav-item')[4])">Gestionar →</button>
+      </div>
+    </div>
+    <!-- CONTENIDO DERECHO -->
+    <div id="pmc-tab-content" style="min-width:0">Cargando...</div>
+  </div>
+</div>
+
 <div id="page-modelos" class="page">
   <div class="page-header">
     <div>
@@ -2086,6 +2158,62 @@ td[style*="text-align:right"], th[style*="text-align:right"] {
 
 
 <!-- MODELO MODAL -->
+
+<!-- ── Modal: Cuenta Bancaria Modelo ── -->
+<div class="overlay" id="modal-pmc-banco">
+  <div class="modal" style="max-width:420px">
+    <div class="mh"><div class="mh-title">🏦 Cuenta Bancaria</div><button class="mh-close" onclick="closeModal('modal-pmc-banco')">✕</button></div>
+    <div class="mb" style="display:flex;flex-direction:column;gap:10px">
+      <input id="pmc-banco-nombre" placeholder="Banco (ej: Bancolombia)" class="form-control">
+      <input id="pmc-banco-tipo" placeholder="Tipo de cuenta (Ahorros / Corriente)" class="form-control">
+      <input id="pmc-banco-numero" placeholder="Número de cuenta" class="form-control">
+      <input id="pmc-banco-titular" placeholder="Titular de la cuenta" class="form-control">
+      <input type="hidden" id="pmc-banco-idx" value="-1">
+    </div>
+    <div class="mf"><button class="btn btn-primary" onclick="_pmcSaveBanco()">Guardar</button><button class="btn btn-ghost" onclick="closeModal('modal-pmc-banco')">Cancelar</button></div>
+  </div>
+</div>
+<!-- ── Modal: Meta de Modelo ── -->
+<div class="overlay" id="modal-pmc-meta">
+  <div class="modal" style="max-width:420px">
+    <div class="mh"><div class="mh-title">🎯 Meta</div><button class="mh-close" onclick="closeModal('modal-pmc-meta')">✕</button></div>
+    <div class="mb" style="display:flex;flex-direction:column;gap:10px">
+      <input id="pmc-meta-nombre" placeholder="Nombre de la meta (ej: Meta mensual)" class="form-control">
+      <input id="pmc-meta-valor" type="number" placeholder="Monto objetivo en COP" class="form-control">
+      <input id="pmc-meta-plazo" placeholder="Plazo (ej: Mensual, Semanal)" class="form-control">
+      <input type="hidden" id="pmc-meta-idx" value="-1">
+    </div>
+    <div class="mf"><button class="btn btn-primary" onclick="_pmcSaveMeta()">Guardar</button><button class="btn btn-ghost" onclick="closeModal('modal-pmc-meta')">Cancelar</button></div>
+  </div>
+</div>
+<!-- ── Modal: Plataforma Modelo ── -->
+<div class="overlay" id="modal-pmc-plat">
+  <div class="modal" style="max-width:420px">
+    <div class="mh"><div class="mh-title">🌐 Credenciales Plataforma</div><button class="mh-close" onclick="closeModal('modal-pmc-plat')">✕</button></div>
+    <div class="mb" style="display:flex;flex-direction:column;gap:10px">
+      <input id="pmc-plat-nombre" placeholder="Plataforma (ej: Chaturbate)" class="form-control">
+      <input id="pmc-plat-usuario" placeholder="Usuario / Nombre de perfil" class="form-control">
+      <input id="pmc-plat-pass" placeholder="Contraseña (opcional)" class="form-control">
+      <input id="pmc-plat-email" placeholder="Email asociado (opcional)" class="form-control">
+      <input type="hidden" id="pmc-plat-idx" value="-1">
+    </div>
+    <div class="mf"><button class="btn btn-primary" onclick="_pmcSavePlat()">Guardar</button><button class="btn btn-ghost" onclick="closeModal('modal-pmc-plat')">Cancelar</button></div>
+  </div>
+</div>
+<!-- ── Modal: Sex Shop Modelo ── -->
+<div class="overlay" id="modal-pmc-ss">
+  <div class="modal" style="max-width:420px">
+    <div class="mh"><div class="mh-title">🛍 Sex Shop – Modelo</div><button class="mh-close" onclick="closeModal('modal-pmc-ss')">✕</button></div>
+    <div class="mb" style="display:flex;flex-direction:column;gap:10px">
+      <input id="pmc-ss-articulo" placeholder="Artículo" class="form-control">
+      <input id="pmc-ss-valor" type="number" placeholder="Valor COP" class="form-control">
+      <input id="pmc-ss-fecha" type="date" class="form-control">
+      <input type="hidden" id="pmc-ss-idx" value="-1">
+    </div>
+    <div class="mf"><button class="btn btn-primary" onclick="_pmcSaveSs()">Guardar</button><button class="btn btn-ghost" onclick="closeModal('modal-pmc-ss')">Cancelar</button></div>
+  </div>
+</div>
+
 <div class="overlay" id="modal-modelo">
 <div class="modal lg">
   <div class="mh">
@@ -5286,6 +5414,7 @@ function goPage(id) {
   if(id==='mercury') renderMercury();
   if(id==='horarios') renderHorarios();
   if(id==='modelos') renderModelos();
+  if(id==='perfil-modelo-completo') renderPerfilCompleto();
   if(id==='perfiles') renderPerfiles();
   if(id==='ingresos') renderIngresos();
   if(id==='egresos') renderEgresos();
@@ -11338,6 +11467,7 @@ function renderModelos(){
       <td>${badge}</td>
       <td>
         <button class="btn btn-ghost btn-sm" onclick="abrirPerfilModelo('${m.id}')" title="Ver Perfil 360°">👁</button>
+        <button class="btn btn-ghost btn-sm" onclick="openPerfilCompleto('${m.id}')" title="Perfil Completo">📋</button>
         <button class="btn btn-ghost btn-sm" onclick="openModalModelo('${m.id}')" title="Editar modelo">✏️</button>
         <button class="btn btn-ghost btn-sm" onclick="modeloToggleEstado('${m.id}')" title="${m.estado==='Activa'?'Inactivar modelo':'Activar modelo'}">${m.estado==='Activa'?'🔴':'🟢'}</button>
         <button class="btn btn-ghost btn-sm" onclick="modeloEliminar('${m.id}')" title="Eliminar modelo">🗑️</button>
@@ -20286,6 +20416,323 @@ function jdExportarBackup(){
 
   console.log('[JD v96] ✅ Prestige Cam restaurada en historial Bancolombia (reversa de v76). ocultarHistorial=false. Deducción $2.894.180 visible en egresos del 28-ago.');
 })();
+
+
+/* ═══════════════════════════════════════════════════════════
+   PERFIL COMPLETO DEL MODELO — JS
+   ═══════════════════════════════════════════════════════════ */
+var _pmcId = null;
+var _pmcCurrentTab = 'datos';
+
+function openPerfilCompleto(id) {
+  _pmcId = id;
+  _pmcCurrentTab = 'datos';
+  goPage('perfil-modelo-completo');
+}
+
+function renderPerfilCompleto() {
+  var m = getModelos().find(function(x){ return x.id === _pmcId; }) || {};
+  _pmcRenderHeader(m);
+  document.querySelectorAll('.pmc-nav-item').forEach(function(t){ t.classList.remove('active'); });
+  var first = document.querySelector('.pmc-nav-item');
+  if(first) first.classList.add('active');
+  _pmcCurrentTab = 'datos';
+  _pmcRenderDatos(m);
+  _pmcUpdateSidebarAcceso(m);
+}
+
+function _pmcUpdateSidebarAcceso(m) {
+  var el = document.getElementById('pmc-sidebar-acceso-estado');
+  if(!el) return;
+  var acc = m.accesoPerfil || {};
+  if(acc.usuario) { el.textContent = '\u2705 Activo'; el.style.color = '#22c55e'; }
+  else { el.textContent = '\u26d4 Sin acceso'; el.style.color = 'var(--muted)'; }
+}
+
+function _pmcRenderHeader(m) {
+  var ini = (m.nombreAgencia||'?')[0].toUpperCase();
+  var av = document.getElementById('pmc-avatar');
+  if(av) av.textContent = ini;
+  var na = document.getElementById('pmc-nombre-artistico');
+  if(na) na.textContent = m.nombreAgencia || '\u2014';
+  var nr = document.getElementById('pmc-nombre-real');
+  if(nr) nr.textContent = m.nombreReal || '\u2014';
+  var br = document.getElementById('pmc-badges-row');
+  if(br) {
+    var b = '';
+    if(m.tipo==='Modelo Estudio') b+='<span style="background:rgba(200,168,75,.15);color:var(--gold);border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700">M. Estudio</span> ';
+    if(m.tipo==='Modelo Sat\u00e9lite') b+='<span style="background:rgba(99,102,241,.15);color:#818cf8;border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700">M. Sat\u00e9lite</span> ';
+    if(m.estado==='Activa') b+='<span style="background:rgba(34,197,94,.15);color:#22c55e;border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700">Activa</span>';
+    else b+='<span style="background:rgba(156,163,175,.15);color:var(--muted);border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700">Inactiva</span>';
+    br.innerHTML = b;
+  }
+  var kr = document.getElementById('pmc-kpis-row');
+  if(kr) {
+    kr.innerHTML = _pmcKpi('Bancos',(m.bancos||[]).length) + _pmcKpi('Metas',(m.metas||[]).length) +
+      _pmcKpi('Plataformas',(m.plataformasCred||[]).length) + _pmcKpi('Sex Shop',(m.ssModelo||[]).length);
+  }
+}
+
+function _pmcKpi(label, val) {
+  return '<div class="pmc-kpi"><div class="pmc-kpi-label">'+label+'</div><div class="pmc-kpi-val">'+val+'</div></div>';
+}
+
+function _pmcTab(name, el) {
+  _pmcCurrentTab = name;
+  document.querySelectorAll('.pmc-nav-item').forEach(function(t){ t.classList.remove('active'); });
+  if(el) el.classList.add('active');
+  var m = getModelos().find(function(x){ return x.id === _pmcId; }) || {};
+  var fns = { datos:_pmcRenderDatos, identificacion:_pmcRenderIdentificacion,
+    laboral:_pmcRenderLaboral, tipo:_pmcRenderTipo, acceso:_pmcRenderAcceso,
+    bancos:_pmcRenderBancos, metas:_pmcRenderMetas, plataformas:_pmcRenderPlataformas,
+    pagos:_pmcRenderPagos, colillas:_pmcRenderColillas, sexshop:_pmcRenderSexshop };
+  if(fns[name]) fns[name](m);
+  _pmcUpdateSidebarAcceso(m);
+}
+
+function _pmcGetM() { return getModelos().find(function(x){ return x.id===_pmcId; })||{}; }
+function _pmcSaveFields(fields) {
+  var arr = getModelos();
+  var idx = arr.findIndex(function(x){ return x.id===_pmcId; });
+  if(idx<0) return;
+  Object.assign(arr[idx], fields);
+  saveModelos(arr);
+  _pmcSyncToSupabase(arr[idx]);
+  _pmcRenderHeader(arr[idx]);
+  _pmcUpdateSidebarAcceso(arr[idx]);
+  try{ toast('\u2705 Guardado','success'); }catch(e){}
+}
+
+function _pmcVal(id){ var el=document.getElementById(id); return el?el.value:''; }
+
+function _pmcField(label, id, val, type) {
+  if(!type) type='text';
+  var v = (val||'').toString().replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+  return '<div class="pmc-field"><label>'+label+'</label><input type="'+type+'" id="'+id+'" value="'+v+'" class="form-control"></div>';
+}
+
+/* ── Datos Personales ── */
+function _pmcRenderDatos(m) {
+  var c = document.getElementById('pmc-tab-content'); if(!c) return;
+  c.innerHTML = '<div class="pmc-section"><div class="pmc-section-title">Datos Personales</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+    _pmcField('Nombre Art\u00edstico','pmc-d-art',m.nombreAgencia) +
+    _pmcField('Nombre Real','pmc-d-real',m.nombreReal) +
+    _pmcField('Tel\u00e9fono','pmc-d-tel',m.telefono) +
+    _pmcField('Email','pmc-d-email',m.email,'email') +
+    _pmcField('Fecha de Nacimiento','pmc-d-nac',m.fechaNacimiento,'date') +
+    _pmcField('Ciudad','pmc-d-ciudad',m.ciudad) +
+    _pmcField('Direcci\u00f3n','pmc-d-dir',m.direccion) +
+    _pmcField('Contacto Emergencia','pmc-d-emer',m.contactoEmergencia) +
+    '</div><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="_pmcSaveDatos()">\ud83d\udcbe Guardar Datos</button></div>';
+}
+function _pmcSaveDatos() {
+  _pmcSaveFields({nombreAgencia:_pmcVal('pmc-d-art'),nombreReal:_pmcVal('pmc-d-real'),
+    telefono:_pmcVal('pmc-d-tel'),email:_pmcVal('pmc-d-email'),fechaNacimiento:_pmcVal('pmc-d-nac'),
+    ciudad:_pmcVal('pmc-d-ciudad'),direccion:_pmcVal('pmc-d-dir'),contactoEmergencia:_pmcVal('pmc-d-emer')});
+}
+
+/* ── Identificaci\u00f3n ── */
+function _pmcRenderIdentificacion(m) {
+  var c = document.getElementById('pmc-tab-content'); if(!c) return;
+  c.innerHTML = '<div class="pmc-section"><div class="pmc-section-title">Identificaci\u00f3n</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+    _pmcField('Documento','pmc-id-doc',m.documento) +
+    _pmcField('Tipo Documento','pmc-id-tipo',m.tipoDocumento) +
+    _pmcField('Fecha Expedici\u00f3n','pmc-id-exp',m.fechaExpedicion,'date') +
+    _pmcField('Lugar Expedici\u00f3n','pmc-id-lugar',m.lugarExpedicion) +
+    _pmcField('EPS','pmc-id-eps',m.eps) +
+    _pmcField('Fondo Pensi\u00f3n','pmc-id-pension',m.fondoPension) +
+    '</div><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="_pmcSaveId()">\ud83d\udcbe Guardar</button></div>';
+}
+function _pmcSaveId() {
+  _pmcSaveFields({documento:_pmcVal('pmc-id-doc'),tipoDocumento:_pmcVal('pmc-id-tipo'),
+    fechaExpedicion:_pmcVal('pmc-id-exp'),lugarExpedicion:_pmcVal('pmc-id-lugar'),
+    eps:_pmcVal('pmc-id-eps'),fondoPension:_pmcVal('pmc-id-pension')});
+}
+
+/* ── Laboral ── */
+function _pmcRenderLaboral(m) {
+  var c = document.getElementById('pmc-tab-content'); if(!c) return;
+  c.innerHTML = '<div class="pmc-section"><div class="pmc-section-title">Informaci\u00f3n Laboral</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+    _pmcField('Monitor asignado','pmc-lab-mon',m.monitor) +
+    _pmcField('Fecha ingreso','pmc-lab-ing',m.fechaIngreso,'date') +
+    _pmcField('Horario habitual','pmc-lab-hor',m.horarioHabitual) +
+    _pmcField('Notas','pmc-lab-not',m.notasLaborales) +
+    '</div><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="_pmcSaveLab()">\ud83d\udcbe Guardar</button></div>';
+}
+function _pmcSaveLab() {
+  _pmcSaveFields({monitor:_pmcVal('pmc-lab-mon'),fechaIngreso:_pmcVal('pmc-lab-ing'),
+    horarioHabitual:_pmcVal('pmc-lab-hor'),notasLaborales:_pmcVal('pmc-lab-not')});
+}
+
+/* ── Tipo & Porcentaje ── */
+function _pmcRenderTipo(m) {
+  var c = document.getElementById('pmc-tab-content'); if(!c) return;
+  var opts = ['Modelo Estudio','Modelo Sat\u00e9lite'].map(function(t){
+    return '<option value="'+t+'"'+(m.tipo===t?' selected':'')+'>'+t+'</option>';
+  }).join('');
+  c.innerHTML = '<div class="pmc-section"><div class="pmc-section-title">Tipo & Porcentaje</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+    '<div class="pmc-field"><label>Tipo de Modelo</label><select id="pmc-tipo-t" class="form-control"><option value="">Seleccionar...</option>'+opts+'</select></div>' +
+    _pmcField('Porcentaje (%)','pmc-tipo-pct',m.porcentaje,'number') +
+    '</div><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="_pmcSaveTipo()">\ud83d\udcbe Guardar</button></div>';
+}
+function _pmcSaveTipo() {
+  _pmcSaveFields({tipo:_pmcVal('pmc-tipo-t'),porcentaje:_pmcVal('pmc-tipo-pct')});
+}
+
+/* ── Acceso Portal ── */
+function _pmcRenderAcceso(m) {
+  var c = document.getElementById('pmc-tab-content'); if(!c) return;
+  var acc = m.accesoPerfil||{};
+  c.innerHTML = '<div class="pmc-section"><div class="pmc-section-title">Acceso al Portal del Modelo</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+    _pmcField('Usuario (email)','pmc-acc-usr',acc.usuario) +
+    _pmcField('Contrase\u00f1a','pmc-acc-pw',acc.password) +
+    '</div><div style="margin-top:8px;font-size:12px;color:var(--muted)">El modelo usa estas credenciales para su portal personal.</div>' +
+    '<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="_pmcSaveAcceso()">\ud83d\udcbe Guardar Acceso</button></div>';
+}
+function _pmcSaveAcceso() {
+  _pmcSaveFields({accesoPerfil:{usuario:_pmcVal('pmc-acc-usr'),password:_pmcVal('pmc-acc-pw')}});
+}
+
+/* ── Bancos ── */
+function _pmcRenderBancos(m) {
+  var c = document.getElementById('pmc-tab-content'); if(!c) return;
+  var bancos = m.bancos||[];
+  var rows = bancos.length ? bancos.map(function(b,i){
+    return '<tr><td>'+b.nombre+'</td><td>'+b.tipo+'</td><td>'+b.numero+'</td><td>'+b.titular+'</td>' +
+      '<td><button class="btn btn-ghost btn-sm" onclick="_pmcEditBanco('+i+')">&#9999;</button> ' +
+      '<button class="btn btn-ghost btn-sm" onclick="_pmcDelBanco('+i+')">&#128465;</button></td></tr>';
+  }).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Sin cuentas registradas</td></tr>';
+  c.innerHTML = '<div class="pmc-section">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+    '<div class="pmc-section-title" style="margin:0">Cuentas Bancarias</div>' +
+    '<button class="btn btn-primary btn-sm" onclick="_pmcNewBanco()">+ Agregar</button></div>' +
+    '<table class="table"><thead><tr><th>Banco</th><th>Tipo</th><th>N\u00famero</th><th>Titular</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+function _pmcNewBanco(){['pmc-banco-nombre','pmc-banco-tipo','pmc-banco-numero','pmc-banco-titular'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});var i=document.getElementById('pmc-banco-idx');if(i)i.value='-1';openModal('modal-pmc-banco');}
+function _pmcEditBanco(i){var m=_pmcGetM();var b=(m.bancos||[])[i]||{};var map={nombre:'pmc-banco-nombre',tipo:'pmc-banco-tipo',numero:'pmc-banco-numero',titular:'pmc-banco-titular'};Object.keys(map).forEach(function(k){var el=document.getElementById(map[k]);if(el)el.value=b[k]||'';});var idx=document.getElementById('pmc-banco-idx');if(idx)idx.value=i;openModal('modal-pmc-banco');}
+function _pmcDelBanco(i){var arr=getModelos();var idx=arr.findIndex(function(x){return x.id===_pmcId;});if(idx<0)return;(arr[idx].bancos=arr[idx].bancos||[]).splice(i,1);saveModelos(arr);_pmcSyncToSupabase(arr[idx]);_pmcRenderBancos(arr[idx]);_pmcRenderHeader(arr[idx]);}
+function _pmcSaveBanco(){var arr=getModelos();var idx=arr.findIndex(function(x){return x.id===_pmcId;});if(idx<0)return;if(!arr[idx].bancos)arr[idx].bancos=[];var b={nombre:_pmcVal('pmc-banco-nombre'),tipo:_pmcVal('pmc-banco-tipo'),numero:_pmcVal('pmc-banco-numero'),titular:_pmcVal('pmc-banco-titular')};var i=parseInt(_pmcVal('pmc-banco-idx'));if(i>=0)arr[idx].bancos[i]=b;else arr[idx].bancos.push(b);saveModelos(arr);_pmcSyncToSupabase(arr[idx]);closeModal('modal-pmc-banco');_pmcRenderBancos(arr[idx]);_pmcRenderHeader(arr[idx]);}
+
+/* ── Metas ── */
+function _pmcRenderMetas(m) {
+  var c = document.getElementById('pmc-tab-content'); if(!c) return;
+  var metas = m.metas||[];
+  var rows = metas.length ? metas.map(function(mt,i){
+    return '<tr><td>'+mt.nombre+'</td><td>'+fmtCOP(mt.valor||0)+'</td><td>'+mt.plazo+'</td>' +
+      '<td><button class="btn btn-ghost btn-sm" onclick="_pmcEditMeta('+i+')">&#9999;</button> ' +
+      '<button class="btn btn-ghost btn-sm" onclick="_pmcDelMeta('+i+')">&#128465;</button></td></tr>';
+  }).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">Sin metas registradas</td></tr>';
+  c.innerHTML = '<div class="pmc-section">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+    '<div class="pmc-section-title" style="margin:0">Metas</div>' +
+    '<button class="btn btn-primary btn-sm" onclick="_pmcNewMeta()">+ Agregar</button></div>' +
+    '<table class="table"><thead><tr><th>Meta</th><th>Objetivo</th><th>Plazo</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+function _pmcNewMeta(){['pmc-meta-nombre','pmc-meta-valor','pmc-meta-plazo'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});var i=document.getElementById('pmc-meta-idx');if(i)i.value='-1';openModal('modal-pmc-meta');}
+function _pmcEditMeta(i){var m=_pmcGetM();var mt=(m.metas||[])[i]||{};var el;el=document.getElementById('pmc-meta-nombre');if(el)el.value=mt.nombre||'';el=document.getElementById('pmc-meta-valor');if(el)el.value=mt.valor||'';el=document.getElementById('pmc-meta-plazo');if(el)el.value=mt.plazo||'';el=document.getElementById('pmc-meta-idx');if(el)el.value=i;openModal('modal-pmc-meta');}
+function _pmcDelMeta(i){var arr=getModelos();var idx=arr.findIndex(function(x){return x.id===_pmcId;});if(idx<0)return;(arr[idx].metas=arr[idx].metas||[]).splice(i,1);saveModelos(arr);_pmcSyncToSupabase(arr[idx]);_pmcRenderMetas(arr[idx]);_pmcRenderHeader(arr[idx]);}
+function _pmcSaveMeta(){var arr=getModelos();var idx=arr.findIndex(function(x){return x.id===_pmcId;});if(idx<0)return;if(!arr[idx].metas)arr[idx].metas=[];var mt={nombre:_pmcVal('pmc-meta-nombre'),valor:parseFloat(_pmcVal('pmc-meta-valor'))||0,plazo:_pmcVal('pmc-meta-plazo')};var i=parseInt(_pmcVal('pmc-meta-idx'));if(i>=0)arr[idx].metas[i]=mt;else arr[idx].metas.push(mt);saveModelos(arr);_pmcSyncToSupabase(arr[idx]);closeModal('modal-pmc-meta');_pmcRenderMetas(arr[idx]);_pmcRenderHeader(arr[idx]);}
+
+/* ── Plataformas ── */
+function _pmcRenderPlataformas(m) {
+  var c = document.getElementById('pmc-tab-content'); if(!c) return;
+  var plats = m.plataformasCred||[];
+  var rows = plats.length ? plats.map(function(p,i){
+    return '<tr><td>'+p.nombre+'</td><td>'+p.usuario+'</td><td>'+(p.email||'')+'</td>' +
+      '<td><button class="btn btn-ghost btn-sm" onclick="_pmcEditPlat('+i+')">&#9999;</button> ' +
+      '<button class="btn btn-ghost btn-sm" onclick="_pmcDelPlat('+i+')">&#128465;</button></td></tr>';
+  }).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">Sin plataformas registradas</td></tr>';
+  c.innerHTML = '<div class="pmc-section">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+    '<div class="pmc-section-title" style="margin:0">Plataformas</div>' +
+    '<button class="btn btn-primary btn-sm" onclick="_pmcNewPlat()">+ Agregar</button></div>' +
+    '<table class="table"><thead><tr><th>Plataforma</th><th>Usuario</th><th>Email</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+function _pmcNewPlat(){['pmc-plat-nombre','pmc-plat-usuario','pmc-plat-pass','pmc-plat-email'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});var i=document.getElementById('pmc-plat-idx');if(i)i.value='-1';openModal('modal-pmc-plat');}
+function _pmcEditPlat(i){var m=_pmcGetM();var p=(m.plataformasCred||[])[i]||{};var el;el=document.getElementById('pmc-plat-nombre');if(el)el.value=p.nombre||'';el=document.getElementById('pmc-plat-usuario');if(el)el.value=p.usuario||'';el=document.getElementById('pmc-plat-pass');if(el)el.value=p.password||'';el=document.getElementById('pmc-plat-email');if(el)el.value=p.email||'';el=document.getElementById('pmc-plat-idx');if(el)el.value=i;openModal('modal-pmc-plat');}
+function _pmcDelPlat(i){var arr=getModelos();var idx=arr.findIndex(function(x){return x.id===_pmcId;});if(idx<0)return;(arr[idx].plataformasCred=arr[idx].plataformasCred||[]).splice(i,1);saveModelos(arr);_pmcSyncToSupabase(arr[idx]);_pmcRenderPlataformas(arr[idx]);_pmcRenderHeader(arr[idx]);}
+function _pmcSavePlat(){var arr=getModelos();var idx=arr.findIndex(function(x){return x.id===_pmcId;});if(idx<0)return;if(!arr[idx].plataformasCred)arr[idx].plataformasCred=[];var p={nombre:_pmcVal('pmc-plat-nombre'),usuario:_pmcVal('pmc-plat-usuario'),password:_pmcVal('pmc-plat-pass'),email:_pmcVal('pmc-plat-email')};var i=parseInt(_pmcVal('pmc-plat-idx'));if(i>=0)arr[idx].plataformasCred[i]=p;else arr[idx].plataformasCred.push(p);saveModelos(arr);_pmcSyncToSupabase(arr[idx]);closeModal('modal-pmc-plat');_pmcRenderPlataformas(arr[idx]);_pmcRenderHeader(arr[idx]);}
+
+/* ── Pagos ── */
+function _pmcRenderPagos(m) {
+  var c = document.getElementById('pmc-tab-content'); if(!c) return;
+  var liqs = (load('jd_liqs')||[]).filter(function(l){return l.modeloId===_pmcId;});
+  liqs.sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
+  var rows = liqs.length ? liqs.slice(0,20).map(function(l){
+    return '<tr><td>'+(l.fecha||'\u2014')+'</td><td>'+(l.periodo||'\u2014')+'</td>' +
+      '<td class="gold fw6">'+fmtCOP(l.totalNeto||0)+'</td><td>'+(l.estado||'\u2014')+'</td></tr>';
+  }).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">Sin pagos registrados</td></tr>';
+  c.innerHTML = '<div class="pmc-section"><div class="pmc-section-title">Historial de Pagos</div>' +
+    '<table class="table"><thead><tr><th>Fecha</th><th>Per\u00edodo</th><th>Total Neto</th><th>Estado</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+/* ── Colillas ── */
+function _pmcRenderColillas(m) {
+  var c = document.getElementById('pmc-tab-content'); if(!c) return;
+  var liqs = (load('jd_liqs')||[]).filter(function(l){return l.modeloId===_pmcId;});
+  liqs.sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
+  var rows = liqs.length ? liqs.slice(0,10).map(function(l){
+    return '<tr><td>'+(l.periodo||'\u2014')+'</td><td class="gold fw6">'+fmtCOP(l.totalBruto||0)+'</td>' +
+      '<td>'+fmtCOP(l.descuentos||0)+'</td><td class="fw6">'+fmtCOP(l.totalNeto||0)+'</td>' +
+      '<td><button class="btn btn-ghost btn-sm" onclick="abrirColillaId(\x27'+l.id+'\x27)">Ver &#129534;</button></td></tr>';
+  }).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Sin colillas registradas</td></tr>';
+  c.innerHTML = '<div class="pmc-section"><div class="pmc-section-title">Colillas de Pago</div>' +
+    '<table class="table"><thead><tr><th>Per\u00edodo</th><th>Bruto</th><th>Descuentos</th><th>Neto</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+/* ── Sex Shop ── */
+function _pmcRenderSexshop(m) {
+  var c = document.getElementById('pmc-tab-content'); if(!c) return;
+  var items = m.ssModelo||[];
+  var total = items.reduce(function(s,i){return s+(i.valor||0);},0);
+  var rows = items.length ? items.map(function(it,i){
+    return '<tr><td>'+it.articulo+'</td><td class="gold">'+fmtCOP(it.valor||0)+'</td><td>'+(it.fecha||'\u2014')+'</td>' +
+      '<td><button class="btn btn-ghost btn-sm" onclick="_pmcEditSs('+i+')">&#9999;</button> ' +
+      '<button class="btn btn-ghost btn-sm" onclick="_pmcDelSs('+i+')">&#128465;</button></td></tr>';
+  }).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">Sin art\u00edculos registrados</td></tr>';
+  c.innerHTML = '<div class="pmc-section">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+    '<div class="pmc-section-title" style="margin:0">Sex Shop \u2014 Modelo</div>' +
+    '<button class="btn btn-primary btn-sm" onclick="_pmcNewSs()">+ Agregar</button></div>' +
+    (items.length?'<div style="margin-bottom:10px;font-size:13px">Total deuda: <span class="gold fw6">'+fmtCOP(total)+'</span></div>':'')+
+    '<table class="table"><thead><tr><th>Art\u00edculo</th><th>Valor</th><th>Fecha</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+function _pmcNewSs(){['pmc-ss-articulo','pmc-ss-valor','pmc-ss-fecha'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});var i=document.getElementById('pmc-ss-idx');if(i)i.value='-1';openModal('modal-pmc-ss');}
+function _pmcEditSs(i){var m=_pmcGetM();var it=(m.ssModelo||[])[i]||{};var el;el=document.getElementById('pmc-ss-articulo');if(el)el.value=it.articulo||'';el=document.getElementById('pmc-ss-valor');if(el)el.value=it.valor||'';el=document.getElementById('pmc-ss-fecha');if(el)el.value=it.fecha||'';el=document.getElementById('pmc-ss-idx');if(el)el.value=i;openModal('modal-pmc-ss');}
+function _pmcDelSs(i){var arr=getModelos();var idx=arr.findIndex(function(x){return x.id===_pmcId;});if(idx<0)return;(arr[idx].ssModelo=arr[idx].ssModelo||[]).splice(i,1);saveModelos(arr);_pmcSyncToSupabase(arr[idx]);_pmcRenderSexshop(arr[idx]);_pmcRenderHeader(arr[idx]);}
+function _pmcSaveSs(){var arr=getModelos();var idx=arr.findIndex(function(x){return x.id===_pmcId;});if(idx<0)return;if(!arr[idx].ssModelo)arr[idx].ssModelo=[];var it={articulo:_pmcVal('pmc-ss-articulo'),valor:parseFloat(_pmcVal('pmc-ss-valor'))||0,fecha:_pmcVal('pmc-ss-fecha')};var i=parseInt(_pmcVal('pmc-ss-idx'));if(i>=0)arr[idx].ssModelo[i]=it;else arr[idx].ssModelo.push(it);saveModelos(arr);_pmcSyncToSupabase(arr[idx]);closeModal('modal-pmc-ss');_pmcRenderSexshop(arr[idx]);_pmcRenderHeader(arr[idx]);}
+
+/* ── Eliminar ── */
+function _pmcEliminar() {
+  if(!_pmcId) return;
+  var m = getModelos().find(function(x){return x.id===_pmcId;});
+  if(!m) return;
+  if(!confirm('\u00bfEliminar el modelo '+(m.nombreAgencia||'')+'? Esta acci\u00f3n no se puede deshacer.')) return;
+  saveModelos(getModelos().filter(function(x){return x.id!==_pmcId;}));
+  goPage('modelos');
+  try{toast('Modelo eliminado','success');}catch(e){}
+}
+
+/* ── Sync Supabase ── */
+async function _pmcSyncToSupabase(modeloObj) {
+  try {
+    if(!_supaDb) return;
+    var dx = Object.assign({},modeloObj);
+    ['id','nombreAgencia','nombreReal','monitor','estado','paginasVinculadas','documento'].forEach(function(k){delete dx[k];});
+    await _supaDb.from('modelos').upsert({
+      id:modeloObj.id, nombre:modeloObj.nombreAgencia||'', nombre_real:modeloObj.nombreReal||'',
+      monitor:modeloObj.monitor||'', estado:modeloObj.estado||'Activa',
+      plataformas:modeloObj.paginasVinculadas||[], documento:modeloObj.documento||'',
+      datos_extra:dx
+    },{onConflict:'id'});
+  } catch(e){console.warn('[PMC] Supabase sync error:',e);}
+}
+/* ═══════════════════════════════════════════════════════════ */
 
 </script>
 

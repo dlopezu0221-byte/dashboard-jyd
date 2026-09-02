@@ -21,23 +21,38 @@ OUT_HTML = os.path.join(OUT_DIR, "index.html")
 os.makedirs(OUT_DIR, exist_ok=True)
 
 # ── FECHAS ─────────────────────────────────────────────────────────────────────
-HOY    = date(2026, 8, 23)
-CORTE  = date(2026, 8, 23)                 # Corte explícito: 23 de agosto
 GEN_DT = datetime.now()
+HOY    = GEN_DT.date()
+CORTE  = HOY - timedelta(days=1)           # Corte dinámico: ayer
 HOY_STR   = GEN_DT.strftime("%d/%m/%Y — %H:%M")  # fecha + hora real de generación
 CORTE_STR = CORTE.strftime("%d/%m/%Y")            # fecha de corte de datos
 
-# ── QUINCENA SHEETS (nombres exactos en Excel) ────────────────────────────────
-QUINCENAS = {
-    "Enero":   [("Enero - Periodo 1 al 15","q1"),   ("Enero - Periodo 16 al 31","q2")],
-    "Febrero": [("Febrero - Periodo 1 al 15","q1"), ("Febrero - Periodo 16 al 28","q2")],
-    "Marzo":   [("Marzo - Periodo 1 al 15","q1"),   ("Marzo - Periodo 16 al 31","q2")],
-    "Abril":   [("Abril - Periodo 1 al 15","q1"),   ("Abril - Periodo 16 al 31","q2")],
-    "Mayo":    [("Mayo - Periodo 1 al 15 ","q1"),   ("Mayo - Periodo 16 al 31","q2")],
-    "Junio":   [("Junio - Periodo 1 al 15","q1"),   ("Junio - Periodo 16 al 30","q2")],
-    "Julio":   [("Julio - Periodo 1 al 15","q1"),   ("Julio - Periodo 16 al 31","q2")],
-    "Agosto":  [("Agosto - Periodo 1 al 15","q1"),  ("Agosto - Periodo 16 al 31","q2")],
+# ── QUINCENA SHEETS — generado dinámicamente hasta el mes actual ──────────────
+# Días del segundo periodo por mes (como aparecen en los nombres de hoja en Excel)
+_MESES_ORDEN = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
+_Q2_FIN = {
+    "Enero":31,"Febrero":28,"Marzo":31,"Abril":31,"Mayo":31,"Junio":30,
+    "Julio":31,"Agosto":31,"Septiembre":30,"Octubre":31,"Noviembre":30,"Diciembre":31
 }
+# Espacio extra en "Mayo" — coincide con el nombre real en el Excel histórico
+_Q1_SUFFIX = {m: f"{m} - Periodo 1 al 15" for m in _MESES_ORDEN}
+_Q1_SUFFIX["Mayo"] = "Mayo - Periodo 1 al 15 "   # espacio original del Excel
+
+def _build_quincenas():
+    """Construye el dict de quincenas para todos los meses hasta el mes actual."""
+    mes_actual_idx = HOY.month - 1   # 0-based (hoy = sept → idx 8)
+    out = {}
+    for i in range(mes_actual_idx + 1):
+        m = _MESES_ORDEN[i]
+        q2fin = _Q2_FIN[m]
+        out[m] = [
+            (_Q1_SUFFIX[m], "q1"),
+            (f"{m} - Periodo 16 al {q2fin}", "q2"),
+        ]
+    return out
+
+QUINCENAS = _build_quincenas()
 
 # ── HELPERS ───────────────────────────────────────────────────────────────────
 def v(x):

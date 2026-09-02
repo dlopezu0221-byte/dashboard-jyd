@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Mi J&amp;D Elite — Erza Elric</title>
+<style>:root{--bg:#0B1120;--card:#141E35;--card2:#1A2747;--border:rgba(255,255,255,0.07);
+--gold:#F5B800;--gold-light:#FDD85D;--blue:#3B82F6;--green:#22C55E;--red:#EF4444;
+--orange:#F59E0B;--text:#F1F5F9;--muted:#94A3B8;--nav-h:60px}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;color-scheme:dark}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;font-size:15px}
+nav{position:sticky;top:0;z-index:100;background:rgba(11,17,32,.95);backdrop-filter:blur(12px);
+border-bottom:1px solid var(--border);height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;padding:0 24px;gap:14px}
+.nav-brand{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.05em;display:flex;align-items:center;gap:10px;min-width:0}
+.brand-mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--gold),#B8860B);color:#0B1120;
+font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-name{color:#F1F5F9;font-size:12px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stamp{font-size:10px;color:#64748B;text-align:right;line-height:1.5;white-space:nowrap}
+.stamp b{display:block;font-weight:600;color:#94A3B8}
+@media(max-width:560px){.stamp{display:none}}
+main{max-width:1100px;margin:0 auto;padding:0 20px 90px}
+section{padding:52px 0 0;scroll-margin-top:70px}
+.hero{padding:44px 0 0;display:grid;grid-template-columns:1fr auto;gap:26px;align-items:start}
+@media(max-width:760px){.hero{grid-template-columns:1fr}}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(245,184,0,.15),rgba(245,184,0,.05));
+border:1px solid rgba(245,184,0,.3);color:var(--gold);font-size:12px;font-weight:700;padding:5px 14px;border-radius:20px;
+letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px}
+.hero-badge::before{content:'\2605';font-size:10px}
+.hero h1{font-size:clamp(38px,7vw,60px);font-weight:800;line-height:1.05;
+background:linear-gradient(135deg,#fff 30%,var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.hero-sub{color:var(--muted);font-size:14px;margin-bottom:18px}
+.hero-intro{font-size:16px;color:#CBD5E1;max-width:560px;line-height:1.7;margin-bottom:22px}
+.hero-tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{font-size:12px;font-weight:600;padding:4px 12px;border-radius:12px;border:1px solid var(--border)}
+.tag-a{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:#93C5FD}
+.tag-b{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.25);color:#86EFAC}
+.tag-c{background:rgba(245,184,0,.1);border-color:rgba(245,184,0,.28);color:var(--gold-light)}
+.hero-aside{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 24px;min-width:230px}
+.hero-aside-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px}
+.aside-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:8px 0;border-bottom:1px solid var(--border)}
+.aside-row:last-child{border-bottom:none}
+.aside-label{font-size:12px;color:var(--muted)}
+.aside-val{font-size:13px;font-weight:600;text-align:right}
+.section-header{margin-bottom:22px}
+.section-header h2{font-size:22px;font-weight:700;margin-bottom:4px}
+.section-header p{color:var(--muted);font-size:14px;max-width:640px}
+.section-divider{width:40px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--gold),transparent);margin:10px 0 4px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;transition:transform .2s,border-color .2s}
+.kpi-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.15)}
+.kpi-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.kpi-value{font-size:28px;font-weight:800;line-height:1;margin-bottom:4px}
+.kpi-sub{font-size:12px;color:var(--muted)}
+.kpi-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;margin-top:8px}
+.badge-up{background:rgba(34,197,94,.15);color:var(--green)}
+.badge-warn{background:rgba(245,158,11,.15);color:var(--orange)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px}
+.comp{display:flex;flex-direction:column;gap:18px}
+.comp-row{display:grid;grid-template-columns:170px 1fr 74px;gap:16px;align-items:center}
+@media(max-width:680px){.comp-row{grid-template-columns:1fr;gap:6px}}
+.comp-name{font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.comp-desc{font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;margin-top:2px}
+.bar{height:12px;border-radius:8px;background:rgba(255,255,255,.06);overflow:hidden}
+.bar span{display:block;height:100%;border-radius:8px}
+.comp-pts{font-size:15px;font-weight:800;text-align:right;white-space:nowrap}
+@media(max-width:680px){.comp-pts{text-align:left}}
+.comp-pts small{font-size:11px;color:var(--muted);font-weight:600}
+.total-row{display:flex;justify-content:space-between;align-items:baseline;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+.total-row .lbl{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.total-row .val{font-size:34px;font-weight:800;color:var(--gold)}
+.sim-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:760px){.sim-grid{grid-template-columns:1fr}}
+label.fld{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+input[type=number]{width:100%;background:#0F172A;border:1px solid #334155;border-radius:10px;color:var(--text);
+font-size:18px;font-weight:700;padding:12px 14px;outline:none;font-family:inherit}
+input[type=number]:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,184,0,.12)}
+input[type=range]{width:100%;accent-color:var(--gold)}
+.sim-out{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.sim-big{font-size:44px;font-weight:800;line-height:1;color:var(--gold)}
+.sim-pos{font-size:14px;color:var(--muted)}
+.sim-pos b{color:var(--text);font-size:17px}
+.sim-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sim-mini div{background:rgba(255,255,255,.04);border-radius:10px;padding:8px;text-align:center}
+.sim-mini .m-l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.sim-mini .m-v{font-size:15px;font-weight:800}
+.hint{font-size:12px;color:#64748B;margin-top:14px;line-height:1.6}
+.horas{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+@media(max-width:680px){.horas{grid-template-columns:repeat(4,1fr)}}
+.hd{background:#0F172A;border:1px solid #334155;border-radius:12px;padding:10px 8px;text-align:center}
+.hd label{display:block;font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.hd input{width:100%;background:transparent;border:none;color:var(--text);font-size:19px;font-weight:800;text-align:center;outline:none;font-family:inherit}
+.btn{background:var(--gold);color:#0B1120;border:none;border-radius:10px;padding:12px 22px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn:hover{filter:brightness(1.08)}
+.saved{font-size:12px;font-weight:700;color:var(--green);opacity:0;transition:opacity .3s}
+.saved.on{opacity:1}
+.tit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.tit{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px}
+.tit.main{border-color:rgba(245,184,0,.35);background:linear-gradient(160deg,rgba(245,184,0,.09),var(--card) 60%)}
+.tit-l{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.tit.main .tit-l{color:var(--gold)}
+.tit-m{font-size:22px;font-weight:800;line-height:1.15;margin-bottom:2px}
+.tit-e{font-size:12px;color:var(--muted);margin-bottom:8px}
+.tit-d{font-size:12.5px;color:#CBD5E1}
+.tbl-wrap{overflow-x:auto;border-radius:16px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;min-width:640px;background:var(--card)}
+th{background:#101A2E;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;padding:12px 14px;text-align:left;white-space:nowrap}
+td{font-size:13px;padding:12px 14px;border-top:1px solid var(--border);white-space:nowrap}
+tr.me td{background:rgba(245,184,0,.07)}
+tr.me td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:8px;background:rgba(245,184,0,.14);color:var(--gold-light)}
+footer{max-width:1100px;margin:0 auto;padding:26px 20px 60px;border-top:1px solid var(--border);color:#64748B;font-size:12px;line-height:1.7}</style>
+</head>
+<body>
+<script>
+(function(){var K='mdl_erza_elric',P='ok_876646',A=false;
+try{A=sessionStorage.getItem(K)===P;}catch(e){}
+if(A)return;document.body.style.display='none';
+var o=document.createElement('div');o.id='_pin_overlay';
+o.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:#0F172A;display:flex;align-items:center;justify-content:center;z-index:99999;font-family:Arial,sans-serif';
+o.innerHTML=['<div style="background:#1E293B;border:1px solid #334155;border-radius:16px;padding:40px 32px;width:320px;max-width:90vw;text-align:center;box-shadow:0 25px 50px rgba(0,0,0,.6)">',
+'<div style="font-size:32px;margin-bottom:12px">\uD83D\uDD10</div>',
+'<div style="color:#F1F5F9;font-size:18px;font-weight:700;margin-bottom:6px">Dashboard Privado</div>',
+'<div style="color:#64748B;font-size:13px;margin-bottom:24px">Ingresa tu c\u00F3digo de acceso</div>',
+'<input id="_pin_inp" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="\u2022 \u2022 \u2022 \u2022 \u2022 \u2022" style="width:100%;box-sizing:border-box;background:#0F172A;border:1px solid #334155;border-radius:8px;color:#F1F5F9;font-size:22px;letter-spacing:6px;padding:12px;text-align:center;outline:none;margin-bottom:12px">',
+'<div id="_pin_err" style="display:none;color:#EF4444;font-size:12px;margin-bottom:10px">C\u00F3digo incorrecto. Intenta de nuevo.</div>',
+'<button id="_pin_btn" style="width:100%;background:#3B82F6;color:#fff;border:none;border-radius:8px;padding:13px;font-size:15px;font-weight:600;cursor:pointer">Ingresar</button>',
+'<div style="color:#475569;font-size:11px;margin-top:20px">Grupo Empresarial J&D \u00B7 Acceso restringido</div>','</div>'].join('');
+document.body.parentNode.insertBefore(o,document.body);
+function c(){var v=(document.getElementById('_pin_inp').value||'').trim();
+if(v==='876646'){try{sessionStorage.setItem(K,P);}catch(e){}o.remove();document.body.style.display='';}
+else{document.getElementById('_pin_err').style.display='block';document.getElementById('_pin_inp').value='';}}
+document.getElementById('_pin_btn').addEventListener('click',c);
+document.getElementById('_pin_inp').addEventListener('keydown',function(e){if(e.key==='Enter')c();});})();
+</script>
+<nav>
+  <div class="nav-brand">
+    <div class="brand-mark">J&amp;D</div>
+    <span class="nav-name">Erza Elric · Fornax Studios</span>
+  </div>
+  <div class="stamp"><b>Semana 24 al 30 de agosto de 2026</b><span>Generado el 01/09/2026</span></div>
+</nav>
+<main>
+
+<div class="hero">
+  <div>
+    <div class="hero-badge">J&amp;D Elite &middot; 24 al 30 de agosto de 2026</div>
+    <h1>72,9 puntos</h1>
+    <div class="hero-sub">Puesto 15 de 44 modelos que compitieron esta semana</div>
+    <p class="hero-intro">Tu facturaci&oacute;n y tus d&iacute;as se cargan solos desde el reporte del grupo &mdash; aqu&iacute; no se digitan.
+    Lo que s&iacute; puedes hacer: registrar tus horas y probar en el simulador qu&eacute; necesitas la pr&oacute;xima semana.</p>
+    <div class="hero-tags"><span class="tag tag-a">6 d&iacute;as activos</span></div>
+  </div>
+  <aside class="hero-aside">
+    <div class="hero-aside-title">Mi ficha</div>
+    <div class="aside-row"><span class="aside-label">Estudio</span><span class="aside-val">Fornax Studios</span></div>
+    <div class="aside-row"><span class="aside-label">Mi promedio (4 sem)</span><span class="aside-val">9.700</span></div>
+    <div class="aside-row"><span class="aside-label">Mi mejor semana</span><span class="aside-val">13.111</span></div>
+    <div class="aside-row"><span class="aside-label">Cr&eacute;ditos nuevos</span><span class="aside-val">1.807</span></div>
+  </aside>
+</div>
+
+<section>
+  <div class="section-header"><h2>Mi semana</h2><div class="section-divider"></div>
+  <p>Estos cuatro datos vienen del reporte oficial del grupo. No se pueden editar aqu&iacute;: as&iacute; el ranking es igual para todas.</p></div>
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Mi puesto</div>
+      <div class="kpi-value" style="color:var(--gold)">15<span style="font-size:16px;color:var(--muted);font-weight:600"> / 44</span></div>
+      <div class="kpi-sub">de las que compitieron</div></div>
+    <div class="kpi-card"><div class="kpi-label">Facturaci&oacute;n</div>
+      <div class="kpi-value">11.507</div><div class="kpi-sub">cr&eacute;ditos esta semana</div></div>
+    <div class="kpi-card"><div class="kpi-label">D&iacute;as activos</div>
+      <div class="kpi-value">6<span style="font-size:16px;color:var(--muted);font-weight:600"> / 7</span></div>
+      <div class="kpi-sub">de la semana</div></div>
+    <div class="kpi-card"><div class="kpi-label">Crecimiento</div>
+      <div class="kpi-value">1,19x</div>
+      <div class="kpi-sub">frente a tu promedio de 9.700</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="section-header"><h2>Mis 100 puntos</h2><div class="section-divider"></div>
+  <p>Tres de los cuatro bloques dependen solo de ti: 65 puntos que no tienen nada que ver con lo que facturen las dem&aacute;s.</p></div>
+  <div class="card">
+    <div class="comp">
+      <div class="comp-row"><div><div class="comp-name">Resultado</div><div class="comp-desc">Tu posici&oacute;n por facturaci&oacute;n entre las 44 que compiten</div></div>
+        <div class="bar"><span style="width:63%;background:linear-gradient(90deg,#3B82F6,#60A5FA)"></span></div>
+        <div class="comp-pts">22,0 <small>/ 35</small></div></div>
+      <div class="comp-row"><div><div class="comp-name">Crecimiento</div><div class="comp-desc">Tu semana &divide; tu promedio. Duplicarlo da el m&aacute;ximo</div></div>
+        <div class="bar"><span style="width:59%;background:linear-gradient(90deg,#22C55E,#4ADE80)"></span></div>
+        <div class="comp-pts">17,8 <small>/ 30</small></div></div>
+      <div class="comp-row"><div><div class="comp-name">Constancia</div><div class="comp-desc">D&iacute;as activos de la semana + semanas activas del mes</div></div>
+        <div class="bar"><span style="width:100%;background:linear-gradient(90deg,#F59E0B,#FBBF24)"></span></div>
+        <div class="comp-pts">20,0 <small>/ 20</small></div></div>
+      <div class="comp-row"><div><div class="comp-name">Evoluci&oacute;n</div><div class="comp-desc">Qu&eacute; tan cerca quedaste de tu mejor semana</div></div>
+        <div class="bar"><span style="width:88%;background:linear-gradient(90deg,#F5B800,#FDD85D)"></span></div>
+        <div class="comp-pts">13,2 <small>/ 15</small></div></div>
+    </div>
+    <div class="total-row"><span class="lbl">Mi &iacute;ndice de la semana</span><span class="val">72,9</span></div>
+    <p class="hint"><b style="color:#CBD5E1">Lo que te falt&oacute;:</b> 27,1 puntos para el 100.</p>
+  </div>
+</section>
+
+<section>
+  <div class="section-header"><h2>Simulador &middot; &iquest;qu&eacute; necesito la pr&oacute;xima semana?</h2><div class="section-divider"></div>
+  <p>Escribe una cifra y mira qu&eacute; puntaje tendr&iacute;as y en qu&eacute; puesto quedar&iacute;as. Esto es solo tuyo: no cambia tu resultado real ni lo ve nadie m&aacute;s.</p></div>
+  <div class="card">
+    <div class="sim-grid">
+      <div>
+        <label class="fld" for="simF">Si esta semana facturo&hellip;</label>
+        <input type="number" id="simF" value="11507" min="0" step="500">
+        <div style="margin-top:20px">
+          <label class="fld" for="simD">&hellip;trabajando <span id="simDTxt" style="color:var(--gold)">6</span> d&iacute;as</label>
+          <input type="range" id="simD" min="0" max="7" step="1" value="6">
+        </div>
+        <p class="hint">Tu promedio de las &uacute;ltimas 4 semanas es <b style="color:#CBD5E1">9.700</b> y tu r&eacute;cord es
+        <b style="color:#CBD5E1">13.111</b>. Con esos dos n&uacute;meros se calculan Crecimiento y Evoluci&oacute;n.</p>
+      </div>
+      <div class="sim-out">
+        <div><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Tu puntaje ser&iacute;a</div>
+          <div class="sim-big" id="simIDS">72,9</div></div>
+        <div class="sim-pos">Quedar&iacute;as en el puesto <b id="simPos">15</b> de 44</div>
+        <div class="sim-mini">
+          <div><div class="m-l">Result.</div><div class="m-v" id="mRes">22,0</div></div>
+          <div><div class="m-l">Crecim.</div><div class="m-v" id="mCre">17,8</div></div>
+          <div><div class="m-l">Constan.</div><div class="m-v" id="mCon">20,0</div></div>
+          <div><div class="m-l">Evol.</div><div class="m-v" id="mEvo">13,2</div></div>
+        </div>
+        <div id="simMsg" style="font-size:12.5px;color:#93C5FD;line-height:1.6"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-header"><h2>Mis horas de conexi&oacute;n</h2><div class="section-divider"></div>
+  <p>Este es el &uacute;nico dato que el grupo todav&iacute;a no tiene y que t&uacute; puedes aportar. Por ahora no suma puntos: se est&aacute; midiendo para incorporarlo m&aacute;s adelante.</p></div>
+  <div class="card">
+    <div class="horas">
+      <div class="hd"><label>Lun</label><input type="number" min="0" max="24" step="0.5" data-h value=""></div><div class="hd"><label>Mar</label><input type="number" min="0" max="24" step="0.5" data-h value=""></div><div class="hd"><label>Mi&eacute;</label><input type="number" min="0" max="24" step="0.5" data-h value=""></div><div class="hd"><label>Jue</label><input type="number" min="0" max="24" step="0.5" data-h value=""></div><div class="hd"><label>Vie</label><input type="number" min="0" max="24" step="0.5" data-h value=""></div><div class="hd"><label>S&aacute;b</label><input type="number" min="0" max="24" step="0.5" data-h value=""></div><div class="hd"><label>Dom</label><input type="number" min="0" max="24" step="0.5" data-h value=""></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-top:22px">
+      <button class="btn" id="btnH">Guardar mis horas</button>
+      <span class="saved" id="okH">&#10003; Guardado</span>
+      <div style="margin-left:auto;display:flex;gap:26px">
+        <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700">Total semana</div><div style="font-size:22px;font-weight:800" id="hTot">&mdash;</div></div>
+        <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700">Cr&eacute;ditos por hora</div><div style="font-size:22px;font-weight:800;color:var(--gold)" id="hCph">&mdash;</div></div>
+      </div>
+    </div>
+    <p class="hint">Cuando todas las modelos del grupo registren sus horas durante un trimestre completo, esta cifra se convierte en el quinto componente del &iacute;ndice.</p>
+  </div>
+</section>
+
+<section>
+  <div class="section-header"><h2>Top 10 de la semana</h2><div class="section-divider"></div>
+  <p>Se publica el puesto y el puntaje de todas las que compiten.</p></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>#</th><th>Modelo</th><th>Estudio</th><th class="num">Crecim.</th><th class="num">D&iacute;as</th><th class="num">&Iacute;ndice</th></tr></thead>
+    <tbody><tr><td>1</td><td style='font-weight:600'>Isabella Winkler</td><td style='color:#94A3B8'>Fornax Studios</td><td class='num'>2,20x</td><td class='num'>7</td><td class='num' style='font-weight:800'>98,4</td></tr><tr><td>2</td><td style='font-weight:600'>Rafel Mendez</td><td style='color:#94A3B8'>Gold Online</td><td class='num'>3,07x</td><td class='num'>6</td><td class='num' style='font-weight:800'>96,7</td></tr><tr><td>3</td><td style='font-weight:600'>Dion Seans</td><td style='color:#94A3B8'>Gold Online</td><td class='num'>1,76x</td><td class='num'>5</td><td class='num' style='font-weight:800'>93,6</td></tr><tr><td>4</td><td style='font-weight:600'>Isa Raven</td><td style='color:#94A3B8'>Fornax Studios</td><td class='num'>1,77x</td><td class='num'>7</td><td class='num' style='font-weight:800'>92,7</td></tr><tr><td>5</td><td style='font-weight:600'>Cynthia Adams</td><td style='color:#94A3B8'>Fornax Studios</td><td class='num'>2,73x</td><td class='num'>6</td><td class='num' style='font-weight:800'>85,2</td></tr><tr><td>6</td><td style='font-weight:600'>Emilly Beaumont</td><td style='color:#94A3B8'>Fornax Studios</td><td class='num'>1,48x</td><td class='num'>7</td><td class='num' style='font-weight:800'>84,6</td></tr><tr><td>7</td><td style='font-weight:600'>Katt Souza</td><td style='color:#94A3B8'>Fornax Studios</td><td class='num'>1,80x</td><td class='num'>5</td><td class='num' style='font-weight:800'>82,6</td></tr><tr><td>8</td><td style='font-weight:600'>Aisha Collin</td><td style='color:#94A3B8'>Fornax Studios</td><td class='num'>1,55x</td><td class='num'>5</td><td class='num' style='font-weight:800'>82,0</td></tr><tr><td>9</td><td style='font-weight:600'>Alexander Ferrer</td><td style='color:#94A3B8'>Gold Online</td><td class='num'>1,63x</td><td class='num'>6</td><td class='num' style='font-weight:800'>81,8</td></tr><tr><td>10</td><td style='font-weight:600'>Nicol Miller</td><td style='color:#94A3B8'>CyV Studios</td><td class='num'>0,95x</td><td class='num'>6</td><td class='num' style='font-weight:800'>77,6</td></tr></tbody>
+  </table></div>
+</section>
+</main>
+<footer>
+<b style="color:#94A3B8">Grupo Empresarial J&amp;D &middot; Programa J&amp;D Elite</b><br>
+La facturaci&oacute;n y los d&iacute;as activos se toman del reporte oficial del grupo, con corte los lunes a las 12:00 del mediod&iacute;a.
+El c&aacute;lculo completo se publica cada semana para que cualquiera pueda verificarlo.
+</footer>
+<script>
+(function(){
+var PROM=9699.75, RECORD=13111.0, SEM_ACT=4, N=44;
+var OTROS=[{"f": 39184.0, "ids": 98.4}, {"f": 30174.0, "ids": 96.7}, {"f": 64225.0, "ids": 93.6}, {"f": 91768.0, "ids": 92.7}, {"f": 20021.0, "ids": 85.2}, {"f": 22729.0, "ids": 84.6}, {"f": 29397.0, "ids": 82.6}, {"f": 14788.0, "ids": 82.0}, {"f": 13815.0, "ids": 81.8}, {"f": 32830.0, "ids": 77.6}, {"f": 16270.0, "ids": 76.9}, {"f": 6791.0, "ids": 76.5}, {"f": 6583.4, "ids": 74.8}, {"f": 8722.0, "ids": 74.1}, {"f": 13968.0, "ids": 69.9}, {"f": 8615.0, "ids": 68.3}, {"f": 4733.0, "ids": 67.9}, {"f": 4915.0, "ids": 65.9}, {"f": 20020.0, "ids": 65.3}, {"f": 5468.0, "ids": 65.1}, {"f": 14256.0, "ids": 64.4}, {"f": 13873.0, "ids": 64.0}, {"f": 3830.0, "ids": 61.8}, {"f": 12108.0, "ids": 60.8}, {"f": 10515.0, "ids": 60.2}, {"f": 10804.0, "ids": 60.2}, {"f": 5759.0, "ids": 59.9}, {"f": 9716.0, "ids": 58.2}, {"f": 5969.0, "ids": 56.2}, {"f": 4179.0, "ids": 55.0}, {"f": 4350.0, "ids": 54.8}, {"f": 6479.0, "ids": 53.3}, {"f": 3635.0, "ids": 52.6}, {"f": 8318.0, "ids": 51.7}, {"f": 6166.0, "ids": 50.9}, {"f": 7833.0, "ids": 50.5}, {"f": 6719.0, "ids": 47.4}, {"f": 4769.0, "ids": 47.1}, {"f": 5476.0, "ids": 44.9}, {"f": 5951.0, "ids": 42.8}, {"f": 4833.0, "ids": 41.7}, {"f": 4417.0, "ids": 38.6}, {"f": 3880.2, "ids": 27.0}];
+var PISO=3000, DMIN=3;
+function nf(n,d){return n.toLocaleString('es-CO',{minimumFractionDigits:d||0,maximumFractionDigits:d||0});}
+var sF=document.getElementById('simF'), sD=document.getElementById('simD');
+function sim(){
+  var f=Math.max(0,parseFloat(sF.value)||0), d=parseInt(sD.value,10);
+  document.getElementById('simDTxt').textContent=d;
+  var ok=(f>=PISO&&d>=DMIN), men=0;
+  for(var i=0;i<OTROS.length;i++){if(OTROS[i].f<=f)men++;}
+  var res=ok?Math.min(35,35*men/(N-1)):0;
+  var cre=ok?30*Math.min(PROM>0?f/PROM:0,2.0)/2.0:0;
+  var con=ok?12*Math.min(d,6)/6+8*SEM_ACT/4:0;
+  var evo=ok?15*Math.min(RECORD>0?f/RECORD:1,1):0;
+  var ids=res+cre+con+evo, pos=1;
+  for(var j=0;j<OTROS.length;j++){if(OTROS[j].ids>ids)pos++;}
+  document.getElementById('mRes').textContent=nf(res,1);
+  document.getElementById('mCre').textContent=nf(cre,1);
+  document.getElementById('mCon').textContent=nf(con,1);
+  document.getElementById('mEvo').textContent=nf(evo,1);
+  document.getElementById('simIDS').textContent=ok?nf(ids,1):'\u2014';
+  document.getElementById('simPos').textContent=ok?pos:'\u2014';
+  var m='';
+  if(!ok){m=f<PISO?'Con menos de '+nf(PISO)+' cr\u00e9ditos no entras al ranking de esa semana.':'Con menos de '+DMIN+' d\u00edas activos no entras al ranking de esa semana.';}
+  else if(pos===1){m='Con esa semana ser\u00edas la Modelo de la Semana.';}
+  else if(pos<=3){m='Con esa semana estar\u00edas en el podio.';}
+  else if(pos<=10){m='Con esa semana entrar\u00edas al Top 10 que se publica el lunes.';}
+  else {m='Te faltar\u00eda un poco m\u00e1s para entrar al Top 10.';}
+  document.getElementById('simMsg').textContent=m;
+}
+sF.addEventListener('input',sim); sD.addEventListener('input',sim); sim();
+var hs=Array.prototype.slice.call(document.querySelectorAll('[data-h]'));
+var KEY='jd_elite_horas_erza-elric_2026-08-24';
+function horas(){
+  var t=0,any=false; hs.forEach(function(i){var v=parseFloat(i.value); if(!isNaN(v)){t+=v;any=true;}});
+  document.getElementById('hTot').textContent=any?nf(t,1)+' h':'\u2014';
+  document.getElementById('hCph').textContent=(any&&t>0)?nf(11507.0/t,0):'\u2014';
+}
+hs.forEach(function(i){i.addEventListener('input',horas);});
+try{var g=localStorage.getItem(KEY); if(g){var v=JSON.parse(g); if(Array.isArray(v))hs.forEach(function(i,k){if(v[k]!=null)i.value=v[k];});}}catch(e){}
+horas();
+document.getElementById('btnH').addEventListener('click',function(){
+  try{localStorage.setItem(KEY,JSON.stringify(hs.map(function(i){return i.value;})));}catch(e){}
+  var o=document.getElementById('okH'); o.classList.add('on'); setTimeout(function(){o.classList.remove('on');},2200);
+});
+})();
+</script>
+</body>
+</html>

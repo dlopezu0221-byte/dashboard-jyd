@@ -2460,6 +2460,20 @@ td[style*="text-align:right"], th[style*="text-align:right"] {
         <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Notas</label>
         <input id="edu-notas" type="text" style="width:100%;background:#252830;border:1px solid #2e3040;border-radius:6px;padding:10px;color:#e8e8e8;font-size:13px;outline:none;box-sizing:border-box">
       </div>
+      <div>
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Foto de Perfil</label>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:56px;height:56px;border-radius:50%;overflow:hidden;border:2px solid #2e3040;flex-shrink:0;background:#252830;display:flex;align-items:center;justify-content:center">
+            <img id="edu-foto-img" src="" style="width:56px;height:56px;object-fit:cover;display:none">
+            <span id="edu-foto-placeholder" style="font-size:22px;color:#888">👤</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <input id="edu-foto-input" type="file" accept="image/*" style="display:none" onchange="(function(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=function(ev){const b64=ev.target.result;e.target.setAttribute('data-b64',b64);e.target.removeAttribute('data-removed');document.getElementById('edu-foto-img').src=b64;document.getElementById('edu-foto-img').style.display='block';document.getElementById('edu-foto-placeholder').style.display='none';document.getElementById('edu-foto-remove').style.display='';};r.readAsDataURL(f);})(event)">
+            <button type="button" onclick="document.getElementById('edu-foto-input').click()" style="padding:6px 12px;background:#252830;border:1px solid #2e3040;color:#e8e8e8;border-radius:6px;cursor:pointer;font-size:12px">📷 Cambiar foto</button>
+            <button id="edu-foto-remove" type="button" style="display:none;padding:6px 12px;background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:#E05252;border-radius:6px;cursor:pointer;font-size:12px" onclick="(function(){document.getElementById('edu-foto-img').src='';document.getElementById('edu-foto-img').style.display='none';document.getElementById('edu-foto-placeholder').style.display='';document.getElementById('edu-foto-remove').style.display='none';const inp=document.getElementById('edu-foto-input');inp.value='';inp.removeAttribute('data-b64');inp.setAttribute('data-removed','1');})()">🗑 Quitar foto</button>
+          </div>
+        </div>
+      </div>
     </div>
     <div id="edu-err" style="margin-top:12px;font-size:12px;color:#ef4444;min-height:16px"></div>
     <div style="display:flex;gap:10px;margin-top:18px">
@@ -4289,33 +4303,28 @@ function _supaToLocalStorage(sbData) {
 }
 
 async function _loadSupabaseData() {
-  // Promise.allSettled: un fallo individual NO mata las demás consultas
-  const settled = await Promise.allSettled([
-    _supaDb.from('estudios').select('*'),
-    _supaDb.from('modelos').select('*'),
-    _supaDb.from('liquidaciones').select('*').order('fecha', {ascending:false}),
-    _supaDb.from('banco_movimientos').select('*').order('fecha', {ascending:false}),
-    _supaDb.from('monetizaciones').select('*').order('fecha', {ascending:false}),
-    _supaDb.from('configuracion').select('*'),
-    _supaDb.from('mercury_ingresos').select('*').order('fecha', {ascending:false}),
-    _supaDb.from('mercury_egresos').select('*').order('fecha', {ascending:false}),
-    _supaDb.from('mercury_favoritos').select('*'),
-    _supaDb.from('ingresos').select('*').order('fecha', {ascending:false}),
-    _supaDb.from('egresos').select('*').order('fecha', {ascending:false}),
-    _supaDb.from('prestamos').select('*'),
-    _supaDb.from('ahorros').select('*'),
-    _supaDb.from('sexshop_ventas').select('*'),
-    _supaDb.from('conciliacion').select('*').order('fecha', {ascending:false}),
-    _supaDb.from('nominas').select('*').order('fecha', {ascending:false}),
-    _supaDb.from('horarios').select('*'),
-    _supaDb.from('perfiles_ext').select('*'),
-    _supaDb.from('financiero_snapshots').select('*'),
-  ]);
-  const ok = s => (s.status === 'fulfilled' ? s.value : {data:[], error:s.reason});
-  const [estRes,modRes,liqRes,bancoRes,monetRes,cfgRes,merIngRes,merEgrRes,merFavRes,
-         ingCajaRes,egrCajaRes,prestRes,ahorrosRes,ssRes,concilRes,nomsRes,horsRes,perfsRes,snapsRes] = settled.map(ok);
-  settled.forEach((s,i)=>{ if(s.status==='rejected') console.warn('[SUPA] Query',i,'rechazada:',s.reason); });
   try {
+    const [estRes, modRes, liqRes, bancoRes, monetRes, cfgRes, merIngRes, merEgrRes, merFavRes, ingCajaRes, egrCajaRes, prestRes, ahorrosRes, ssRes, concilRes, nomsRes, horsRes, perfsRes, snapsRes] = await Promise.all([
+      _supaDb.from('estudios').select('*'),
+      _supaDb.from('modelos').select('*'),
+      _supaDb.from('liquidaciones').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('banco_movimientos').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('monetizaciones').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('configuracion').select('*'),
+      _supaDb.from('mercury_ingresos').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('mercury_egresos').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('mercury_favoritos').select('*'),
+      _supaDb.from('ingresos').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('egresos').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('prestamos').select('*'),
+      _supaDb.from('ahorros').select('*'),
+      _supaDb.from('sexshop_ventas').select('*'),
+      _supaDb.from('conciliacion').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('nominas').select('*').order('fecha', {ascending:false}),
+      _supaDb.from('horarios').select('*'),
+      _supaDb.from('perfiles_ext').select('*'),
+      _supaDb.from('financiero_snapshots').select('*'),
+    ]);
     _supaToLocalStorage({
       estudios:   estRes.data || [],
       modelos:    modRes.data || [],
@@ -4337,9 +4346,9 @@ async function _loadSupabaseData() {
       perfs:      perfsRes.data || [],
       snaps:      snapsRes.data || [],
     });
-    console.log('[SUPA] Datos cargados: merIngs='+( merIngRes.data||[]).length+' merEgrs='+(merEgrRes.data||[]).length);
+    console.log('[SUPA] Datos cargados correctamente');
   } catch(e) {
-    console.warn('[SUPA] Error en _supaToLocalStorage:', e);
+    console.warn('[SUPA] Error cargando datos:', e);
   }
 }
 
@@ -4378,16 +4387,20 @@ async function _reloadMercuryFromSupabase() {
     const existingMer = (() => { try { return JSON.parse(localStorage.getItem('jd_mercury') || '{}')} catch(e) { console.warn('[SUPA] jd_mercury corrupted, resetting'); localStorage.removeItem('jd_mercury'); return {}; } })();
     const ingresos = (ingRes.data || []).map(_merIngFromRow);
     const egresos  = (egrRes.data  || []).map(_merEgrFromRow);
-    // Siempre escribir a localStorage con lo que devuelva Supabase
-    const merData = {
-      ingresos,
-      egresos,
-      ahorros:   existingMer.ahorros  || [],
-      auditLog:  existingMer.auditLog || [],
-    };
-    localStorage.setItem('jd_mercury', JSON.stringify(merData));
-    console.log('[SUPA RT] Mercury: ing='+ingresos.length+' egr='+egresos.length+' error_ing='+(ingRes.error?ingRes.error.message:'none')+' error_egr='+(egrRes.error?egrRes.error.message:'none'));
-  } catch(e) { console.error('[SUPA RT] Error recargando Mercury:', e); }
+    // GUARD: solo actualizar localStorage si Supabase retorna datos reales.
+    if (ingresos.length > 0 || egresos.length > 0) {
+      const merData = {
+        ingresos,
+        egresos,
+        ahorros:   existingMer.ahorros  || [],
+        auditLog:  existingMer.auditLog || [],
+      };
+      localStorage.setItem('jd_mercury', JSON.stringify(merData));
+      console.log('[SUPA RT] Mercury recargado:', ingresos.length, 'ing /', egresos.length, 'egr');
+    } else {
+      console.warn('[SUPA RT] Mercury: Supabase devolvio 0 registros → preservando localStorage (ing:', (existingMer.ingresos||[]).length, '/ egr:', (existingMer.egresos||[]).length, ')');
+    }
+  } catch(e) { console.warn('[SUPA RT] Error recargando Mercury:', e); }
 }
 
 async function _reloadCajaFromSupabase() {
@@ -4726,15 +4739,21 @@ function _jdApplyUserUI() {
   // Footer del sidebar
   try {
     const foot = document.querySelector('.sidebar-foot');
-    if (foot) foot.innerHTML = `
+    if (foot) {
+      const fotoSb = localStorage.getItem('jd_usr_foto_' + _jdCurrentUser.id);
+      const avatarHtml = fotoSb
+        ? `<img src="${fotoSb}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+        : `<div style="width:32px;height:32px;border-radius:50%;background:${rol.color};color:#111;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">${(nombre[0]||'U').toUpperCase()}</div>`;
+      foot.innerHTML = `
       <div style="display:flex;align-items:center;gap:8px">
-        <div style="width:32px;height:32px;border-radius:50%;background:${rol.color};color:#111;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">${(nombre[0]||'U').toUpperCase()}</div>
+        ${avatarHtml}
         <div style="min-width:0">
           <div style="font-size:12px;color:#E8E8E8;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nombre}</div>
-          <div style="font-size:10px;font-weight:700" style="color:${rol.color}">${rol.label}</div>
+          <div style="font-size:10px;font-weight:700;color:${rol.color}">${rol.label}</div>
         </div>
       </div>
       <button onclick="jdSuperLogout()" style="width:100%;margin-top:8px;padding:6px;background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:#E05252;border-radius:6px;cursor:pointer;font-size:11px;font-family:Outfit,sans-serif">⬅ Cerrar sesión</button>`;
+    }
   } catch(e) {}
 
   // Mostrar nav item de Usuarios solo para super_admin
@@ -4817,7 +4836,7 @@ function _jdUsuariosRenderTabla(users) {
     return `<tr style="border-top:1px solid #2e3040;${esYo?'background:rgba(99,102,241,.06)':''}">
       <td style="padding:12px 16px">
         <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:32px;height:32px;border-radius:50%;background:${rol.color};color:#111;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">${(u.nombre[0]||'?').toUpperCase()}</div>
+          <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid ${rol.color}">${(()=>{const f=localStorage.getItem('jd_usr_foto_'+u.id);return f?'<img src="'+f+'" style="width:32px;height:32px;object-fit:cover">':'<div style="width:32px;height:32px;background:'+rol.color+';display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#111">'+( u.nombre[0]||'?').toUpperCase()+'</div>';})()} </div>
           <div>
             <div style="font-weight:600;color:#e8e8e8">${u.nombre}${esYo?' <span style="font-size:10px;color:#6366f1;background:rgba(99,102,241,.15);padding:1px 6px;border-radius:4px">Tú</span>':''}</div>
             <div style="font-size:11px;color:#666">${u.notas||''}</div>
@@ -4920,6 +4939,22 @@ function jdUsuariosOpenEdit(uid) {
   document.getElementById('edu-estado').value = u.estado;
   document.getElementById('edu-notas').value = u.notas||'';
   document.getElementById('edu-err').textContent='';
+  // Load existing photo
+  const storedFoto = localStorage.getItem('jd_usr_foto_'+uid);
+  const img2 = document.getElementById('edu-foto-img');
+  const ph2  = document.getElementById('edu-foto-placeholder');
+  const rm2  = document.getElementById('edu-foto-remove');
+  const inp2 = document.getElementById('edu-foto-input');
+  if (inp2) { inp2.value=''; inp2.removeAttribute('data-b64'); inp2.removeAttribute('data-removed'); }
+  if (storedFoto) {
+    if (img2) { img2.src=storedFoto; img2.style.display='block'; }
+    if (ph2) ph2.style.display='none';
+    if (rm2) rm2.style.display='';
+  } else {
+    if (img2) { img2.src=''; img2.style.display='none'; }
+    if (ph2) ph2.style.display='';
+    if (rm2) rm2.style.display='none';
+  }
   jdModalOpen('modal-editar-usuario');
 }
 
@@ -4942,6 +4977,16 @@ async function jdUsuariosGuardarEdicion() {
     if (error) throw error;
 
     await jdAuditLog('editar_usuario', uid, u?.email, { cambios: { nombre, rol, estado, notas } });
+    // Save photo
+    const fotoInp = document.getElementById('edu-foto-input');
+    if (fotoInp) {
+      const b64new = fotoInp.getAttribute('data-b64');
+      const removed = fotoInp.getAttribute('data-removed');
+      if (b64new) localStorage.setItem('jd_usr_foto_'+uid, b64new);
+      else if (removed==='1') localStorage.removeItem('jd_usr_foto_'+uid);
+    }
+    // Refresh sidebar avatar if editing own profile
+    if (uid === _jdCurrentUser?.id) { try { _jdApplyUserUI(); } catch(e) {} }
     errEl.style.color='#10b981';
     errEl.textContent='✅ Cambios guardados.';
     setTimeout(()=>{ jdModalClose('modal-editar-usuario'); jdUsuariosCargar(); }, 900);

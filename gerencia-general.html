@@ -4388,7 +4388,7 @@ function _supaToLocalStorage(sbData) {
       nombreAgencia: m.nombre || m.id,
       nombreReal: m.nombre_real || '',
       monitor: m.monitor || '',
-      estado: m.estado || 'Activo',
+      estado: (m.estado==='Activo'?'Activa':(m.estado||'Activa')),
       paginasVinculadas: m.plataformas || [],
       ...(m.datos_extra || {})
     }));

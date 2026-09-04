@@ -4233,15 +4233,24 @@ function _supaToLocalStorage(sbData) {
       createdAt: r.created_at || '',
     }));
     if (ingresos.length > 0 || egresos.length > 0) {
-      // Supabase tiene datos reales → actualizar localStorage
+      // MERGE: Supabase tiene datos reales → fusionar con localStorage.
+      // Los registros locales que NO están en Supabase (ej. recién guardados, aún no sincronizados)
+      // se conservan para no perder nada si el upsert background aún no se propagó.
+      const supaIngIds = new Set(ingresos.map(r => r.id));
+      const localOnlyIngs = (existingMer.ingresos || []).filter(r => !supaIngIds.has(r.id));
+      const supaEgrIds = new Set(egresos.map(r => r.id));
+      const localOnlyEgrs = (existingMer.egresos || []).filter(r => !supaEgrIds.has(r.id));
+      if (localOnlyIngs.length || localOnlyEgrs.length) {
+        console.warn('[SUPA] Mercury: conservando', localOnlyIngs.length, 'ing y', localOnlyEgrs.length, 'egr locales no confirmados en Supabase');
+      }
       const merData = {
-        ingresos,
-        egresos,
-        ahorros: existingMer.ahorros || [],
+        ingresos: [...ingresos, ...localOnlyIngs],
+        egresos:  [...egresos,  ...localOnlyEgrs],
+        ahorros:  existingMer.ahorros  || [],
         auditLog: existingMer.auditLog || [],
       };
       localStorage.setItem('jd_mercury', JSON.stringify(merData));
-      console.log('[SUPA] mercury_ingresos:', ingresos.length, '| mercury_egresos:', egresos.length, '→ localStorage actualizado');
+      console.log('[SUPA] mercury_ingresos:', ingresos.length, '| mercury_egresos:', egresos.length, '→ localStorage fusionado (locales extra:', localOnlyIngs.length, '+', localOnlyEgrs.length, ')');
     } else {
       // Supabase devolvió vacío → preservar localStorage existente (NO sobreescribir)
       console.warn('[SUPA] mercury: Supabase devolvio 0 registros → preservando localStorage existente (ingresos:', (existingMer.ingresos||[]).length, '| egresos:', (existingMer.egresos||[]).length, ')');
@@ -4521,16 +4530,23 @@ async function _reloadMercuryFromSupabase() {
     const existingMer = (() => { try { return JSON.parse(localStorage.getItem('jd_mercury') || '{}')} catch(e) { console.warn('[SUPA] jd_mercury corrupted, resetting'); localStorage.removeItem('jd_mercury'); return {}; } })();
     const ingresos = (ingRes.data || []).map(_merIngFromRow);
     const egresos  = (egrRes.data  || []).map(_merEgrFromRow);
-    // GUARD: solo actualizar localStorage si Supabase retorna datos reales.
+    // MERGE: fusionar Supabase con localStorage. Conservar registros locales no confirmados.
     if (ingresos.length > 0 || egresos.length > 0) {
+      const supaIngIds = new Set(ingresos.map(r => r.id));
+      const localOnlyIngs = (existingMer.ingresos || []).filter(r => !supaIngIds.has(r.id));
+      const supaEgrIds = new Set(egresos.map(r => r.id));
+      const localOnlyEgrs = (existingMer.egresos || []).filter(r => !supaEgrIds.has(r.id));
+      if (localOnlyIngs.length || localOnlyEgrs.length) {
+        console.warn('[SUPA RT] Mercury: conservando', localOnlyIngs.length, 'ing y', localOnlyEgrs.length, 'egr locales no confirmados');
+      }
       const merData = {
-        ingresos,
-        egresos,
+        ingresos: [...ingresos, ...localOnlyIngs],
+        egresos:  [...egresos,  ...localOnlyEgrs],
         ahorros:   existingMer.ahorros  || [],
         auditLog:  existingMer.auditLog || [],
       };
       localStorage.setItem('jd_mercury', JSON.stringify(merData));
-      console.log('[SUPA RT] Mercury recargado:', ingresos.length, 'ing /', egresos.length, 'egr');
+      console.log('[SUPA RT] Mercury fusionado:', ingresos.length, 'ing /', egresos.length, 'egr (extra locales:', localOnlyIngs.length, '+', localOnlyEgrs.length, ')');
     } else {
       console.warn('[SUPA RT] Mercury: Supabase devolvio 0 registros → preservando localStorage (ing:', (existingMer.ingresos||[]).length, '/ egr:', (existingMer.egresos||[]).length, ')');
     }
@@ -16277,50 +16293,96 @@ function merActualizarResumen(){
   `;
 }
 
-function merGuardarIngreso(){
-  const d = getMerData();
+async function merGuardarIngreso(){
+  // ── Validaciones ────────────────────────────────────────────────────────────
   const fecha=document.getElementById('mer-ing-fecha').value;
   if(!fecha){ toast('Completa la fecha de la operación','warn'); return; }
   if(!MER.paginas.length){ toast('Registra al menos una página','warn'); return; }
-  // Asignar ID y confirmar contador SOLO en el momento de guardar
-  const id = MER.editId || merNextId('I');
-  // Facturación bruta + bonificaciones (base de distribución, SIN restar deducciones)
-  const valorBruto=MER.paginas.reduce((s,p)=>s+(p.facturacion||p.valorRecibido||0)+(p.bonificaciones||0),0);
-  const totalDeducciones=MER.paginas.reduce((s,p)=>s+(p.deducciones||0),0);
-  const valorNeto=valorBruto-totalDeducciones; // Lo que Mercury realmente recibe
-  const totalDistribuido=MER.distribucion.reduce((s,e)=>s+(e.valor||0),0);
-  const totalCreditos=MER.paginas.reduce((s,p)=>s+(p.creditos||0),0);
-  const nuevo={
-    id, fecha,
-    paginas: [...MER.paginas],
-    valorRecibido: valorNeto,       // Neto: bruto − deducciones
-    valorBruto: valorBruto,         // Bruto: facturación + bonificaciones
-    totalDeducciones: totalDeducciones,
-    totalDistribuido: totalDistribuido,
-    totalCreditos: totalCreditos,
-    moneda: document.getElementById('mer-ing-moneda').value,
-    referencia: document.getElementById('mer-ing-ref').value,
-    obs: document.getElementById('mer-ing-obs').value,
-    distribucion: [...MER.distribucion],
-    createdAt: new Date().toISOString()
-  };
-  if(MER.editId){
-    const idx=d.ingresos.findIndex(x=>x.id===MER.editId);
-    if(idx>=0) d.ingresos[idx]=nuevo; else d.ingresos.push(nuevo);
-  } else {
-    d.ingresos.push(nuevo);
+
+  // ── Deshabilitar botón para evitar doble envío ───────────────────────────
+  const btnFin = document.querySelector('#modal-mercury-ingreso button[onclick*="merGuardarIngreso"]');
+  if(btnFin){ btnFin.disabled=true; btnFin.textContent='⏳ Guardando...'; }
+
+  try {
+    const d = getMerData();
+    // Asignar ID SOLO en el momento de guardar (merNextId es puro calculador)
+    const id = MER.editId || merNextId('I');
+    const valorBruto=MER.paginas.reduce((s,p)=>s+(p.facturacion||p.valorRecibido||0)+(p.bonificaciones||0),0);
+    const totalDeducciones=MER.paginas.reduce((s,p)=>s+(p.deducciones||0),0);
+    const valorNeto=valorBruto-totalDeducciones;
+    const totalDistribuido=MER.distribucion.reduce((s,e)=>s+(e.valor||0),0);
+    const totalCreditos=MER.paginas.reduce((s,p)=>s+(p.creditos||0),0);
+    const moneda=document.getElementById('mer-ing-moneda').value;
+    const referencia=document.getElementById('mer-ing-ref').value;
+    const obs=document.getElementById('mer-ing-obs').value;
+    const nuevo={
+      id, fecha,
+      paginas: [...MER.paginas],
+      valorRecibido: valorNeto,
+      valorBruto: valorBruto,
+      totalDeducciones: totalDeducciones,
+      totalDistribuido: totalDistribuido,
+      totalCreditos: totalCreditos,
+      moneda, referencia, obs,
+      distribucion: [...MER.distribucion],
+      createdAt: new Date().toISOString()
+    };
+
+    // ── PASO 1: Supabase primero (esperar confirmación real) ─────────────────
+    if (_supaDb) {
+      const supaRow = {
+        id,
+        fecha: fecha || null,
+        moneda: moneda || 'USD',
+        valor_bruto: valorBruto || 0,
+        valor_recibido: valorNeto || 0,
+        total_creditos: totalCreditos || 0,
+        total_deducciones: totalDeducciones || 0,
+        total_distribuido: totalDistribuido || 0,
+        paginas: JSON.stringify(nuevo.paginas),
+        distribucion: JSON.stringify(nuevo.distribucion),
+        referencia: referencia || '',
+        obs: obs || '',
+        created_at: nuevo.createdAt,
+      };
+      const { error } = await _supaDb.from('mercury_ingresos').upsert([supaRow], { onConflict: 'id' });
+      if (error) {
+        // Error visible — NO ocultar. El usuario necesita saber.
+        console.error('[MER] merGuardarIngreso Supabase error:', error);
+        const msg = error.message || JSON.stringify(error);
+        toast('⚠️ Error Supabase al guardar ingreso: ' + msg + ' — Guardando solo en local. CONTACTA SOPORTE si el problema persiste.', 'error');
+        // Continúa de todas formas → guarda en localStorage para no perder datos
+      } else {
+        console.log('[MER] merGuardarIngreso: Supabase confirmó OK →', id);
+      }
+    }
+
+    // ── PASO 2: Guardar en localStorage (siempre, incluso si Supabase falló) ─
+    if(MER.editId){
+      const idx=d.ingresos.findIndex(x=>x.id===MER.editId);
+      if(idx>=0) d.ingresos[idx]=nuevo; else d.ingresos.push(nuevo);
+    } else {
+      d.ingresos.push(nuevo);
+    }
+    const idNum=parseInt((id.match(/(\d+)$/) || [0,0])[1]);
+    if(idNum > (d.maxIngId||0)) d.maxIngId=idNum;
+    saveMerData(d);  // localStorage + background sync del objeto completo
+
+    // ── PASO 3: Audit, cerrar modal, actualizar UI ───────────────────────────
+    const pagNames=MER.paginas.map(p=>p.tipo==='plataforma'?p.plataforma:p.origen).join(', ');
+    merAudit('Ingreso registrado', `ID: ${id} · ${MER.paginas.length} página(s): ${pagNames} · Bruto USD ${valorBruto.toFixed(2)} · Ded USD ${totalDeducciones.toFixed(2)} · Neto USD ${valorNeto.toFixed(2)}`);
+    const melFin=document.getElementById('modal-mercury-ingreso');
+    melFin.style.display=''; melFin.classList.remove('open');
+    toast('✅ Ingreso Mercury registrado — '+id,'success');
+    renderMercury();
+
+  } catch(e) {
+    console.error('[MER] merGuardarIngreso error inesperado:', e);
+    toast('❌ Error inesperado al guardar: '+e.message,'error');
+  } finally {
+    // Re-habilitar botón siempre
+    if(btnFin){ btnFin.disabled=false; btnFin.textContent='💾 Finalizar Registro'; }
   }
-  // Confirmar consecutivo en localStorage
-  const idNum=parseInt((id.match(/(\d+)$/) || [0,0])[1]);
-  if(idNum > (d.maxIngId||0)) d.maxIngId=idNum;
-  saveMerData(d);
-  const pagNames=MER.paginas.map(p=>p.tipo==='plataforma'?p.plataforma:p.origen).join(', ');
-  merAudit('Ingreso registrado', `ID: ${id} · ${MER.paginas.length} página(s): ${pagNames} · Bruto USD ${valorBruto.toFixed(2)} · Ded USD ${totalDeducciones.toFixed(2)} · Neto USD ${valorNeto.toFixed(2)}`);
-  // Cierra modal limpiando tanto inline style como clase .open
-  const melFin=document.getElementById('modal-mercury-ingreso');
-  melFin.style.display=''; melFin.classList.remove('open');
-  toast('Ingreso Mercury registrado — '+id,'success');
-  renderMercury();
 }
 
 // ─── NUEVO EGRESO ──────────────────────────────────────────────────────────

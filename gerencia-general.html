@@ -5346,86 +5346,8 @@ const _origGoPage = typeof goPage === 'function' ? goPage : null;
 // Se parchea después de que goPage esté definida (ver más abajo)
 
 // ── Init Supabase ──
-// ═══════════════════════════════════════════════════════════════════════
-// AUTO-LIMPIEZA QUIRÚRGICA — definida aquí, llamada al inicio del load
-// ═══════════════════════════════════════════════════════════════════════
-async function _mercuryRevertOnce(supaDb) {
-  const FLAG = 'jd_revert_egresos_v1';
-  if (localStorage.getItem(FLAG)) return;
-  localStorage.setItem(FLAG, '1');
-  try {
-    const mer  = JSON.parse(localStorage.getItem('jd_mercury')        || '{"ingresos":[],"egresos":[],"ahorros":[],"auditLog":[]}');
-    const mons = JSON.parse(localStorage.getItem('jd_monetizaciones') || '[]');
-
-    // Identificar egresos a borrar: los que tienen monetización vinculada
-    const monsByEgr = {};
-    mons.forEach(m => { if (m.mercuryEgresoId) monsByEgr[m.mercuryEgresoId] = m.id; });
-
-    let egresoIdsElim = new Set(mer.egresos.filter(e => monsByEgr[e.id]).map(e => e.id));
-    let monIdsElim    = new Set([...egresoIdsElim].map(id => monsByEgr[id]).filter(Boolean));
-
-    // Si no hay egresos con monetización, borrar todos los egresos Mercury (estado debe ser solo ingreso)
-    if (!egresoIdsElim.size && mer.egresos.length > 0) {
-      egresoIdsElim = new Set(mer.egresos.map(e => e.id));
-      // Borrar también monetizaciones Mercury huérfanas
-      mons.filter(m => m.mercuryEgresoId && egresoIdsElim.has(m.mercuryEgresoId))
-          .forEach(m => monIdsElim.add(m.id));
-    }
-
-    if (!egresoIdsElim.size) return; // Nada que limpiar
-
-    // ── Paso 1: Limpiar localStorage ──────────────────────────────────
-    mer.egresos = mer.egresos.filter(e => !egresoIdsElim.has(e.id));
-    const monsNew = mons.filter(m => !monIdsElim.has(m.id));
-    localStorage.setItem('jd_mercury',        JSON.stringify(mer));
-    localStorage.setItem('jd_monetizaciones', JSON.stringify(monsNew));
-    console.info('[REVERT] Egresos eliminados de localStorage:', [...egresoIdsElim].join(', '));
-    console.info('[REVERT] Monetizaciones eliminadas:', [...monIdsElim].join(', '));
-    console.info('[REVERT] Ingresos conservados:', mer.ingresos.map(i=>i.id).join(', ') || '(ninguno en localStorage)');
-
-    // ── Paso 2: Eliminar de Supabase (para que el sync no los traiga de vuelta) ──
-    for (const eid of egresoIdsElim) {
-      try {
-        await supaDb.from('mercury_egresos').delete().eq('id', eid);
-        console.info('[REVERT] Supabase: egreso', eid, 'eliminado');
-      } catch(e) { console.warn('[REVERT] Supabase egreso delete error:', e.message); }
-    }
-
-    // ── Paso 3: Si no hay ingresos locales, intentar recuperarlos de Supabase ──
-    if (!mer.ingresos.length) {
-      console.info('[REVERT] No hay ingresos en localStorage — intentando recuperar de Supabase...');
-      try {
-        const { data: supaIngs } = await supaDb.from('mercury_ingresos').select('*');
-        if (supaIngs && supaIngs.length) {
-          const merNow = JSON.parse(localStorage.getItem('jd_mercury') || '{}');
-          merNow.ingresos = supaIngs.map(si => {
-            let paginas=[], distribucion=[];
-            try{ paginas=si.paginas?JSON.parse(si.paginas):[]; }catch(e){}
-            try{ distribucion=si.distribucion?JSON.parse(si.distribucion):[]; }catch(e){}
-            return { id:si.id, fecha:si.fecha, moneda:si.moneda||'USD',
-              valorRecibido:si.valor_recibido||0, valor:si.valor_recibido||0,
-              valorBruto:si.valor_bruto||0, totalCreditos:si.total_creditos||0,
-              totalDeducciones:si.total_deducciones||0, totalDistribuido:si.total_distribuido||0,
-              paginas, distribucion, referencia:si.referencia||'', obs:si.obs||'',
-              createdAt:si.created_at||new Date().toISOString() };
-          });
-          localStorage.setItem('jd_mercury', JSON.stringify(merNow));
-          console.info('[REVERT] Ingresos recuperados de Supabase:', supaIngs.map(i=>i.id).join(', '));
-        } else {
-          console.warn('[REVERT] Supabase también devolvió 0 ingresos. El RLS fix puede no estar aplicado.');
-        }
-      } catch(e) { console.warn('[REVERT] No se pudo recuperar ingresos de Supabase:', e.message); }
-    }
-  } catch(err) {
-    console.error('[REVERT] Error en limpieza:', err.message);
-  }
-}
-
 window.addEventListener('load', async () => {
   _supaDb = supabase.createClient(_SUPA_URL, _SUPA_KEY);
-  // ── LIMPIEZA QUIRÚRGICA antes del sync ──────────────────────────────
-  await _mercuryRevertOnce(_supaDb);
-  // ────────────────────────────────────────────────────────────────────
   // Check existing session
   const { data: { session } } = await _supaDb.auth.getSession();
   if (session && session.user) {
@@ -16717,7 +16639,12 @@ function monCompletarDesMercury(monId){
 function merRenderPendientesMercury(){
   const el=document.getElementById('mon-pendientes-mercury');
   if(!el) return;
-  const mons=getMonetizaciones().filter(m=>monNormalizarEstado(m.estado)==='PENDIENTE POR MONETIZAR');
+  const _EGR_PROHIBIDOS=new Set(['MER-E-000001','MER-E-000002','MER-E-000003','MER-E-000004']);
+  const mons=getMonetizaciones().filter(m=>
+    monNormalizarEstado(m.estado)==='PENDIENTE POR MONETIZAR' &&
+    !_EGR_PROHIBIDOS.has(m.mercuryEgresoId) &&
+    (m.mercury||m.usdDirectos||0)>0
+  );
   if(!mons.length){ el.innerHTML=''; return; }
   const totalUSD=mons.reduce((s,m)=>s+(m.mercury||0),0);
   const totalNetos=mons.reduce((s,m)=>s+Math.max(0,(m.mercury||0)-(m.gastoUSD||0)),0);
@@ -16787,9 +16714,12 @@ function actualizarBadgesMon(){
 // ── Recuperar huérfanos: egresos Mercury colombia sin monetización ──────────
 function merRecuperarOrfanosMercury(){
   try{
+    // IDs de egresos inválidos que nunca deben generar monetizaciones
+    const _EGR_PROHIBIDOS = new Set(['MER-E-000001','MER-E-000002','MER-E-000003','MER-E-000004']);
     const merData = getMerData();
     const mons = getMonetizaciones();
     const orphans = (merData.egresos||[]).filter(e=>
+      !_EGR_PROHIBIDOS.has(e.id) &&
       e.categoria==='colombia' &&
       !mons.some(m=>m.mercuryEgresoId===e.id)
     );
@@ -21059,6 +20989,84 @@ async function _pmcSyncToSupabase(modeloObj) {
 }
 /* ═══════════════════════════════════════════════════════════ */
 
+</script>
+
+<!-- ═══ OVERRIDE FINAL: ocultar banner de egresos prohibidos ═══ -->
+<script>
+(function applyFinalOverride() {
+  const _BANNED = new Set(['MER-E-000001','MER-E-000002','MER-E-000003','MER-E-000004']);
+
+  // Override merRenderPendientesMercury: no mostrar mons de egresos prohibidos ni con valor 0
+  window.merRenderPendientesMercury = function() {
+    const el = document.getElementById('mon-pendientes-mercury');
+    if (!el) return;
+    const all = (typeof getMonetizaciones === 'function') ? getMonetizaciones() : [];
+    const mons = all.filter(m => {
+      if ((typeof monNormalizarEstado === 'function' ? monNormalizarEstado(m.estado) : m.estado) !== 'PENDIENTE POR MONETIZAR') return false;
+      if (_BANNED.has(m.mercuryEgresoId)) return false;
+      if ((m.mercury || m.usdDirectos || 0) <= 0) return false;
+      return true;
+    });
+    if (!mons.length) { el.innerHTML = ''; return; }
+    const totalUSD = mons.reduce((s, m) => s + (m.mercury || 0), 0);
+    const totalNetos = mons.reduce((s, m) => s + Math.max(0, (m.mercury || 0) - (m.gastoUSD || 0)), 0);
+    el.innerHTML = `
+      <div style="background:linear-gradient(135deg,rgba(245,158,11,.18),rgba(245,158,11,.06));border:2px solid #f59e0b;border-radius:14px;padding:16px 20px;margin-bottom:16px;box-shadow:0 4px 20px rgba(245,158,11,.15)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-size:16px;font-weight:800;color:#f59e0b">🚨 DÓLARES PENDIENTES POR MONETIZAR</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">${mons.length} operación(es) de Mercury esperando monetización · Plataforma de origen: <strong style="color:#f59e0b">MERCURY</strong></div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:11px;color:var(--muted)">USD enviados</div>
+            <div style="font-size:22px;font-weight:900;color:#f59e0b">USD ${totalUSD.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+            <div style="font-size:11px;color:#22c55e;font-weight:700">Netos a monetizar: USD ${totalNetos.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+          </div>
+        </div>
+        <div class="tbl-wrap" style="margin:0;border-radius:8px;overflow:hidden">
+          <table style="font-size:12px;width:100%">
+            <thead style="background:rgba(245,158,11,.2)">
+              <tr><th>ID Monetización</th><th>ID Mercury</th><th>Fecha</th><th>USD enviado</th><th>Deducción</th><th>USD Netos</th><th>Banco destino</th><th>Referencia</th><th style="text-align:center">Acción</th></tr>
+            </thead>
+            <tbody>
+              ${mons.sort((a,b)=>(b.mercuryFecha||b.fecha||'').localeCompare(a.mercuryFecha||a.fecha||'')).map(m=>{
+                const netos = Math.max(0,(m.mercury||0)-(m.gastoUSD||0));
+                return `<tr style="border-bottom:1px solid rgba(245,158,11,.15)">
+                  <td style="font-weight:700;color:var(--gold)">${m.id}</td>
+                  <td style="color:#f59e0b;font-weight:600">${m.mercuryEgresoId||'—'}</td>
+                  <td style="white-space:nowrap">${m.mercuryFecha||m.fecha||'—'}</td>
+                  <td style="font-weight:700;color:#f59e0b">USD ${(m.mercury||0).toFixed(2)}</td>
+                  <td style="color:var(--danger);font-size:11px">${(m.gastoUSD||0)>0?'− USD '+(m.gastoUSD||0).toFixed(2):'—'}</td>
+                  <td style="font-weight:800;color:#22c55e">USD ${netos.toFixed(2)}</td>
+                  <td style="font-size:11px">${m.mercuryBanco||m.bancoReceptor||'Bancolombia'}</td>
+                  <td style="font-size:11px;color:var(--muted);max-width:100px;overflow:hidden;text-overflow:ellipsis">${m.mercuryReferencia||'—'}</td>
+                  <td style="text-align:center;padding:6px"><button class="btn btn-sm" style="background:#f59e0b;color:#000;font-weight:800;font-size:12px;padding:6px 16px;border-radius:8px" onclick="monCompletarDesMercury('${m.id}')">💱 MONETIZAR</button></td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+  };
+
+  // Override merRecuperarOrfanosMercury: nunca procesar egresos prohibidos
+  window.merRecuperarOrfanosMercury = function() {
+    try {
+      const merData = (typeof getMerData === 'function') ? getMerData() : {};
+      const mons = (typeof getMonetizaciones === 'function') ? getMonetizaciones() : [];
+      const orphans = (merData.egresos || []).filter(e =>
+        !_BANNED.has(e.id) &&
+        e.categoria === 'colombia' &&
+        !mons.some(m => m.mercuryEgresoId === e.id)
+      );
+      if (!orphans.length) return 0;
+      orphans.forEach(e => (typeof merAutoCrearMonetizacion === 'function') && merAutoCrearMonetizacion(e));
+      return orphans.length;
+    } catch(e) { return 0; }
+  };
+
+  console.info('[OVERRIDE FINAL] merRenderPendientesMercury y merRecuperarOrfanosMercury reemplazadas — egresos prohibidos invisibles');
+})();
 </script>
 
 </body>

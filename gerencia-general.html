@@ -41,6 +41,9 @@ nav{flex:1;padding:10px 0}
 #main{margin-left:220px;flex:1;padding:24px;min-height:100vh;overflow-x:hidden}
 .page{display:none}
 .page.active{display:block}
+/* Páginas fuera de #main (flex-siblings del body) — se posicionan como overlay */
+body > .page.active{position:fixed!important;top:0;left:220px;right:0;bottom:0;display:block!important;overflow-y:auto;overflow-x:hidden;padding:24px;background:var(--bg);z-index:50}
+@media(max-width:768px){body > .page.active{left:0}}
 /* HEADER */
 .page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;gap:12px;flex-wrap:wrap}
 .page-title{font-size:21px;font-weight:700}
@@ -5184,9 +5187,12 @@ function _jdApplyUserUI() {
     // Garantizar que su nav esté visible
     var navE2 = document.getElementById('nav-ejecutivos-item');
     if (navE2) navE2.style.display = 'flex';
-    // Redirigir a su perfil
+    // Redirigir a su perfil (solo si no está ya en una página permitida)
     _excNombre = _jdCurrentUser.nombre || '';
-    setTimeout(function(){ goPage('perfil-ejecutivo'); }, 100);
+    setTimeout(function(){
+      var _excPermBoot = ['ejecutivos', 'perfil-ejecutivo', 'mercury-pin'];
+      if (_excPermBoot.indexOf(currentPage) === -1) goPage('perfil-ejecutivo');
+    }, 100);
   }
 }
 
@@ -5694,7 +5700,7 @@ function toggleNavGroup(id){
 function goPage(id) {
   // ── GUARD EJECUTIVO: solo puede acceder a su propio módulo ──────
   if (_jdCurrentUser && _jdCurrentUser.rol === 'ejecutivo') {
-    var _excPermitidas = ['ejecutivos', 'perfil-ejecutivo'];
+    var _excPermitidas = ['ejecutivos', 'perfil-ejecutivo', 'mercury-pin'];
     if (_excPermitidas.indexOf(id) === -1) {
       // Redirigir silenciosamente a su perfil sin registrar la navegación
       document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
@@ -9501,7 +9507,14 @@ function monTab(tab){
   if(tab==='dashboard') renderMonDashboard();
   if(tab==='fondos') renderMonFondos();
   if(tab==='bancolombia') bancoRenderFlujo();
-  if(tab==='financiero'){ finGuardarSnapshot(); bancoRenderFinanciero(); }
+  if(tab==='financiero'){
+    try { finGuardarSnapshot(); } catch(e){ console.warn('[FIN] finGuardarSnapshot error:',e); }
+    try { bancoRenderFinanciero(); } catch(e){
+      var _elFin = document.getElementById('mon-view-financiero');
+      if(_elFin) _elFin.innerHTML = '<div style="background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.5);border-radius:10px;padding:14px 18px;margin:16px 0"><div style="font-weight:700;color:var(--danger);margin-bottom:4px">⚠️ Error al cargar Financiero</div><div style="font-size:12px;color:var(--muted)">'+(e&&e.message?e.message:String(e))+'</div></div>';
+      console.error('[FIN] bancoRenderFinanciero error:',e);
+    }
+  }
 }
 
 function renderMonetizacion(){
@@ -15796,7 +15809,7 @@ function merEliminarAhorro(id){
 }
 
 // ─── BENEFICIARIOS FAVORITOS ────────────────────────────────────────────────
-const MER_FAV_KEY = 'jd_mercury_fav';
+var MER_FAV_KEY = 'jd_mercury_fav';
 
 function merGetFavoritos(){ return JSON.parse(localStorage.getItem(MER_FAV_KEY)||'[]'); }
 function merSaveFavoritos(favs){
@@ -18593,7 +18606,7 @@ function cfResetFinancieroCompleto(){
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
 // ── Clave de datos ─────────────────────────────────────────────────────────
-const BANCO_KEY = 'jd_banco_movimientos';
+var BANCO_KEY = 'jd_banco_movimientos';
 function getBancoMovs(){ return JSON.parse(localStorage.getItem(BANCO_KEY)||'[]'); }
 function saveBancoMovs(d){ localStorage.setItem(BANCO_KEY, JSON.stringify(d)); }
 
@@ -18789,7 +18802,15 @@ function finGetSnapshots(){
 function bancoRenderFlujo(){
   const el = document.getElementById('mon-view-bancolombia');
   if(!el) return;
-  const d = bancoCalcSaldo();
+  let d;
+  try { d = bancoCalcSaldo(); } catch(e){
+    el.innerHTML = `<div style="background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.5);border-radius:10px;padding:14px 18px;margin-bottom:16px">
+      <div style="font-weight:700;color:var(--danger);margin-bottom:4px">⚠️ Error al calcular saldo Bancolombia</div>
+      <div style="font-size:12px;color:var(--muted)">${e&&e.message?e.message:String(e)}</div>
+    </div>`;
+    console.error('[Banco] bancoCalcSaldo error:', e);
+    return;
+  }
   const mons = getMonetizaciones();
   const movs = getBancoMovs();
   const liqs = getLiqs();
@@ -18876,7 +18897,17 @@ function bancoRenderFlujo(){
     return {...t, saldoTras: saldoAcum};
   }).reverse(); // más reciente primero para display
 
-  el.innerHTML = `
+  // Aviso de estado vacío si no hay datos
+  const _bancoSinDatos = todos.length === 0;
+
+  try { el.innerHTML = `
+  ${_bancoSinDatos ? `<div style="background:rgba(245,158,11,.1);border:1.5px solid rgba(245,158,11,.5);border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+    <span style="font-size:22px">ℹ️</span>
+    <div>
+      <div style="font-weight:700;color:#f59e0b;margin-bottom:3px">Sin movimientos registrados en Bancolombia</div>
+      <div style="font-size:12px;color:var(--muted)">Los movimientos aparecen aquí cuando: (1) completas una monetización Mercury con valor COP, o (2) registras un ingreso/egreso manual. Los KPIs muestran $0 porque no hay datos aún.</div>
+    </div>
+  </div>` : ''}
   <!-- ═══ 8 KPIs PRINCIPALES ═══ -->
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
     <div style="background:linear-gradient(135deg,rgba(34,197,94,.12),rgba(34,197,94,.04));border:2px solid #22c55e;border-radius:12px;padding:14px;text-align:center">
@@ -19128,6 +19159,13 @@ function bancoRenderFlujo(){
     </tbody>
   </table>
   </div>`;
+  } catch(e) {
+    el.innerHTML = `<div style="background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.5);border-radius:10px;padding:14px 18px">
+      <div style="font-weight:700;color:var(--danger);margin-bottom:4px">⚠️ Error al renderizar Bancolombia</div>
+      <div style="font-size:12px;color:var(--muted)">Por favor informa este error: ${'`'}${(()=>{try{return e&&e.message?e.message:String(e);}catch(x){return 'desconocido';}})()}${'`'}</div>
+    </div>`;
+    console.error('[Banco] bancoRenderFlujo error:', e);
+  }
 }
 
 function bancoLinea(label, val, color, neg){
@@ -19211,7 +19249,7 @@ function bancoMovTipoChange(){
 }
 
 // ── NÓMINAS: store simple ────────────────────────────────────────────────────
-const NOM_KEY = 'jd_nominas';
+var NOM_KEY = 'jd_nominas';
 function getNominas(){ return JSON.parse(localStorage.getItem(NOM_KEY)||'[]'); }
 function saveNominas(d){
   localStorage.setItem(NOM_KEY, JSON.stringify(d));

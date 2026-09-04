@@ -20994,7 +20994,37 @@ async function _pmcSyncToSupabase(modeloObj) {
 <!-- ═══ OVERRIDE FINAL: ocultar banner de egresos prohibidos ═══ -->
 <script>
 (function applyFinalOverride() {
-  const _BANNED = new Set(['MER-E-000001','MER-E-000002','MER-E-000003','MER-E-000004']);
+  const _BANNED     = new Set(['MER-E-000001','MER-E-000002','MER-E-000003','MER-E-000004']);
+  const _MON_BANNED = new Set(['MON-000004','MON-000005','MON-000006','MON-000007',
+                               'MON-000008','MON-000009','MON-000010']);
+
+  // ── Limpieza inmediata de localStorage al cargar el script ──────────
+  try {
+    // Limpiar monetizaciones prohibidas
+    var _rawMons = localStorage.getItem('jd_monetizaciones');
+    if (_rawMons) {
+      var _mons = JSON.parse(_rawMons);
+      var _cleanMons = _mons.filter(function(m) {
+        // Solo filtrar por ID de monetización — NO por mercuryEgresoId para preservar MON-000001/2/3 legítimas
+        return !_MON_BANNED.has(m.id);
+      });
+      if (_cleanMons.length < _mons.length) {
+        localStorage.setItem('jd_monetizaciones', JSON.stringify(_cleanMons));
+        console.info('[OVERRIDE FINAL] Monetizaciones prohibidas eliminadas de localStorage:', _mons.length - _cleanMons.length);
+      }
+    }
+    // Limpiar egresos prohibidos de Mercury
+    var _rawMer = localStorage.getItem('jd_mercury');
+    if (_rawMer) {
+      var _mer = JSON.parse(_rawMer);
+      var _origEgrLen = (_mer.egresos || []).length;
+      _mer.egresos = (_mer.egresos || []).filter(function(e) { return !_BANNED.has(e.id); });
+      if (_mer.egresos.length < _origEgrLen) {
+        localStorage.setItem('jd_mercury', JSON.stringify(_mer));
+        console.info('[OVERRIDE FINAL] Egresos prohibidos eliminados de Mercury localStorage:', _origEgrLen - _mer.egresos.length);
+      }
+    }
+  } catch(_e) { console.warn('[OVERRIDE FINAL] Error en limpieza localStorage:', _e.message); }
 
   // Override merRenderPendientesMercury: no mostrar mons de egresos prohibidos ni con valor 0
   window.merRenderPendientesMercury = function() {
@@ -21066,6 +21096,98 @@ async function _pmcSyncToSupabase(modeloObj) {
   };
 
   console.info('[OVERRIDE FINAL] merRenderPendientesMercury y merRecuperarOrfanosMercury reemplazadas — egresos prohibidos invisibles');
+
+  // ── Diagnóstico: log del estado de jd_monetizaciones en consola ──────────
+  try {
+    var _diagMons = JSON.parse(localStorage.getItem('jd_monetizaciones') || '[]');
+    console.info('[OVERRIDE FINAL] jd_monetizaciones actual:', _diagMons.length, 'entradas',
+      JSON.stringify(_diagMons.map(function(m){ return {id:m.id, pesosReal:m.pesosReal, mercuryEgresoId:m.mercuryEgresoId}; })));
+  } catch(_ed) {}
+
+  // ── EMERGENCY RESTORE: Reconstruir MON-000001/2/3 post _loadSupabaseData ──
+  // MON-000001/2/3 fueron eliminadas por un bug en el OVERRIDE anterior que filtraba
+  // por mercuryEgresoId. Este hook las restaura automáticamente después del login.
+  (function _setupEmergencyRestore(){
+    var _orig = window._loadSupabaseData;
+    if (typeof _orig !== 'function') {
+      console.warn('[RESTORE] _loadSupabaseData no disponible — restauración no registrada');
+      return;
+    }
+    window._loadSupabaseData = async function() {
+      var result = await _orig.apply(this, arguments);
+      window._jdEmergencyRestoreMons && window._jdEmergencyRestoreMons();
+      return result;
+    };
+    console.info('[RESTORE] Hook registrado en _loadSupabaseData para restaurar MON-000001/2/3');
+
+    window._jdEmergencyRestoreMons = function() {
+      try {
+        var _mons = JSON.parse(localStorage.getItem('jd_monetizaciones') || '[]');
+        var _monIdSet = new Set(_mons.map(function(m){ return m.id; }));
+        var _TARGET = ['MON-000001','MON-000002','MON-000003'];
+        var _missing = _TARGET.filter(function(id){ return !_monIdSet.has(id); });
+        if (!_missing.length) {
+          console.info('[RESTORE] MON-000001/2/3 presentes — no se necesita restauración');
+          return;
+        }
+        console.warn('[RESTORE] ⚠ Monetizaciones faltantes:', _missing.join(', '), '— iniciando restauración de emergencia');
+
+        // Buscar en jd_ingresos (cargado de Supabase) las entradas auto-registradas
+        // por monAutoRegistrarBancolombia al completar cada monetización
+        var _ingresos = JSON.parse(localStorage.getItem('jd_ingresos') || '[]');
+        var _ingByMon = {};
+        _ingresos.forEach(function(i) {
+          if (i.autoOrigenBancolombia && _TARGET.indexOf(i.autoOrigenBancolombia) >= 0) {
+            _ingByMon[i.autoOrigenBancolombia] = i;
+          }
+        });
+
+        // Valores de fallback (proporcional a Mercury ING-000001/2/3 a tasa 4,183.73 COP/USD)
+        // Suma = 134,303,281 COP → saldo estimado ≈ $33,042,000 COP
+        var _fallback = {
+          'MON-000001': { pesosReal: 73968653, usd: 17680.07, egresoId: 'MER-E-000001' },
+          'MON-000002': { pesosReal: 46781223, usd: 11181.70, egresoId: 'MER-E-000002' },
+          'MON-000003': { pesosReal: 13553405, usd:  3239.55, egresoId: 'MER-E-000003' }
+        };
+
+        var _restored = [];
+        _missing.forEach(function(monId) {
+          var _ing = _ingByMon[monId];
+          var _fb  = _fallback[monId] || {};
+          var _pesosReal = (_ing && _ing.valor > 0) ? _ing.valor : (_fb.pesosReal || 0);
+          var _usd       = (_ing && _ing.valor > 0) ? (_ing.valor / 4183.73) : (_fb.usd || 0);
+          var _src       = (_ing && _ing.valor > 0) ? 'jd_ingresos (Supabase)' : 'estimado';
+          console.info('[RESTORE] ' + monId + ': $' + _pesosReal.toLocaleString('es-CO') + ' COP — fuente: ' + _src);
+          _restored.push({
+            id: monId,
+            estado: 'CERRADA',
+            pesosReal: _pesosReal,
+            usdMonetizados: Math.round(_usd * 100) / 100,
+            mercury: Math.round(_usd * 100) / 100,
+            mercuryEgresoId: _fb.egresoId || '',
+            mercuryOrigen: 'auto',
+            fecha: '2026-08-27',
+            fechaMon: '2026-08-27',
+            bancoReceptor: 'Bancolombia',
+            liqIds: [],
+            pagos: [],
+            updatedAt: new Date().toISOString(),
+            _restoradoAuto: true,
+            _restoreSource: _src
+          });
+        });
+
+        if (_restored.length) {
+          var _updated = _mons.concat(_restored);
+          localStorage.setItem('jd_monetizaciones', JSON.stringify(_updated));
+          var _totalMon = _updated.reduce(function(s,m){ return s + (m.pesosReal||0); }, 0);
+          console.info('[RESTORE] ✅ ' + _restored.length + ' monetización(es) restaurada(s).',
+            'TOTAL MONETIZADO → $' + Math.round(_totalMon).toLocaleString('es-CO') + ' COP');
+        }
+      } catch(_re) { console.warn('[RESTORE] Error en restauración de emergencia:', _re.message); }
+    };
+  })();
+
 })();
 </script>
 

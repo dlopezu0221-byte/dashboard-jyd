@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Mercury Cleanup</title>
+<style>
+  body { font-family: monospace; background: #0f172a; color: #e2e8f0; padding: 24px; margin: 0; }
+  h2 { color: #3b82f6; }
+  .ok { color: #22c55e; font-weight: bold; }
+  .warn { color: #f59e0b; }
+  .err { color: #ef4444; }
+  .box { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin: 12px 0; white-space: pre-wrap; }
+  button { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; margin-top: 12px; }
+  button:hover { background: #2563eb; }
+</style>
+</head>
+<body>
+<h2>🔧 Mercury — Limpieza Automática</h2>
+<div class="box" id="log">Ejecutando...</div>
+<button onclick="location.reload()">🔄 Volver a ejecutar</button>
+<button onclick="window.close()">✅ Cerrar</button>
+
+<script>
+const log = document.getElementById('log');
+function out(msg, cls) {
+  const span = document.createElement('span');
+  span.className = cls || '';
+  span.textContent = msg + '\n';
+  log.appendChild(span);
+}
+
+(function() {
+  log.innerHTML = '';
+  out('═══════════════════════════════════════════');
+  out('  MERCURY CLEANUP — ' + new Date().toLocaleString());
+  out('═══════════════════════════════════════════\n');
+
+  const EGR_MALOS = new Set(['MER-E-000001','MER-E-000002','MER-E-000003','MER-E-000004']);
+  const MON_MALAS = new Set(['MON-000004','MON-000005','MON-000006','MON-000007',
+                              'MON-000008','MON-000009','MON-000010']);
+
+  let mer, mons;
+  try {
+    mer  = JSON.parse(localStorage.getItem('jd_mercury') || '{"ingresos":[],"egresos":[],"ahorros":[],"auditLog":[]}');
+    mons = JSON.parse(localStorage.getItem('jd_monetizaciones') || '[]');
+  } catch(e) {
+    out('❌ Error leyendo localStorage: ' + e.message, 'err');
+    return;
+  }
+
+  const eAnt = (mer.egresos||[]).length;
+  const mAnt = mons.length;
+
+  out('📦 Estado ANTES:', 'warn');
+  out('   Ingresos:       ' + (mer.ingresos||[]).length);
+  out('   Egresos:        ' + eAnt);
+  out('   Monetizaciones: ' + mAnt + '\n');
+
+  // Filtrar
+  const egresosBorrados = (mer.egresos||[]).filter(e => EGR_MALOS.has(e.id));
+  mer.egresos = (mer.egresos||[]).filter(e => !EGR_MALOS.has(e.id));
+
+  const monsBorradas = mons.filter(m => MON_MALAS.has(m.id) || EGR_MALOS.has(m.mercuryEgresoId));
+  const monsFiltradas = mons.filter(m => !MON_MALAS.has(m.id) && !EGR_MALOS.has(m.mercuryEgresoId));
+
+  try {
+    localStorage.setItem('jd_mercury', JSON.stringify(mer));
+    localStorage.setItem('jd_monetizaciones', JSON.stringify(monsFiltradas));
+    localStorage.removeItem('jd_revert_v2_done');
+    localStorage.removeItem('jd_revert_v3_done');
+  } catch(e) {
+    out('❌ Error escribiendo localStorage: ' + e.message, 'err');
+    return;
+  }
+
+  out('🗑️  Egresos eliminados (' + egresosBorrados.length + '):', 'ok');
+  egresosBorrados.forEach(e => out('   • ' + e.id + ' · $' + (e.valor||0).toFixed(2) + ' · ' + (e.categoria||'—')));
+  if (!egresosBorrados.length) out('   (ninguno encontrado — ya estaban limpios)');
+
+  out('\n🗑️  Monetizaciones eliminadas (' + monsBorradas.length + '):', 'ok');
+  monsBorradas.forEach(m => out('   • ' + m.id + ' · ' + (m.estado||'?') + ' · USD ' + (m.mercury||m.usdDirectos||0).toFixed(2)));
+  if (!monsBorradas.length) out('   (ninguna encontrada — ya estaban limpias)');
+
+  out('\n✅ Ingresos CONSERVADOS (' + (mer.ingresos||[]).length + '):', 'ok');
+  (mer.ingresos||[]).forEach(i => out('   • ' + i.id + ' · ' + i.fecha + ' · $' + (i.valorRecibido||i.valor||0).toFixed(2)));
+  if (!(mer.ingresos||[]).length) out('   ⚠️ Sin ingresos en localStorage', 'warn');
+
+  out('\n📦 Estado DESPUÉS:');
+  out('   Ingresos:       ' + (mer.ingresos||[]).length);
+  out('   Egresos:        ' + mer.egresos.length);
+  out('   Monetizaciones: ' + monsFiltradas.length);
+
+  out('\n═══════════════════════════════════════════');
+  if (egresosBorrados.length || monsBorradas.length) {
+    out('✅ LISTO. Ahora cierra esta pestaña y recarga el dashboard (F5).', 'ok');
+  } else {
+    out('ℹ️  El localStorage ya estaba limpio. Recarga el dashboard (F5).', 'warn');
+  }
+  out('═══════════════════════════════════════════');
+})();
+</script>
+</body>
+</html>

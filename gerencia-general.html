@@ -15387,7 +15387,7 @@ function merCalcSaldos(){
 }
 
 // ─── SEGURIDAD: PIN ────────────────────────────────────────────────────────
-let merSesionActiva = false;
+var merSesionActiva = false;
 
 function merCheckAccess(){
   if(merSesionActiva){ goPage('mercury'); return; }

@@ -18607,7 +18607,7 @@ function cfResetFinancieroCompleto(){
 
 // ── Clave de datos ─────────────────────────────────────────────────────────
 var BANCO_KEY = 'jd_banco_movimientos';
-function getBancoMovs(){ return JSON.parse(localStorage.getItem(BANCO_KEY)||'[]'); }
+function getBancoMovs(){ var _r=JSON.parse(localStorage.getItem(BANCO_KEY)||'[]'); return Array.isArray(_r)?_r:[]; }
 function saveBancoMovs(d){ localStorage.setItem(BANCO_KEY, JSON.stringify(d)); }
 
 // ── Cálculo del saldo ────────────────────────────────────────────────────
@@ -20544,7 +20544,7 @@ function jdExportarBackup(){
   function _fromSupaModelos(rows) {
     return (rows||[]).map(function(r) {
       var base = { id:r.id, nombreAgencia:r.nombre||'', nombreReal:r.nombre_real||'',
-        estado:r.estado||'Activo', monitor:r.monitor||'',
+        estado:(r.estado==='Activo'?'Activa':(r.estado||'Activa')), monitor:r.monitor||'',
         paginasVinculadas:r.plataformas||[] };
       return Object.assign({}, r.datos_extra||{}, base);
     });

@@ -3932,6 +3932,7 @@ td[style*="text-align:right"], th[style*="text-align:right"] {
       <div class="fg"><label>Categoría *</label>
         <select id="mer-egr-categoria" onchange="merEgrCatChange()">
           <option value="colombia">🇨🇴 Transferencia a Colombia</option>
+          <option value="ajuste-chaturbate">💰 Ajuste por Monetización de Chaturbate</option>
           <option value="impuesto">🏛️ Impuesto (USA)</option>
           <option value="contabilidad">📊 Contabilidad / Contador</option>
           <option value="honorarios">👔 Honorarios</option>
@@ -3942,7 +3943,38 @@ td[style*="text-align:right"], th[style*="text-align:right"] {
           <option value="otro">🔹 Otro egreso</option>
         </select>
       </div>
-      <div class="fg"><label>Valor (USD) *</label>
+      <!-- ── CAMPOS AJUSTE CHATURBATE (solo visibles cuando se selecciona esa categoría) ── -->
+      <div id="mer-egr-fg-ajuste-chat" style="display:none" class="fg s2">
+        <div style="background:rgba(245,158,11,.1);border:1px solid #f59e0b;border-radius:8px;padding:12px 16px">
+          <div style="font-size:12px;font-weight:700;color:#f59e0b;margin-bottom:10px">💰 Ajuste por Monetización de Chaturbate</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <label style="font-size:11px;color:var(--muted)">Ingreso Mercury relacionado *</label>
+              <select id="mer-egr-ajuste-ingreso-id" onchange="merEgrAjusteCalc()" style="width:100%;margin-top:4px">
+                <option value="">— Seleccionar ingreso —</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:11px;color:var(--muted)">Valor ingreso bruto (USD)</label>
+              <input type="text" id="mer-egr-ajuste-ingreso-val" readonly style="background:rgba(255,255,255,.05);font-weight:700;color:#3b82f6;margin-top:4px" value="—">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <label style="font-size:11px;color:var(--muted)">Ajuste Chaturbate (USD) *</label>
+              <input type="number" id="mer-egr-ajuste-valor" step="0.01" min="0" placeholder="0.00" oninput="merEgrAjusteCalc()" style="margin-top:4px">
+              <span style="font-size:10px;color:var(--muted)">Monto ya monetizado/adelantado por Chaturbate</span>
+            </div>
+            <div>
+              <label style="font-size:11px;color:var(--muted)">Valor a monetizar en Colombia</label>
+              <input type="text" id="mer-egr-ajuste-neto" readonly style="background:rgba(34,197,94,.1);border-color:#22c55e;font-weight:800;color:#22c55e;font-size:16px;margin-top:4px" value="USD 0.00">
+              <span style="font-size:10px;color:#22c55e">= Ingreso − Ajuste Chaturbate</span>
+            </div>
+          </div>
+          <div id="mer-egr-ajuste-alerta" style="display:none;font-size:12px;color:#ef4444;padding:8px;background:rgba(239,68,68,.1);border-radius:6px;margin-top:4px"></div>
+        </div>
+      </div>
+      <div class="fg" id="mer-egr-fg-valor-normal"><label>Valor (USD) *</label>
         <input type="number" id="mer-egr-valor" step="0.01" min="0" placeholder="0.00">
       </div>
       <!-- Beneficiarios Favoritos -->
@@ -5314,8 +5346,86 @@ const _origGoPage = typeof goPage === 'function' ? goPage : null;
 // Se parchea después de que goPage esté definida (ver más abajo)
 
 // ── Init Supabase ──
+// ═══════════════════════════════════════════════════════════════════════
+// AUTO-LIMPIEZA QUIRÚRGICA — definida aquí, llamada al inicio del load
+// ═══════════════════════════════════════════════════════════════════════
+async function _mercuryRevertOnce(supaDb) {
+  const FLAG = 'jd_revert_egresos_v1';
+  if (localStorage.getItem(FLAG)) return;
+  localStorage.setItem(FLAG, '1');
+  try {
+    const mer  = JSON.parse(localStorage.getItem('jd_mercury')        || '{"ingresos":[],"egresos":[],"ahorros":[],"auditLog":[]}');
+    const mons = JSON.parse(localStorage.getItem('jd_monetizaciones') || '[]');
+
+    // Identificar egresos a borrar: los que tienen monetización vinculada
+    const monsByEgr = {};
+    mons.forEach(m => { if (m.mercuryEgresoId) monsByEgr[m.mercuryEgresoId] = m.id; });
+
+    let egresoIdsElim = new Set(mer.egresos.filter(e => monsByEgr[e.id]).map(e => e.id));
+    let monIdsElim    = new Set([...egresoIdsElim].map(id => monsByEgr[id]).filter(Boolean));
+
+    // Si no hay egresos con monetización, borrar todos los egresos Mercury (estado debe ser solo ingreso)
+    if (!egresoIdsElim.size && mer.egresos.length > 0) {
+      egresoIdsElim = new Set(mer.egresos.map(e => e.id));
+      // Borrar también monetizaciones Mercury huérfanas
+      mons.filter(m => m.mercuryEgresoId && egresoIdsElim.has(m.mercuryEgresoId))
+          .forEach(m => monIdsElim.add(m.id));
+    }
+
+    if (!egresoIdsElim.size) return; // Nada que limpiar
+
+    // ── Paso 1: Limpiar localStorage ──────────────────────────────────
+    mer.egresos = mer.egresos.filter(e => !egresoIdsElim.has(e.id));
+    const monsNew = mons.filter(m => !monIdsElim.has(m.id));
+    localStorage.setItem('jd_mercury',        JSON.stringify(mer));
+    localStorage.setItem('jd_monetizaciones', JSON.stringify(monsNew));
+    console.info('[REVERT] Egresos eliminados de localStorage:', [...egresoIdsElim].join(', '));
+    console.info('[REVERT] Monetizaciones eliminadas:', [...monIdsElim].join(', '));
+    console.info('[REVERT] Ingresos conservados:', mer.ingresos.map(i=>i.id).join(', ') || '(ninguno en localStorage)');
+
+    // ── Paso 2: Eliminar de Supabase (para que el sync no los traiga de vuelta) ──
+    for (const eid of egresoIdsElim) {
+      try {
+        await supaDb.from('mercury_egresos').delete().eq('id', eid);
+        console.info('[REVERT] Supabase: egreso', eid, 'eliminado');
+      } catch(e) { console.warn('[REVERT] Supabase egreso delete error:', e.message); }
+    }
+
+    // ── Paso 3: Si no hay ingresos locales, intentar recuperarlos de Supabase ──
+    if (!mer.ingresos.length) {
+      console.info('[REVERT] No hay ingresos en localStorage — intentando recuperar de Supabase...');
+      try {
+        const { data: supaIngs } = await supaDb.from('mercury_ingresos').select('*');
+        if (supaIngs && supaIngs.length) {
+          const merNow = JSON.parse(localStorage.getItem('jd_mercury') || '{}');
+          merNow.ingresos = supaIngs.map(si => {
+            let paginas=[], distribucion=[];
+            try{ paginas=si.paginas?JSON.parse(si.paginas):[]; }catch(e){}
+            try{ distribucion=si.distribucion?JSON.parse(si.distribucion):[]; }catch(e){}
+            return { id:si.id, fecha:si.fecha, moneda:si.moneda||'USD',
+              valorRecibido:si.valor_recibido||0, valor:si.valor_recibido||0,
+              valorBruto:si.valor_bruto||0, totalCreditos:si.total_creditos||0,
+              totalDeducciones:si.total_deducciones||0, totalDistribuido:si.total_distribuido||0,
+              paginas, distribucion, referencia:si.referencia||'', obs:si.obs||'',
+              createdAt:si.created_at||new Date().toISOString() };
+          });
+          localStorage.setItem('jd_mercury', JSON.stringify(merNow));
+          console.info('[REVERT] Ingresos recuperados de Supabase:', supaIngs.map(i=>i.id).join(', '));
+        } else {
+          console.warn('[REVERT] Supabase también devolvió 0 ingresos. El RLS fix puede no estar aplicado.');
+        }
+      } catch(e) { console.warn('[REVERT] No se pudo recuperar ingresos de Supabase:', e.message); }
+    }
+  } catch(err) {
+    console.error('[REVERT] Error en limpieza:', err.message);
+  }
+}
+
 window.addEventListener('load', async () => {
   _supaDb = supabase.createClient(_SUPA_URL, _SUPA_KEY);
+  // ── LIMPIEZA QUIRÚRGICA antes del sync ──────────────────────────────
+  await _mercuryRevertOnce(_supaDb);
+  // ────────────────────────────────────────────────────────────────────
   // Check existing session
   const { data: { session } } = await _supaDb.auth.getSession();
   if (session && session.user) {
@@ -16392,7 +16502,11 @@ function merNuevoEgreso(){
   document.getElementById('mer-egr-title').textContent='Nuevo Egreso / Transferencia Mercury';
   document.getElementById('mer-egr-id-preview').textContent=merNextId('E');
   document.getElementById('mer-egr-fecha').value=new Date().toISOString().slice(0,10);
-  ['mer-egr-valor','mer-egr-beneficiario','mer-egr-concepto','mer-egr-ref','mer-egr-obs','mer-egr-cuenta','mer-egr-tasa','mer-egr-cop'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['mer-egr-valor','mer-egr-beneficiario','mer-egr-concepto','mer-egr-ref','mer-egr-obs','mer-egr-cuenta','mer-egr-tasa','mer-egr-cop',
+   'mer-egr-ajuste-valor','mer-egr-ajuste-ingreso-val','mer-egr-ajuste-neto'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  // Reset ajuste dropdown
+  const ajSel=document.getElementById('mer-egr-ajuste-ingreso-id'); if(ajSel) ajSel.selectedIndex=0;
+  const ajAlerta=document.getElementById('mer-egr-ajuste-alerta'); if(ajAlerta) ajAlerta.style.display='none';
   document.getElementById('mer-egr-categoria').value='colombia';
   merEgrCatChange();
   merRenderFavSelect(); // cargar favoritos guardados
@@ -16406,15 +16520,65 @@ function merNuevoEgreso(){
 
 function merEgrCatChange(){
   const cat=document.getElementById('mer-egr-categoria').value;
-  const esCol=cat==='colombia';
+  const esCol = cat==='colombia';
+  const esAjusteChat = cat==='ajuste-chaturbate';
+  // Campos Colombia
   ['mer-egr-fg-banco','mer-egr-fg-cuenta','mer-egr-fg-tasa','mer-egr-fg-cop'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display=esCol?'':'none';
   });
+  // Panel ajuste Chaturbate
+  const panelAj=document.getElementById('mer-egr-fg-ajuste-chat');
+  if(panelAj) panelAj.style.display=esAjusteChat?'':'none';
+  // Campo valor normal (oculto en ajuste-chaturbate porque el valor se calcula)
+  const fgVal=document.getElementById('mer-egr-fg-valor-normal');
+  if(fgVal) fgVal.style.display=esAjusteChat?'none':'';
+  // Si es ajuste-chaturbate, poblar el dropdown de ingresos
+  if(esAjusteChat) merEgrPoblarIngresos();
+}
+
+function merEgrPoblarIngresos(){
+  const sel=document.getElementById('mer-egr-ajuste-ingreso-id'); if(!sel) return;
+  const d=getMerData();
+  const ingresos=(d.ingresos||[]).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  sel.innerHTML='<option value="">— Seleccionar ingreso Mercury —</option>'+
+    ingresos.map(i=>`<option value="${i.id}" data-val="${i.valorRecibido||0}">
+      ${i.id} · ${i.fecha||''} · USD ${(i.valorRecibido||0).toLocaleString('en-US',{minimumFractionDigits:2})}
+      ${(i.paginas||[]).map(p=>p.tipo==='plataforma'?p.plataforma:p.origen).filter(Boolean).join(', ')
+        ? ' · '+(i.paginas||[]).map(p=>p.tipo==='plataforma'?p.plataforma:p.origen).filter(Boolean).join(', ') : ''}
+    </option>`).join('');
+  merEgrAjusteCalc();
+}
+
+function merEgrAjusteCalc(){
+  const sel=document.getElementById('mer-egr-ajuste-ingreso-id');
+  const opt=sel&&sel.selectedOptions[0];
+  const ingresoVal=opt&&opt.value ? parseFloat(opt.getAttribute('data-val')||0) : 0;
+  const ajuste=parseFloat((document.getElementById('mer-egr-ajuste-valor')||{}).value)||0;
+  const neto=ingresoVal-ajuste;
+  const fmtU=v=>'USD '+(v||0).toLocaleString('en-US',{minimumFractionDigits:2});
+  const elIngVal=document.getElementById('mer-egr-ajuste-ingreso-val');
+  if(elIngVal) elIngVal.value = ingresoVal>0 ? fmtU(ingresoVal) : '—';
+  const elNeto=document.getElementById('mer-egr-ajuste-neto');
+  const alerta=document.getElementById('mer-egr-ajuste-alerta');
+  if(elNeto){
+    elNeto.value=fmtU(neto);
+    elNeto.style.color = neto<0 ? '#ef4444' : '#22c55e';
+    elNeto.style.borderColor = neto<0 ? '#ef4444' : '#22c55e';
+  }
+  if(alerta){
+    if(neto<0){
+      alerta.style.display='block';
+      alerta.textContent='⛔ El ajuste ('+fmtU(ajuste)+') supera el ingreso ('+fmtU(ingresoVal)+'). El valor neto no puede ser negativo.';
+    } else {
+      alerta.style.display='none';
+    }
+  }
 }
 
 // ─── INTEGRACIÓN MERCURY → MONETIZACIÓN ────────────────────────────────────
 function merAutoCrearMonetizacion(egreso){
-  if(!egreso||egreso.categoria!=='colombia') return;
+  const catOk = egreso&&(egreso.categoria==='colombia'||egreso.categoria==='ajuste-chaturbate');
+  if(!catOk) return;
   // Dedup: no crear si ya existe una monetización con este mercuryEgresoId
   const mons = getMonetizaciones();
   if(mons.some(m=>m.mercuryEgresoId===egreso.id)){
@@ -16426,17 +16590,24 @@ function merAutoCrearMonetizacion(egreso){
   seq++;
   localStorage.setItem(KEY,String(seq));
   const monId='MON-'+seq.toString().padStart(6,'0');
+  // Para ajuste-chaturbate, el valor que se monetiza es el NETO (egreso.valor)
+  // Para colombia, es el valor enviado directamente
+  const valorMonetizar = egreso.valor||0;
+  const esAjuste = egreso.categoria==='ajuste-chaturbate';
+  const obsBase = esAjuste
+    ? `Auto-generado desde Mercury ${egreso.id} (Ajuste Chaturbate). Ingreso origen: ${egreso.ingresoId||'—'}. Bruto: USD ${(egreso.valorBrutoIngreso||0).toFixed(2)} · Ajuste: USD ${(egreso.ajusteChaturbate||0).toFixed(2)} · Neto: USD ${valorMonetizar.toFixed(2)}`
+    : `Auto-generado desde Mercury ${egreso.id}. Concepto: ${egreso.concepto||'—'}`;
   const monObj={
     id: monId,
     fecha: egreso.fecha,
     opNumero: egreso.referencia||egreso.id,
-    obs: `Auto-generado desde Mercury ${egreso.id}. Concepto: ${egreso.concepto||'—'}`,
+    obs: obsBase,
     estado: 'PENDIENTE POR MONETIZAR',
-    plataforma: 'Mercury Colombia',
-    usdDirectos: egreso.valor||0,
+    plataforma: esAjuste ? 'Mercury Chaturbate (Ajuste)' : 'Mercury Colombia',
+    usdDirectos: valorMonetizar,
     liqIds: [],
-    totalUSDFacturado: egreso.valor||0,
-    mercury: egreso.valor||0,
+    totalUSDFacturado: valorMonetizar,
+    mercury: valorMonetizar,
     gastoUSD: 0, gastoObs: '',
     usdMonetizados: 0, tasaBancolombia: 0, fechaMon: '', pesosReal: 0,
     tasaSuperfi: 0, fechaTasa: '', fuenteTasa: 'Superintendencia Financiera de Colombia', fechaConsulta: '',
@@ -16451,14 +16622,22 @@ function merAutoCrearMonetizacion(egreso){
     mercuryBeneficiario: egreso.beneficiario||'',
     mercuryReferencia: egreso.referencia||'',
     mercuryCuenta: egreso.cuenta||'',
-    mercuryValorUSD: egreso.valor||0,
+    mercuryValorUSD: valorMonetizar,
+    // Trazabilidad extra para ajuste Chaturbate
+    ...(esAjuste ? {
+      mercuryIngresoId: egreso.ingresoId||'',
+      mercuryValorBruto: egreso.valorBrutoIngreso||0,
+      mercuryAjusteChaturbate: egreso.ajusteChaturbate||0,
+    } : {}),
     mercuryOrigen: 'auto',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     historial: [{
       fecha: new Date().toISOString(),
-      accion: 'Creado automáticamente desde Mercury',
-      detalle: `Egreso ${egreso.id} · USD ${(egreso.valor||0).toFixed(2)} · Beneficiario: ${egreso.beneficiario||'—'} · Banco: ${egreso.banco||'—'}`,
+      accion: esAjuste ? 'Creado automáticamente desde Mercury (Ajuste Chaturbate)' : 'Creado automáticamente desde Mercury',
+      detalle: esAjuste
+        ? `Egreso ${egreso.id} · Bruto USD ${(egreso.valorBrutoIngreso||0).toFixed(2)} − Ajuste USD ${(egreso.ajusteChaturbate||0).toFixed(2)} = Neto USD ${valorMonetizar.toFixed(2)}`
+        : `Egreso ${egreso.id} · USD ${valorMonetizar.toFixed(2)} · Beneficiario: ${egreso.beneficiario||'—'} · Banco: ${egreso.banco||'—'}`,
       estado: 'PENDIENTE POR MONETIZAR'
     }]
   };
@@ -16626,10 +16805,71 @@ function merRecuperarOrfanosMercury(){
 function merGuardarEgreso(){
   const d = getMerData();
   const fecha=document.getElementById('mer-egr-fecha').value;
-  const valor=parseFloat(document.getElementById('mer-egr-valor').value)||0;
   const cat=document.getElementById('mer-egr-categoria').value;
-  if(!fecha||!valor){ toast('Completa fecha y valor','warn'); return; }
+  if(!fecha){ toast('Completa la fecha','warn'); return; }
   if(!document.getElementById('mer-egr-concepto').value){ toast('Ingresa el concepto','warn'); return; }
+
+  // ── Rama: Ajuste por Monetización de Chaturbate ─────────────────────────
+  if(cat==='ajuste-chaturbate'){
+    const sel=document.getElementById('mer-egr-ajuste-ingreso-id');
+    const opt=sel&&sel.selectedOptions[0];
+    const ingresoId=opt&&opt.value ? opt.value : '';
+    const ingresoVal=ingresoId ? parseFloat(opt.getAttribute('data-val')||0) : 0;
+    const ajusteVal=parseFloat((document.getElementById('mer-egr-ajuste-valor')||{}).value)||0;
+    const neto=ingresoVal-ajusteVal;
+    if(!ingresoId){ toast('Selecciona el ingreso Mercury de origen','warn'); return; }
+    if(ajusteVal<=0){ toast('El valor del ajuste debe ser mayor a 0','warn'); return; }
+    if(neto<0){ toast('El ajuste supera el ingreso — revisa los valores','warn'); return; }
+    const id=merNextId('E');
+    const nuevo={
+      id, fecha, categoria: cat,
+      valor: neto,                    // valor neto que llega a Colombia
+      ajusteChaturbate: ajusteVal,    // el ajuste descontado
+      valorBrutoIngreso: ingresoVal,  // ingreso bruto Mercury original
+      ingresoId: ingresoId,           // trazabilidad → ingreso Mercury origen
+      moneda:'USD',
+      beneficiario: document.getElementById('mer-egr-beneficiario').value,
+      concepto: document.getElementById('mer-egr-concepto').value,
+      banco:'', cuenta:'', tasaCambio:0, valorCOP:0,
+      referencia: document.getElementById('mer-egr-ref').value,
+      obs: document.getElementById('mer-egr-obs').value,
+      estado:'Registrado',
+      createdAt: new Date().toISOString()
+    };
+    d.egresos.push(nuevo);
+    saveMerData(d);
+    merAudit('Egreso Ajuste Chaturbate registrado',
+      `ID: ${id} · Ingreso origen: ${ingresoId} · Bruto: USD ${ingresoVal} · Ajuste: USD ${ajusteVal} · Neto Colombia: USD ${neto}`);
+    // Crear monetización con el valor NETO (lo que llega a Colombia)
+    merAutoCrearMonetizacion(nuevo);
+    merAudit('Monetización auto-creada (ajuste)',`Egreso ${id} → Pendiente por Monetizar · USD ${neto} (neto tras ajuste Chaturbate)`);
+    try{ actualizarBadgesMon&&actualizarBadgesMon(); }catch(e){}
+    closeModal('modal-mercury-egreso');
+    toast(`✅ Ajuste registrado — Neto a Colombia: USD ${neto.toLocaleString('en-US',{minimumFractionDigits:2})}`,'success');
+    renderMercury();
+    // Banner informativo
+    setTimeout(()=>{
+      const banner=document.createElement('div');
+      banner.id='mer-mon-banner';
+      banner.style.cssText='position:fixed;bottom:24px;right:24px;z-index:9999;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border-radius:14px;padding:16px 20px;max-width:360px;box-shadow:0 8px 32px rgba(245,158,11,.5);animation:slideInUp .3s ease';
+      banner.innerHTML=`
+        <div style="font-size:14px;font-weight:800;margin-bottom:6px">💰 Ajuste Chaturbate registrado</div>
+        <div style="font-size:12px;margin-bottom:6px">Ingreso: <strong>USD ${ingresoVal.toLocaleString('en-US',{minimumFractionDigits:2})}</strong> — Ajuste: <strong>USD ${ajusteVal.toLocaleString('en-US',{minimumFractionDigits:2})}</strong></div>
+        <div style="font-size:13px;font-weight:900;margin-bottom:10px">Neto Monetización: <span style="color:#1a1a1a">USD ${neto.toLocaleString('en-US',{minimumFractionDigits:2})}</span></div>
+        <div style="display:flex;gap:8px">
+          <button onclick="document.getElementById('mer-mon-banner').remove();goPage('monetizacion');" style="background:#000;color:#f59e0b;border:none;border-radius:8px;padding:8px 16px;font-weight:800;font-size:12px;cursor:pointer;flex:1">→ Ir a Monetización</button>
+          <button onclick="document.getElementById('mer-mon-banner').remove()" style="background:rgba(0,0,0,.2);color:#000;border:none;border-radius:8px;padding:8px 12px;font-weight:700;font-size:12px;cursor:pointer">✕</button>
+        </div>`;
+      const old=document.getElementById('mer-mon-banner'); if(old) old.remove();
+      document.body.appendChild(banner);
+      setTimeout(()=>{ if(document.getElementById('mer-mon-banner')) banner.remove(); },14000);
+    },400);
+    return;
+  }
+
+  // ── Rama normal (Colombia y otras categorías) ────────────────────────────
+  const valor=parseFloat(document.getElementById('mer-egr-valor').value)||0;
+  if(!valor){ toast('Completa el valor','warn'); return; }
   const id = merNextId('E');
   const nuevo={
     id, fecha, categoria: cat,
@@ -16652,7 +16892,6 @@ function merGuardarEgreso(){
   if(cat==='colombia'){
     merAutoCrearMonetizacion(nuevo);
     merAudit('Monetización auto-creada', `Egreso ${id} → Pendiente por Monetizar · USD ${valor}`);
-    // Actualizar badge nav
     try{ actualizarBadgesMon&&actualizarBadgesMon(); }catch(e){}
   }
   closeModal('modal-mercury-egreso');
@@ -16671,11 +16910,9 @@ function merGuardarEgreso(){
           <button onclick="document.getElementById('mer-mon-banner').remove();goPage('monetizacion');" style="background:#000;color:#f59e0b;border:none;border-radius:8px;padding:8px 16px;font-weight:800;font-size:12px;cursor:pointer;flex:1">→ Ir a Monetización</button>
           <button onclick="document.getElementById('mer-mon-banner').remove()" style="background:rgba(0,0,0,.2);color:#000;border:none;border-radius:8px;padding:8px 12px;font-weight:700;font-size:12px;cursor:pointer">✕</button>
         </div>`;
-      // Remover banner anterior si existe
       const old = document.getElementById('mer-mon-banner');
       if(old) old.remove();
       document.body.appendChild(banner);
-      // Auto-cerrar en 12 segundos
       setTimeout(()=>{ if(document.getElementById('mer-mon-banner')) banner.remove(); },12000);
     },400);
   }
@@ -16763,13 +17000,33 @@ function merEliminarIngreso(id){
 }
 
 function merEliminarEgreso(id){
-  if(!confirm('⚠️ ¿Eliminar este egreso Mercury? El registro quedará en la auditoría.')) return;
   const d=getMerData();
   const egr=d.egresos.find(x=>x.id===id);
-  merAudit('Egreso eliminado',`ID: ${id} · Valor: USD ${(egr?.valor||0).toLocaleString('en-US',{minimumFractionDigits:2})}`);
+  // Verificar si hay monetización vinculada
+  const mons=getMonetizaciones();
+  const monVinculada=mons.find(m=>m.mercuryEgresoId===id);
+  const aviso=monVinculada
+    ? `\n\n⚠️ También se eliminará la monetización vinculada:\n${monVinculada.id} · USD ${(monVinculada.mercury||0).toFixed(2)} · Estado: ${monVinculada.estado}`
+    : '';
+  if(!confirm(`⚠️ ¿Eliminar este egreso Mercury? El registro quedará en la auditoría.${aviso}`)) return;
+  merAudit('Egreso eliminado',`ID: ${id} · Valor: USD ${(egr?.valor||0).toLocaleString('en-US',{minimumFractionDigits:2})}${monVinculada?' · Monetización '+monVinculada.id+' también eliminada':''}`);
   d.egresos=d.egresos.filter(x=>x.id!==id);
   saveMerData(d);
-  toast('Egreso eliminado','warn');
+  // CASCADE: eliminar la monetización vinculada (si existía y está PENDIENTE)
+  if(monVinculada){
+    const monNorm=monNormalizarEstado?monNormalizarEstado(monVinculada.estado):'';
+    if(monNorm==='PENDIENTE POR MONETIZAR'||!monVinculada.usdMonetizados){
+      const allMons=getMonetizaciones().filter(m=>m.id!==monVinculada.id);
+      saveMonetizaciones(allMons);
+      toast(`Egreso y monetización ${monVinculada.id} eliminados`,'warn');
+      try{ actualizarBadgesMon&&actualizarBadgesMon(); }catch(e){}
+    } else {
+      // La monetización ya fue procesada — solo aviso, no se elimina
+      toast(`Egreso eliminado. La monetización ${monVinculada.id} YA FUE PROCESADA y se conserva.`,'warn');
+    }
+  } else {
+    toast('Egreso eliminado','warn');
+  }
   merRenderEgresos();
 }
 // ─── FIN MERCURY ──────────────────────────────────────────────────────────

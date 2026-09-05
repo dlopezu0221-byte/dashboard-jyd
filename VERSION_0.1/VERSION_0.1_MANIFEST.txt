@@ -1,0 +1,187 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║          GRUPO EMPRESARIAL J&D — DASHBOARD GERENCIA GENERAL                 ║
+║                    VERSIÓN 0.1 — PUNTO DE RESTAURACIÓN                       ║
+║                    Fecha de congelación: 2026-09-05                          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+ADVERTENCIA: Este directorio es un PUNTO DE RESTAURACIÓN CONGELADO.
+NO modificar ningún archivo dentro de esta carpeta.
+Para restaurar el sistema ver sección "INSTRUCCIONES DE RESTAURACIÓN" al final.
+
+══════════════════════════════════════════════════════════════════════════════
+1. IDENTIFICACIÓN DE LA VERSIÓN
+══════════════════════════════════════════════════════════════════════════════
+
+Versión:          0.1
+Nombre clave:     PUNTO DE RESTAURACIÓN BASE
+Fecha creación:   2026-09-05
+Archivo principal: gerencia-general_v0.1.html
+Tamaño del archivo: 1,978,041 bytes (≈ 1.88 MB)
+Hash SHA-256:     fa8a9d5a0902eda7eb3274cf1f57f69bf257b01a6a21515d184628a29a4e6b1d
+Líneas aprox.:    21,150+
+Versión interna del código: v97 (última corrección aplicada)
+
+══════════════════════════════════════════════════════════════════════════════
+2. ARQUITECTURA DEL SISTEMA
+══════════════════════════════════════════════════════════════════════════════
+
+Tipo:             Single-file monolithic HTML dashboard
+Backend:          Supabase (PostgreSQL)
+URL Supabase:     https://mqafwoaghwhnvorerjha.supabase.co
+Autenticación:    Supabase Auth (email + password)
+Almacenamiento:   Supabase (fuente de verdad) + localStorage (caché local)
+Email gerente:    daniel.lopez@grupoempresarialjd.com
+
+══════════════════════════════════════════════════════════════════════════════
+3. MÓDULOS DEL SISTEMA (estado funcional en v0.1)
+══════════════════════════════════════════════════════════════════════════════
+
+MÓDULO                      | CLAVE localStorage       | TABLA SUPABASE
+----------------------------|--------------------------|---------------------------
+Configuración               | jd_cfg                   | configuracion
+Estudios / Agencias         | jd_estudios              | estudios
+Modelos                     | jd_modelos               | modelos
+Liquidaciones               | jd_liqs                  | liquidaciones
+Monetización                | jd_monetizaciones        | monetizaciones (*)
+Mercury Ingresos/Egresos    | jd_mercury               | mercury_ingresos / mercury_egresos
+Bancolombia / Banco Movs.   | jd_banco_movimientos     | banco_movimientos
+Ingresos de Caja            | jd_ingresos              | ingresos
+Egresos de Caja             | jd_egresos               | egresos
+Préstamos                   | jd_prest                 | prestamos
+Ahorros                     | jd_ahorros               | ahorros
+Sex-Shop / Checkout         | jd_ss                    | sex_shop
+Conciliación                | jd_conciliacion          | conciliacion
+Horarios                    | jd_horarios              | horarios
+Perfiles Externos           | jd_perfiles_ext          | perfiles
+Tesorería                   | jd_tesoreria             | (local)
+Cuentas por Cobrar          | jd_cuentas_cobrar        | (local)
+Impuestos                   | jd_impuestos             | (local)
+CF Movimientos              | jd_cf_movimientos        | (local)
+Mercury PIN                 | jd_mercury_pin           | (local)
+Audit Log                   | jd_audit_log             | (local)
+Snapshots                   | (local)                  | snapshots
+Nóminas                     | (local)                  | nominas
+
+(*) IMPORTANTE: La tabla Supabase "monetizaciones" tiene 0 filas en v0.1.
+    Los datos de monetizaciones (MON-000001/2/3) viven en localStorage.
+    Ver sección 5 para detalles.
+
+══════════════════════════════════════════════════════════════════════════════
+4. ESTADO DE DATOS CONOCIDOS EN v0.1
+══════════════════════════════════════════════════════════════════════════════
+
+MERCURY INGRESOS (tabla mercury_ingresos — Supabase, 3 filas intactas):
+  ING-000001: $17,680.07 USD
+  ING-000002: $11,181.70 USD
+  ING-000003: $3,239.55 USD
+  TOTAL:      $32,101.32 USD
+
+MERCURY EGRESOS PROHIBIDOS (ocultos del sistema, nunca deben generar monetizaciones nuevas):
+  MER-E-000001, MER-E-000002, MER-E-000003, MER-E-000004
+
+MONETIZACIONES (jd_monetizaciones localStorage — restauración automática activa):
+  MON-000001: Estado CERRADA | pesosReal ~$73,968,653 COP | mercuryEgresoId: MER-E-000001
+  MON-000002: Estado CERRADA | pesosReal ~$46,781,223 COP | mercuryEgresoId: MER-E-000002
+  MON-000003: Estado CERRADA | pesosReal ~$13,553,405 COP | mercuryEgresoId: MER-E-000003
+  TOTAL MONETIZADO: ~$134,303,281 COP
+  NOTA: Si la tabla Supabase "ingresos" contiene entradas con autoOrigenBancolombia=
+        'MON-000001/2/3', esos valores exactos tienen prioridad sobre los estimados.
+
+MONETIZACIONES PROHIBIDAS (nunca deben aparecer en el sistema):
+  MON-000004, MON-000005, MON-000006, MON-000007,
+  MON-000008, MON-000009, MON-000010
+
+BANCOLOMBIA — SALDO OBJETIVO:
+  Saldo esperado:       ≈ $33,042,000 COP
+  ING. ADICIONALES:     $1,978,291.49 COP (banco_movimientos tipo='INGRESO')
+  TOTAL SALIDAS:        $103,239,572.33 COP
+    └ Pagos a Modelos:  $87,536,974.96 COP (26 liquidaciones pagadas)
+    └ Impuestos:        $405,733.04 COP
+    └ Gastos Op.:       $15,296,864.33 COP
+  SALDO COMPROMETIDO:   $307,693.32 COP (6 liquidaciones pendientes umbral)
+
+BANCOLOMBIA — MOVIMIENTOS (tabla banco_movimientos — Supabase, 22 filas):
+  Cargados automáticamente desde Supabase en cada login.
+
+LIQUIDACIONES (tabla liquidaciones — Supabase):
+  26 liquidaciones en estado Pagado.
+  6 liquidaciones pendientes (umbral < $100,000).
+  Estudios relevantes: Ana Black, The Room Studios, Jack Miller,
+                       Piscis Studio, Studio JGM, Kendal Wiston.
+  NOTA: Liquidaciones de "Prestige Cam" tienen ocultarHistorial=true
+        (excluidas del historial Bancolombia — corrección v76/v97).
+
+══════════════════════════════════════════════════════════════════════════════
+5. REGLAS DE SEGURIDAD PERMANENTES (NO VIOLAR EN NINGUNA VERSIÓN)
+══════════════════════════════════════════════════════════════════════════════
+
+1. MÓDULOS PROTEGIDOS — NO modificar sin autorización explícita del usuario:
+   Colillas de pago, Liquidaciones, Monetización, Préstamos, Ahorros,
+   Sex-Shop/Checkout, Finanzas, Ingresos, Egresos, Conciliación, Histórico,
+   Dashboard, Fórmulas, Cálculos, Bases de datos (excepto Modelos).
+
+2. NO reconstruir el sistema desde cero.
+3. NO borrar información ni resetear bases de datos.
+4. NO eliminar datos existentes sin autorización del usuario.
+5. La clave secreta (sb_secret_...) NUNCA debe aparecer en ningún archivo HTML.
+6. Solo trabajar en el PC del usuario — NUNCA en archivos de la nube.
+7. Solo hacer cambios cuando el usuario lo autorice explícitamente.
+
+══════════════════════════════════════════════════════════════════════════════
+6. OVERRIDE FINAL (mecanismo de seguridad activo en v0.1)
+══════════════════════════════════════════════════════════════════════════════
+
+Ubicación en el código: Líneas ~20994-21170 (final del <body>)
+
+Funciones del OVERRIDE FINAL:
+  A) Filtra monetizaciones prohibidas (MON-000004 a MON-000010) de localStorage
+     SOLO por m.id — NO por mercuryEgresoId (para preservar MON-000001/2/3).
+  B) Filtra egresos Mercury prohibidos (MER-E-000001 a MER-E-000004) de jd_mercury.
+  C) Reemplaza merRenderPendientesMercury() para ocultar egresos prohibidos.
+  D) Reemplaza merRecuperarOrfanosMercury() para no crear monetizaciones de egresos prohibidos.
+  E) EMERGENCY RESTORE: Después de _loadSupabaseData(), reconstruye MON-000001/2/3
+     si están faltantes, usando valores de jd_ingresos (Supabase) o fallback estimado.
+
+══════════════════════════════════════════════════════════════════════════════
+7. INSTRUCCIONES DE RESTAURACIÓN A VERSIÓN 0.1
+══════════════════════════════════════════════════════════════════════════════
+
+OPCIÓN A — Restauración automática con el script .bat:
+  1. Ejecutar RESTAURAR_v0.1.bat (doble clic)
+  2. Confirmar la acción cuando lo solicite
+  3. Recargar el dashboard en el navegador (Ctrl+F5)
+
+OPCIÓN B — Restauración manual:
+  1. Copiar: VERSION_0.1\gerencia-general_v0.1.html
+  2. Pegar en: dashboard-jyd\gerencia-general.html
+     (reemplazar el archivo existente)
+  3. Recargar el dashboard en el navegador (Ctrl+F5)
+
+VERIFICACIÓN POSTERIOR A LA RESTAURACIÓN:
+  1. Abrir el dashboard
+  2. Iniciar sesión
+  3. Ir a pestaña Bancolombia
+  4. Verificar:
+     - TOTAL MONETIZADO: ≈ $134,303,281 COP (o valor de Supabase)
+     - ING. ADICIONALES: $1,978,291.49 COP
+     - SALDO ACTUAL: ≈ $33,042,000 COP
+  5. Abrir consola (F12) y buscar "[RESTORE]" para confirmar
+     que MON-000001/2/3 fueron restauradas correctamente.
+
+══════════════════════════════════════════════════════════════════════════════
+8. HASH DE VERIFICACIÓN
+══════════════════════════════════════════════════════════════════════════════
+
+Archivo:   gerencia-general_v0.1.html
+Tamaño:    1,978,041 bytes
+SHA-256:   fa8a9d5a0902eda7eb3274cf1f57f69bf257b01a6a21515d184628a29a4e6b1d
+
+Para verificar integridad del archivo en Windows PowerShell:
+  Get-FileHash "VERSION_0.1\gerencia-general_v0.1.html" -Algorithm SHA256
+
+El hash SHA-256 debe coincidir exactamente. Si es diferente,
+el archivo fue modificado y NO es el punto de restauración original.
+
+══════════════════════════════════════════════════════════════════════════════
+FIN DEL MANIFIESTO — VERSIÓN 0.1
+══════════════════════════════════════════════════════════════════════════════

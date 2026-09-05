@@ -2157,7 +2157,7 @@ td[style*="text-align:right"], th[style*="text-align:right"] {
   <div class="mb" id="liq-det-body"></div>
   <div class="mf">
     <button class="btn btn-ghost" onclick="closeModal('modal-liq-det')">Cerrar</button>
-    <button class="btn btn-secondary btn-sm" onclick="imprimirColilla()">🖨️ Imprimir Colilla</button>
+    <button class="btn btn-secondary btn-sm" onclick="_imprimirColillaActual()">🖨️ Imprimir Colilla</button>
   </div>
 </div>
 </div>
@@ -4043,7 +4043,29 @@ td[style*="text-align:right"], th[style*="text-align:right"] {
         </div>
       </div>
       <div class="fg" id="mer-egr-fg-valor-normal"><label>Valor (USD) *</label>
-        <input type="number" id="mer-egr-valor" step="0.01" min="0" placeholder="0.00">
+        <input type="number" id="mer-egr-valor" step="0.01" min="0" placeholder="0.00" oninput="merEgrCalcAnticipo()">
+      </div>
+      <!-- ANTICIPO: Seleccionar anticipo disponible (solo Colombia) -->
+      <div class="fg s2" id="mer-egr-fg-anticipo" style="display:none;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:12px 14px">
+        <label style="color:#f59e0b;font-weight:700;font-size:12px">📥 Seleccionar Anticipo (opcional)</label>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Si tienes un anticipo registrado, selecciónalo para descontarlo automáticamente del valor a transferir.</div>
+        <div id="mer-egr-anticipo-lista" style="margin-bottom:8px">
+          <div style="font-size:12px;color:var(--muted);font-style:italic">Cargando anticipos...</div>
+        </div>
+        <div id="mer-egr-anticipo-resumen" style="display:none;background:rgba(245,158,11,.12);border-radius:6px;padding:10px;margin-top:6px;font-size:12px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="color:var(--muted)">Valor egreso:</span>
+            <span id="mer-egr-ant-val-egreso" style="font-weight:700">USD 0.00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="color:#f59e0b">− Anticipo:</span>
+            <span id="mer-egr-ant-val-anticipo" style="font-weight:700;color:#f59e0b">USD 0.00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(245,158,11,.3);padding-top:6px;margin-top:4px">
+            <span style="font-weight:700">= Valor real a transferir:</span>
+            <span id="mer-egr-ant-val-neto" style="font-weight:800;color:#22c55e;font-size:13px">USD 0.00</span>
+          </div>
+        </div>
       </div>
       <!-- Beneficiarios Favoritos -->
       <div class="fg s2" style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:10px 14px">
@@ -4222,12 +4244,16 @@ function _supaToLocalStorage(sbData) {
     console.log('[SUPA] modelos:', mods.length);
   }
   // liquidaciones
+  // ORDEN CORRECTO: datos_extra primero, columnas reales de Supabase al final.
+  // Así las columnas oficiales (estudioNombre, fecha, estado…) siempre ganan
+  // sobre cualquier valor obsoleto que haya quedado en datos_extra.
   if (sbData.liqs && sbData.liqs.length) {
     const liqs = sbData.liqs.map(l => ({
-      id: l.id,
+      ...(l.datos_extra || {}),          // rich data (trm, plataformas, descuentos…)
+      id: l.id,                          // columnas Supabase siempre sobreescriben
       fecha: l.fecha || '',
       estudioId: l.estudio_id || '',
-      estudioNombre: l.estudio_nombre || '',
+      estudioNombre: l.estudio_nombre || (l.datos_extra||{}).estudioNombre || '',
       pagoEstudio: l.pago_estudio || 0,
       netoCOP: l.pago_estudio || 0,
       brutoCOP: l.valor_total || 0,
@@ -4239,7 +4265,6 @@ function _supaToLocalStorage(sbData) {
       ocultarHistorial: l.ocultar_historial || false,
       saldoComprometido: l.saldo_comprometido || false,
       pagoAnticipado: l.pago_anticipado || false,
-      ...(l.datos_extra || {})
     }));
     localStorage.setItem('jd_liqs', JSON.stringify(liqs));
     console.log('[SUPA] liqs:', liqs.length);
@@ -7529,6 +7554,34 @@ function imprimirColilla(id){
   generarColilla(l);
 }
 
+// ── Helper: obtener TRM real de una liquidación ───────────────
+// Prioridad:
+//   (1) l.trm almacenado directamente
+//   (2) derivado de brutoCOP ÷ brutoUSD (cuando brutoUSD sobrevivió el sync)
+//   (3) derivado de brutoCOP ÷ Σ plataformas.baseUSD+bonusUSD (siempre disponible)
+// (3) es el fallback definitivo: los datos de plataforma sobreviven el round-trip Supabase.
+function _getDisplayTRM(l) {
+  if (!l) return 0;
+  // Fuente 1: TRM guardada explícitamente
+  if (l.trm && l.trm > 0) return l.trm;
+  // Fuente 2: derivada de brutoUSD (campo directo, cuando está disponible)
+  const bCOP = parseFloat(l.brutoCOP || 0);
+  const bUSD = parseFloat(l.brutoUSD || 0);
+  if (bCOP > 100 && bUSD > 0.01) {
+    const t2 = Math.round(bCOP / bUSD);
+    if (t2 > 1000 && t2 < 10000) return t2;
+  }
+  // Fuente 3: derivada de la suma USD de plataformas (siempre persistida en datos_extra)
+  const platUSD = Object.values(l.plataformas || {}).reduce(
+    (s, p) => s + (parseFloat(p.baseUSD || 0)) + (parseFloat(p.bonusUSD || 0)), 0
+  );
+  if (bCOP > 100 && platUSD > 0.01) {
+    const t3 = Math.round(bCOP / platUSD);
+    if (t3 > 1000 && t3 < 10000) return t3;
+  }
+  return 0;
+}
+
 function renderHistorico(){
   const liqs=getLiqs();
   const q=(document.getElementById('hist-search')?.value||'').toLowerCase().trim();
@@ -7590,7 +7643,7 @@ function renderHistorico(){
         </div>
         <div style="text-align:right;flex-shrink:0">
           <div style="font-weight:700;color:var(--gold);font-size:13px">${fmtCOP(l.pagoEstudio)}</div>
-          <div style="font-size:11px;color:var(--muted)">${fmtUSD(l.brutoUSD)} · TRM ${(l.trm||0).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+          <div style="font-size:11px;color:var(--muted)">${fmtUSD(l.brutoUSD)} · TRM $${_getDisplayTRM(l).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0">
           <button class="btn btn-ghost btn-sm" onclick="verLiquidacion('${l.id}')">Ver</button>
@@ -7668,7 +7721,7 @@ function verLiquidacion(id){
     <div class="stats-grid" style="margin-bottom:16px">
       <div class="stat-card"><div class="stat-lbl">Estudio</div><div class="fw6" style="font-size:15px">${l.estudioNombre}</div></div>
       <div class="stat-card"><div class="stat-lbl">Fecha</div><div class="fw6">${l.fecha||'—'}</div></div>
-      <div class="stat-card"><div class="stat-lbl">TRM</div><div class="fw6">$${(l.trm||0).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
+      <div class="stat-card"><div class="stat-lbl">TRM${!l.trm||l.trm===0?' <span style="font-size:9px;color:#f59e0b">(recuperada)</span>':''}</div><div class="fw6">$${_getDisplayTRM(l).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
       <div class="stat-card"><div class="stat-lbl">Bruto USD</div><div class="fw6">${fmtUSD(l.brutoUSD)}</div></div>
     </div>
     <div class="card-title">Detalle por plataforma</div>
@@ -8660,7 +8713,7 @@ function renderResumen() {
           <div class="lq-screen-title" style="margin:0">Resumen de liquidación</div>
           <div class="fs12 muted">Revise antes de generar la colilla</div>
         </div>
-        <div class="fs12 muted">Fecha: <strong>${l.fecha||'—'}</strong> · TRM: <strong>$${(l.trm||0).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div>
+        <div class="fs12 muted">Fecha: <strong>${l.fecha||'—'}</strong> · TRM: <strong>$${_getDisplayTRM(l).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">${pPages}</div>
       <div style="background:rgba(200,168,75,.06);border-radius:8px;padding:12px 14px;margin-bottom:16px;
@@ -8772,6 +8825,16 @@ function cerrarLiquidacion() {
     if (!confirm(`⚠️ Obligaciones pendientes sin aplicar:\n${items.join('\n')}\n\n¿Cerrar la liquidación sin aplicar estas deducciones?`)) return;
   }
 
+  // ── Política umbral $100.000 ─────────────────────────────────
+  // Si el pago neto es menor al umbral (y no es una colilla que absorbe saldo
+  // comprometido anterior), se registra automáticamente como Saldo Comprometido.
+  // El pago quedará pendiente hasta que el estudio acumule $100.000 o más.
+  if ((l.pagoEstudio || 0) < PAGO_MIN_UMBRAL && (l.pendienteSumado || 0) === 0) {
+    l.estado = 'Pendiente';
+    l.pendienteUmbral = true;
+    l.pendienteDesde = l.fecha || new Date().toISOString().slice(0, 10);
+  }
+
   const liqs = load(K.liqs)||[];
   liqs.unshift(l);
   save(K.liqs, liqs);
@@ -8796,19 +8859,22 @@ function cerrarLiquidacion() {
   if (l.descuentos.prest > 0) abonoPrestamos(l.estudioId, l.descuentos.prest);
 
   // Update ahorros — compute cuota COP per metodo (porcentaje/fijo_cop/fijo_usd)
+  // CORRECCIÓN: usar saveAhorros (no save) para que el saldo_cop se sincronice a Supabase.
+  // Bug anterior: save(K.ahorros) solo guardaba en localStorage, y al recargar desde Supabase
+  // el saldo volvía al valor anterior sin los abonos de las colillas.
   if (l.descuentos.ahorros > 0) {
     const ahs = getAhorros();
     ahs.filter(a=>a.estudioId===l.estudioId&&a.estado==='Activo'&&(a.valor||0)>0).forEach(a=>{
       let cuotaCOP = 0;
       if (a.metodo==='porcentaje')    cuotaCOP = Math.round((a.valor/100)*l.netoCOP);
-      else if (a.metodo==='fijo_usd') cuotaCOP = Math.round(a.valor*l.trm);
+      else if (a.metodo==='fijo_usd') cuotaCOP = Math.round(a.valor*(_getDisplayTRM(l)||l.trm||0));
       else                            cuotaCOP = a.valor; // fijo_cop
       if (cuotaCOP <= 0) return;
       a.saldoCOP = (a.saldoCOP||0) + cuotaCOP;
       a.movimientos = a.movimientos||[];
       a.movimientos.push({fecha:l.fecha, monto:cuotaCOP, tipo:'deposito', liqId:l.id});
     });
-    save(K.ahorros, ahs);
+    saveAhorros(ahs); // ← sincroniza a Supabase (saldo_cop)
   }
 
   // Update sex-shop
@@ -8820,9 +8886,18 @@ function cerrarLiquidacion() {
   const done = document.getElementById('ws-done');
   const e = getEstudios().find(x=>x.id===l.estudioId);
   const nom = e?.nombreAgencia||e?.nombreReal||'Estudio';
-  document.getElementById('done-title').textContent = `✅ Liquidación cerrada — ${nom}`;
-  document.getElementById('done-sub').textContent   = `Fecha: ${l.fecha||'—'} · TRM: $${(l.trm).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  const esComprometido = l.pendienteUmbral === true;
+  document.getElementById('done-title').textContent = esComprometido
+    ? `📌 Saldo Comprometido — ${nom}`
+    : `✅ Liquidación cerrada — ${nom}`;
+  document.getElementById('done-sub').textContent = esComprometido
+    ? `Pago ${fmtCOP(l.pagoEstudio)} < $100.000 · Se acumula como saldo comprometido · Fecha: ${l.fecha||'—'}`
+    : `Fecha: ${l.fecha||'—'} · TRM: $${(_getDisplayTRM(l)||0).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
   document.getElementById('done-pago').textContent  = fmtCOP(l.pagoEstudio);
+  if (esComprometido) {
+    document.getElementById('done-pago').style.color = '#f59e0b';
+    toast('📌 Pago ' + fmtCOP(l.pagoEstudio) + ' < $100.000 — registrado como SALDO COMPROMETIDO. Se pagará cuando el acumulado supere el umbral.', 'warn', 6000);
+  }
   renderStepBar(7);
   showLQScreen('ws-done');
 
@@ -8835,7 +8910,10 @@ function verColilla() {
   else toast('No hay liquidación activa para imprimir','warn');
 }
 
-function imprimirColilla() {
+// Versión sin parámetro: usada por el botón "Imprimir Colilla" en el modal de detalle
+// (que ya tiene la liq cargada en window._currentLiqId).
+// NO reemplaza imprimirColilla(id) — esa versión con parámetro se usa desde el historial.
+function _imprimirColillaActual() {
   const id = window._currentLiqId;
   if (!id) { toast('No hay liquidación seleccionada','warn'); return; }
   const liqs = load(K.liqs)||[];
@@ -8932,15 +9010,28 @@ function generarColilla(l) {
 
   const totalBase = Object.values(l.plataformas||{}).reduce((s,p)=>s+(p.baseUSD||0),0);
   const descPlanPct = l.planMon||0;
+  const _pendienteSumado = l.pendienteSumado || 0;
+  // _colillaUSD: USD real a mostrar. Si l.brutoUSD se perdió (=0), lo recalculamos
+  // desde los datos de plataformas que SÍ están guardados.
+  const _colillaUSD = (l.brutoUSD && l.brutoUSD > 0)
+    ? l.brutoUSD
+    : (totalBase + totalBonus);
+  // _trmColilla: prioridad (1) l.trm guardado, (2) derivado de brutoCOP ÷ USD de plataformas
+  let _trmColilla = _getDisplayTRM(l);
+  if ((!_trmColilla || _trmColilla <= 0) && _colillaUSD > 0.01 && (l.brutoCOP||0) > 100) {
+    _trmColilla = Math.round((l.brutoCOP||0) / _colillaUSD);
+    if (_trmColilla < 1000 || _trmColilla > 10000) _trmColilla = 0; // sanidad
+  }
   const ingresosHTML = [
     ['USD base (plataformas)',   fmtUSD(totalBase)],
     totalBonus>0 ? ['+ Bonificaciones',      fmtUSD(totalBonus)] : null,
-    totalBonus>0 ? ['= Total USD',           fmtUSD(l.brutoUSD||0)] : ['Total USD',  fmtUSD(l.brutoUSD||0)],
-    ['TRM aplicada',             `$${(l.trm||0).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})}`],
+    totalBonus>0 ? ['= Total USD',           fmtUSD(_colillaUSD)] : ['Total USD',  fmtUSD(_colillaUSD)],
+    ['TRM aplicada',             `$${_trmColilla.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})}`],
     ['Bruto COP',                fmtCOP(l.brutoCOP||0)],
     // descPlan monetary value is PRIVATE — not shown
     (l.adiciones||[]).length>0 && totalAdicCOP>0 ? ['+ Adiciones extras', '+'+fmtCOP(totalAdicCOP)] : null,
     ['Neto COP (al estudio)',    fmtCOP(l.netoCOP||0)],
+    _pendienteSumado>0 ? ['+ Saldo a favor anterior', '+'+fmtCOP(_pendienteSumado)] : null,
   ].filter(Boolean).map(([k,v])=>{
     const isTotal  = k.startsWith('=');
     const isDesc   = k.startsWith('−') || k.startsWith('+');
@@ -8959,6 +9050,23 @@ function generarColilla(l) {
       <span style="color:#2a7a2a">+ ${a.concepto}</span>
       <span style="font-weight:600;color:#2a7a2a">+${fmtCOP(a.valor)}</span>
     </div>`).join('');
+
+  // ── Saldo a favor anterior (pendienteSumado) — bloque destacado ──
+  const saldoAFavorHTML = _pendienteSumado > 0 ? `
+    <div style="display:flex;justify-content:space-between;align-items:center;
+         padding:7px 10px;margin-top:4px;border-radius:5px;
+         background:rgba(30,120,40,.08);border:1px solid rgba(30,120,40,.25)">
+      <div>
+        <div style="color:#1a6b28;font-weight:700;font-size:11px">✅ Saldo a favor aplicado</div>
+        <div style="color:#555;font-size:10px;font-style:italic;margin-top:1px">
+          Saldo comprometido de período anterior abonado en este pago
+          ${(l.pendienteAbsorbidoIds||[]).length>0
+            ? ' · Colilla(s): ' + l.pendienteAbsorbidoIds.join(', ')
+            : ''}
+        </div>
+      </div>
+      <span style="font-weight:700;color:#1a6b28;font-size:12px;white-space:nowrap;padding-left:10px">+${fmtCOP(_pendienteSumado)}</span>
+    </div>` : '';
 
   const deduccionesHTML = dedsCol.map(d=>`
     <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:4px 0;font-size:11px;
@@ -9049,7 +9157,7 @@ function generarColilla(l) {
           <div class="studio-name">${l.estudioNombre||'—'}</div>
           <div class="date-trm">
             Fecha de pago: <strong>${l.fecha||'—'}</strong><br>
-            TRM: <strong>$${(l.trm||0).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
+            TRM: <strong>$${_trmColilla.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
           </div>
           ${est.documento ? `<div class="col-doc-num">${est.tipoDoc||'Doc'}: ${est.documento}</div>` : ''}
         </div>
@@ -9088,7 +9196,7 @@ function generarColilla(l) {
       ${ingresosHTML}
 
       <!-- ADICIONES -->
-      ${adicionesHTML ? `<div class="sec-title" style="margin-top:14px">Adiciones</div>${adicionesHTML}` : ''}
+      ${adicionesHTML || saldoAFavorHTML ? `<div class="sec-title" style="margin-top:14px">Adiciones</div>${adicionesHTML}${saldoAFavorHTML}` : ''}
 
       <!-- DEDUCCIONES -->
       ${deduccionesHTML ? `<div class="sec-title" style="margin-top:14px">Deducciones</div>${deduccionesHTML}` : ''}
@@ -15404,7 +15512,7 @@ function merRenderIngresos(){
         <td>${numEst>0?numEst+' estudio(s)':'—'}</td>
         <td style="white-space:nowrap">
           <button class="btn btn-ghost btn-sm" onclick="merVerIngreso('${i.id}')">Ver</button>
-          ${(()=>{ const _ants=getAnticipos(); const _a=_ants.find(a=>a.ingresoId===i.id); return _a ? `<span title="Anticipo: ${_a.id} | Estado: ${_a.estado}" style="font-size:11px;color:#f59e0b;font-weight:700;cursor:default">📥 ANTICIPO</span>` : `<button class="btn btn-ghost btn-sm" style="color:#f59e0b" onclick="antMarcarModal('${i.id}')">📥 Anticipo</button>`; })()}
+          ${(()=>{ const _ants=getAnticipos(); const _a=_ants.find(a=>a.ingresoId===i.id); return _a ? `<button class="btn btn-ghost btn-sm" style="color:#f59e0b;font-weight:700;font-size:11px" onclick="antGestionarModal('${i.id}')">📥 ${_a.estado==='DISPONIBLE'?'ANTICIPO ✓':'ANTICIPO ↩'}</button>` : `<button class="btn btn-ghost btn-sm" style="color:#f59e0b" onclick="antMarcarModal('${i.id}')">📥 Anticipo</button>`; })()}
           <button class="btn btn-ghost btn-sm" onclick="merEliminarIngreso('${i.id}')">🗑</button>
         </td>
       </tr>`;
@@ -16517,6 +16625,9 @@ function merNuevoEgreso(){
   // Reset ajuste dropdown
   const ajSel=document.getElementById('mer-egr-ajuste-ingreso-id'); if(ajSel) ajSel.selectedIndex=0;
   const ajAlerta=document.getElementById('mer-egr-ajuste-alerta'); if(ajAlerta) ajAlerta.style.display='none';
+  // Reset anticipo selection
+  document.querySelectorAll('input[name="mer-egr-anticipo-sel"]').forEach(r=>{ r.checked=r.value===''; });
+  const antRes=document.getElementById('mer-egr-anticipo-resumen'); if(antRes) antRes.style.display='none';
   document.getElementById('mer-egr-categoria').value='colombia';
   merEgrCatChange();
   merRenderFavSelect(); // cargar favoritos guardados
@@ -16544,6 +16655,10 @@ function merEgrCatChange(){
   if(fgVal) fgVal.style.display=esAjusteChat?'none':'';
   // Si es ajuste-chaturbate, poblar el dropdown de ingresos
   if(esAjusteChat) merEgrPoblarIngresos();
+  // Sección de anticipos: solo visible para Colombia
+  const fgAnticipo=document.getElementById('mer-egr-fg-anticipo');
+  if(fgAnticipo) fgAnticipo.style.display=esCol?'':'none';
+  if(esCol) merEgrRenderAnticipos();
 }
 
 function merEgrPoblarIngresos(){
@@ -16585,6 +16700,53 @@ function merEgrAjusteCalc(){
   }
 }
 
+// ─── ANTICIPOS EN EGRESOS ───────────────────────────────────────────────────
+function merEgrRenderAnticipos(){
+  const lista=document.getElementById('mer-egr-anticipo-lista'); if(!lista) return;
+  let ants=[];
+  try{ ants=(typeof getAnticipos==='function')?getAnticipos().filter(a=>a.estado==='DISPONIBLE'):[];  }catch(e){ ants=[]; }
+  if(!ants.length){
+    lista.innerHTML='<div style="font-size:12px;color:var(--muted);font-style:italic;padding:4px 0">No hay anticipos disponibles actualmente.</div>';
+    const res=document.getElementById('mer-egr-anticipo-resumen'); if(res) res.style.display='none';
+    return;
+  }
+  const fmtU=v=>'USD '+(v||0).toLocaleString('en-US',{minimumFractionDigits:2});
+  lista.innerHTML=ants.map(a=>`
+    <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;padding:6px 8px;border-radius:6px;background:rgba(245,158,11,.08);margin-bottom:6px;border:1px solid rgba(245,158,11,.2)">
+      <input type="radio" name="mer-egr-anticipo-sel" value="${a.id}" data-usd="${a.valorUSD||0}" onchange="merEgrCalcAnticipo()" style="margin-top:3px;accent-color:#f59e0b">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#f59e0b">${a.id} · ${a.plataforma||''}</div>
+        <div style="font-size:11px;color:var(--muted)">${fmtU(a.valorUSD)} · Desde: ${a.quincenaDesde||'—'} Hasta: ${a.quincenaHasta||'—'}</div>
+        ${a.obs?`<div style="font-size:11px;color:var(--muted)">${a.obs}</div>`:''}
+      </div>
+    </label>`).join('')+`
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 8px;border-radius:6px;background:rgba(100,100,100,.06);margin-bottom:2px">
+      <input type="radio" name="mer-egr-anticipo-sel" value="" checked onchange="merEgrCalcAnticipo()" style="accent-color:#888">
+      <span style="font-size:12px;color:var(--muted)">Sin anticipo</span>
+    </label>`;
+  merEgrCalcAnticipo();
+}
+
+function merEgrCalcAnticipo(){
+  const sel=document.querySelector('input[name="mer-egr-anticipo-sel"]:checked');
+  const anticipoId=sel?sel.value:'';
+  const anticipoUSD=sel&&sel.value ? parseFloat(sel.getAttribute('data-usd')||0) : 0;
+  const valorEgreso=parseFloat((document.getElementById('mer-egr-valor')||{}).value)||0;
+  const fmtU=v=>'USD '+(v||0).toLocaleString('en-US',{minimumFractionDigits:2});
+  const resumen=document.getElementById('mer-egr-anticipo-resumen');
+  if(!resumen) return;
+  if(!anticipoId || anticipoUSD<=0){
+    resumen.style.display='none';
+    return;
+  }
+  const neto=Math.max(0, valorEgreso-anticipoUSD);
+  resumen.style.display='block';
+  const elEgr=document.getElementById('mer-egr-ant-val-egreso'); if(elEgr) elEgr.textContent=fmtU(valorEgreso);
+  const elAnt=document.getElementById('mer-egr-ant-val-anticipo'); if(elAnt) elAnt.textContent=fmtU(anticipoUSD);
+  const elNeto=document.getElementById('mer-egr-ant-val-neto');
+  if(elNeto){ elNeto.textContent=fmtU(neto); elNeto.style.color=neto<=0?'#ef4444':'#22c55e'; }
+}
+
 // ─── INTEGRACIÓN MERCURY → MONETIZACIÓN ────────────────────────────────────
 function merAutoCrearMonetizacion(egreso){
   const catOk = egreso&&(egreso.categoria==='colombia'||egreso.categoria==='ajuste-chaturbate');
@@ -16601,12 +16763,17 @@ function merAutoCrearMonetizacion(egreso){
   localStorage.setItem(KEY,String(seq));
   const monId='MON-'+seq.toString().padStart(6,'0');
   // Para ajuste-chaturbate, el valor que se monetiza es el NETO (egreso.valor)
-  // Para colombia, es el valor enviado directamente
-  const valorMonetizar = egreso.valor||0;
+  // Para colombia con anticipo, el valor real es egreso.valorRealTransferido (valor - anticipo)
+  // Para colombia sin anticipo, es egreso.valor directamente
   const esAjuste = egreso.categoria==='ajuste-chaturbate';
+  const valorMonetizar = esAjuste
+    ? (egreso.valor||0)
+    : (egreso.valorRealTransferido!=null ? egreso.valorRealTransferido : (egreso.valor||0));
   const obsBase = esAjuste
     ? `Auto-generado desde Mercury ${egreso.id} (Ajuste Chaturbate). Ingreso origen: ${egreso.ingresoId||'—'}. Bruto: USD ${(egreso.valorBrutoIngreso||0).toFixed(2)} · Ajuste: USD ${(egreso.ajusteChaturbate||0).toFixed(2)} · Neto: USD ${valorMonetizar.toFixed(2)}`
-    : `Auto-generado desde Mercury ${egreso.id}. Concepto: ${egreso.concepto||'—'}`;
+    : egreso.anticipoId
+      ? `Auto-generado desde Mercury ${egreso.id}. Valor bruto: USD ${(egreso.valor||0).toFixed(2)} · Anticipo ${egreso.anticipoId}: − USD ${(egreso.anticipoUSD||0).toFixed(2)} · Neto a monetizar: USD ${valorMonetizar.toFixed(2)}`
+      : `Auto-generado desde Mercury ${egreso.id}. Concepto: ${egreso.concepto||'—'}`;
   const monObj={
     id: monId,
     fecha: egreso.fecha,
@@ -16888,6 +17055,16 @@ function merGuardarEgreso(){
   // ── Rama normal (Colombia y otras categorías) ────────────────────────────
   const valor=parseFloat(document.getElementById('mer-egr-valor').value)||0;
   if(!valor){ toast('Completa el valor','warn'); return; }
+  // Leer anticipo seleccionado (solo aplica a Colombia)
+  let _anticipoId='', _anticipoUSD=0, _valorRealTransferido=valor;
+  if(cat==='colombia'){
+    const selAnt=document.querySelector('input[name="mer-egr-anticipo-sel"]:checked');
+    if(selAnt && selAnt.value){
+      _anticipoId=selAnt.value;
+      _anticipoUSD=parseFloat(selAnt.getAttribute('data-usd')||0)||0;
+      _valorRealTransferido=Math.max(0, valor-_anticipoUSD);
+    }
+  }
   const id = merNextId('E');
   const nuevo={
     id, fecha, categoria: cat,
@@ -16903,13 +17080,24 @@ function merGuardarEgreso(){
     estado: 'Registrado',
     createdAt: new Date().toISOString()
   };
+  // Anticipo: agregar campos de trazabilidad si aplica
+  if(_anticipoId){
+    nuevo.anticipoId = _anticipoId;
+    nuevo.anticipoUSD = _anticipoUSD;
+    nuevo.valorRealTransferido = _valorRealTransferido;
+  }
   d.egresos.push(nuevo);
   saveMerData(d);
-  merAudit('Egreso registrado', `ID: ${id} · ${cat} · USD ${valor} · ${nuevo.concepto}`);
+  // Conciliar anticipo si fue seleccionado
+  if(_anticipoId){
+    try{ antConciliar([_anticipoId], id); }catch(e){ console.warn('[MER-EGR] Error conciliando anticipo:',e); }
+    merAudit('Anticipo conciliado en egreso', `Egreso: ${id} · Anticipo: ${_anticipoId} · USD ${_anticipoUSD} · Valor real transferido: USD ${_valorRealTransferido}`);
+  }
+  merAudit('Egreso registrado', `ID: ${id} · ${cat} · USD ${valor}${_anticipoId?' (anticipo '+_anticipoId+')':''} · ${nuevo.concepto}`);
   // INTEGRACIÓN AUTOMÁTICA: si es Colombia, crear monetización pendiente
   if(cat==='colombia'){
     merAutoCrearMonetizacion(nuevo);
-    merAudit('Monetización auto-creada', `Egreso ${id} → Pendiente por Monetizar · USD ${valor}`);
+    merAudit('Monetización auto-creada', `Egreso ${id} → Pendiente por Monetizar · USD ${_valorRealTransferido}${_anticipoId?' (descontado anticipo '+_anticipoId+' USD '+_anticipoUSD+')':''}`);
     try{ actualizarBadgesMon&&actualizarBadgesMon(); }catch(e){}
   }
   closeModal('modal-mercury-egreso');
@@ -16920,10 +17108,14 @@ function merGuardarEgreso(){
     setTimeout(()=>{
       const banner = document.createElement('div');
       banner.id = 'mer-mon-banner';
-      banner.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border-radius:14px;padding:16px 20px;max-width:340px;box-shadow:0 8px 32px rgba(245,158,11,.5);animation:slideInUp .3s ease';
+      banner.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border-radius:14px;padding:16px 20px;max-width:360px;box-shadow:0 8px 32px rgba(245,158,11,.5);animation:slideInUp .3s ease';
       banner.innerHTML = `
         <div style="font-size:14px;font-weight:800;margin-bottom:6px">💱 Egreso Colombia registrado</div>
-        <div style="font-size:12px;margin-bottom:12px">El envío de <strong>USD ${valor.toLocaleString('en-US',{minimumFractionDigits:2})}</strong> está pendiente de monetización en Bancolombia.</div>
+        ${_anticipoId
+          ? `<div style="font-size:12px;margin-bottom:4px">Valor bruto: <strong>USD ${valor.toLocaleString('en-US',{minimumFractionDigits:2})}</strong> − Anticipo: <strong>USD ${_anticipoUSD.toLocaleString('en-US',{minimumFractionDigits:2})}</strong></div>
+             <div style="font-size:13px;font-weight:900;margin-bottom:10px">✅ Neto a monetizar: <span style="color:#1a1a1a">USD ${_valorRealTransferido.toLocaleString('en-US',{minimumFractionDigits:2})}</span></div>`
+          : `<div style="font-size:12px;margin-bottom:12px">El envío de <strong>USD ${valor.toLocaleString('en-US',{minimumFractionDigits:2})}</strong> está pendiente de monetización en Bancolombia.</div>`
+        }
         <div style="display:flex;gap:8px">
           <button onclick="document.getElementById('mer-mon-banner').remove();goPage('monetizacion');" style="background:#000;color:#f59e0b;border:none;border-radius:8px;padding:8px 16px;font-weight:800;font-size:12px;cursor:pointer;flex:1">→ Ir a Monetización</button>
           <button onclick="document.getElementById('mer-mon-banner').remove()" style="background:rgba(0,0,0,.2);color:#000;border:none;border-radius:8px;padding:8px 12px;font-weight:700;font-size:12px;cursor:pointer">✕</button>
@@ -16931,7 +17123,7 @@ function merGuardarEgreso(){
       const old = document.getElementById('mer-mon-banner');
       if(old) old.remove();
       document.body.appendChild(banner);
-      setTimeout(()=>{ if(document.getElementById('mer-mon-banner')) banner.remove(); },12000);
+      setTimeout(()=>{ if(document.getElementById('mer-mon-banner')) banner.remove(); },14000);
     },400);
   }
 }
@@ -18668,8 +18860,10 @@ function bancoCalcSaldo(){
   const liqsPagadas = liqs.filter(l=>l.pagado||l.estado==='Pagado');
   const numLiqsPagadas = liqsPagadas.length;
 
-  // 4. Saldo bancario real (redondeado — COP no tiene centavos)
-  const totalEntradas = Math.round(totalMonetizado + ingAdicional);
+  // 4. Saldo bancario real.
+  // Nota: no redondeamos ingAdicional en este paso para conservar centavos
+  // (ej: intereses de $0.12 COP no se pierden en la sumatoria del saldo)
+  const totalEntradas = Math.round(totalMonetizado) + ingAdicional;
   const totalSalidas  = Math.round(totalEgresosMovs);
   const saldo = totalEntradas - totalSalidas;
 
@@ -18819,7 +19013,9 @@ function bancoRenderFlujo(){
   const mons = getMonetizaciones();
   const movs = getBancoMovs();
   const liqs = getLiqs();
-  const cop = v=>('$'+Math.round(Math.abs(v||0)).toLocaleString('es-CO'));
+  // cop: muestra 2 decimales solo cuando el valor es mayor que 0 y menor que 1
+  // (ej: intereses de $0.12 COP se muestran como "$0.12" en vez de "$0")
+  const cop = v=>{const a=Math.abs(v||0);return a>0&&a<1?'$'+a.toFixed(2):'$'+Math.round(a).toLocaleString('es-CO');};
   const colorS = d.saldo>=0?'var(--success)':'var(--danger)';
   const colorU = d.utilidadNeta>=0?'var(--success)':'var(--danger)';
   const colorSL = d.saldoLibre>=0?'var(--success)':'var(--danger)';
@@ -20277,10 +20473,13 @@ function jdExportarBackup(){
   }
 
   function _toLiqs(rows) {
+    // NOTA: trm y brutoUSD NO están en known para que fluyan a datos_extra y
+    // sobrevivan el round-trip Supabase → localStorage. Las columnas con campo
+    // directo en Supabase (brutoCOP = valor_total, etc.) sí van en known.
     var known = {id:1,fecha:1,estudioId:1,estudioNombre:1,pagoEstudio:1,pagado:1,estado:1,
       pendienteUmbral:1,pendienteDesde:1,createdAt:1,ocultarHistorial:1,
       saldoComprometido:1,pagoAnticipado:1,pagadoEn:1,pagoExterno:1,
-      netoCOP:1,brutoUSD:1,brutoCOP:1,planMon:1,trm:1};
+      netoCOP:1,brutoCOP:1,planMon:1};
     return (rows||[]).filter(function(l){ return l && l.id; }).map(function(l) {
       var extra = {};
       Object.keys(l).forEach(function(k){ if(!known[k]) extra[k]=l[k]; });
@@ -21155,6 +21354,56 @@ function monCalcAnticipos(){
   resumen.style.display='';
   resumen.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--muted)">Total facturación USD:</span><span style="font-weight:700">USD ${totalFact.toLocaleString('en-US',{minimumFractionDigits:2})}</span></div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--muted)">Anticipos a deducir (${ids.length}):</span><span style="font-weight:700;color:#f59e0b">− USD ${total.toLocaleString('en-US',{minimumFractionDigits:2})}</span></div><div style="display:flex;justify-content:space-between;border-top:1px solid rgba(245,158,11,.3);padding-top:6px;margin-top:2px"><span style="font-weight:700">USD pendiente de pago:</span><span style="font-weight:700;color:var(--success)">USD ${pendiente.toLocaleString('en-US',{minimumFractionDigits:2})}</span></div><div style="margin-top:6px;font-size:11px;color:var(--muted)">Los anticipos seleccionados se marcarán como CONCILIADO al guardar esta monetización.</div>`;
 }
+
+// ─── GESTIONAR ANTICIPO EXISTENTE (desde badge en tabla ingresos) ──────────
+function antGestionarModal(ingresoId){
+  const a=getAnticipos().find(x=>x.ingresoId===ingresoId);
+  if(!a){ toast('Anticipo no encontrado','warn'); return; }
+  const fmtU=v=>'USD '+(v||0).toLocaleString('en-US',{minimumFractionDigits:2});
+  const esDisponible=a.estado==='DISPONIBLE';
+  const html=`
+    <div style="padding:18px 22px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;font-size:13px">
+        <div><span style="color:var(--muted)">ID Anticipo:</span><br><strong>${a.id}</strong></div>
+        <div><span style="color:var(--muted)">Plataforma:</span><br><strong>${a.plataforma||'—'}</strong></div>
+        <div><span style="color:var(--muted)">Valor:</span><br><strong style="color:#f59e0b">${fmtU(a.valorUSD)}</strong></div>
+        <div><span style="color:var(--muted)">Estado:</span><br><strong style="color:${esDisponible?'#22c55e':'#94a3b8'}">${a.estado}</strong></div>
+        <div><span style="color:var(--muted)">Desde:</span><br><strong>${a.quincenaDesde||'—'}</strong></div>
+        <div><span style="color:var(--muted)">Hasta:</span><br><strong>${a.quincenaHasta||'—'}</strong></div>
+      </div>
+      ${a.monetizacionId?`<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Conciliado con: <strong>${a.monetizacionId}</strong> · ${a.fechaConciliacion?new Date(a.fechaConciliacion).toLocaleDateString('es-CO'):''}</div>`:''}
+      ${esDisponible
+        ? `<div style="background:rgba(34,197,94,.1);border:1px solid #22c55e;border-radius:8px;padding:10px;font-size:12px;color:#22c55e;margin-bottom:12px">✅ Este anticipo está <strong>DISPONIBLE</strong>. Aparecerá en el formulario de Egreso → Transferencia a Colombia para que lo descuentes.</div>`
+        : `<div style="background:rgba(245,158,11,.1);border:1px solid #f59e0b;border-radius:8px;padding:10px;font-size:12px;color:#f59e0b;margin-bottom:12px">⚠️ Este anticipo está <strong>CONCILIADO</strong>. Puedes liberarlo para usarlo en un nuevo Egreso.</div>`
+      }
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeModal('modal-ant-gestionar')">Cerrar</button>
+        ${!esDisponible?`<button class="btn btn-primary" onclick="antLiberarAnticipo('${a.id}')" style="background:#f59e0b;color:#000">🔓 Liberar Anticipo</button>`:''}
+      </div>
+    </div>`;
+  let modal=document.getElementById('modal-ant-gestionar');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.className='overlay'; modal.id='modal-ant-gestionar';
+    modal.innerHTML=`<div class="modal" style="max-width:440px"><div class="mh"><div class="mh-title">📥 Gestionar Anticipo</div><button class="mclose" onclick="closeModal('modal-ant-gestionar')">✕</button></div><div id="modal-ant-gestionar-body"></div></div>`;
+    document.body.appendChild(modal);
+  }
+  document.getElementById('modal-ant-gestionar-body').innerHTML=html;
+  openModal('modal-ant-gestionar');
+}
+
+function antLiberarAnticipo(anticipoId){
+  const ants=getAnticipos();
+  const a=ants.find(x=>x.id===anticipoId);
+  if(!a){ toast('Anticipo no encontrado','warn'); return; }
+  a.estado='DISPONIBLE';
+  a.monetizacionId=null;
+  a.fechaConciliacion=null;
+  saveAnticipos(ants);
+  closeModal('modal-ant-gestionar');
+  toast(`✅ Anticipo ${anticipoId} liberado — ahora DISPONIBLE para Egreso`,'success');
+  try{ merRenderIngresos&&merRenderIngresos(); }catch(e){}
+}
 </script>
 
 <!-- ═══ OVERRIDE FINAL: ocultar banner de egresos prohibidos ═══ -->
@@ -21276,18 +21525,27 @@ function monCalcAnticipos(){
     console.info('[RESTORE] Hook registrado en _loadSupabaseData para restaurar MON-000001/2/3');
 
     window._jdEmergencyRestoreMons = function() {
-      // ── PASO 1: Valores canónicos — fuente de verdad para MON-000001/2/3 ──
-      // Suma pesosReal = $134,303,281 COP → saldo Bancolombia ≈ $33,042,000 COP
-      var _TARGET = ['MON-000001','MON-000002','MON-000003'];
+      // ── PASO 1: Valores canónicos — fuente de verdad para MON-000001/2/3/11 ──
+      // Valores COP confirmados por usuario (valores reales recibidos en Bancolombia):
+      //   MON-000001: $55,185,679 | MON-000002: $35,740,140 | MON-000003: $10,368,504 | MON-000011: $66,215,067
+      // Total monetizado: $167,509,390 COP → saldo Bancolombia = $66,248,109 COP
+      var _TARGET = ['MON-000001','MON-000002','MON-000003','MON-000011'];
       var _fallback = {
-        'MON-000001': { pesosReal: 73968653, usd: 17680.07, egresoId: 'MER-E-000001' },
-        'MON-000002': { pesosReal: 46781223, usd: 11181.70, egresoId: 'MER-E-000002' },
-        'MON-000003': { pesosReal: 13553405, usd:  3239.55, egresoId: 'MER-E-000003' }
+        'MON-000001': { pesosReal: 55185679,  usd: 17680.07, egresoId: 'MER-E-000001', fecha: '2026-08-27' },
+        'MON-000002': { pesosReal: 35740140,  usd: 11181.70, egresoId: 'MER-E-000002', fecha: '2026-08-27' },
+        'MON-000003': { pesosReal: 10368504,  usd:  3239.55, egresoId: 'MER-E-000003', fecha: '2026-08-27' },
+        'MON-000011': { pesosReal: 66215067,  usd: 21270.50, egresoId: 'MER-E-000004', fecha: '2026-09-04' }
+        // MON-000001: USD 17,680.07 × TRM real → COP 55,185,679
+        // MON-000002: USD 11,181.70 × TRM real → COP 35,740,140
+        // MON-000003: USD  3,239.55 × TRM real → COP 10,368,504
+        // MON-000011: USD 21,270.50 neto (24,510.05 − anticipo 3,239.55) × TRM 3,113 → COP 66,215,067 | fecha: 2026-09-04
+        // Total monetizado: $167,509,390 COP → saldo Bancolombia: $66,248,109 COP
       };
       var _merEgresosCanonicos = {
         'MER-E-000001': { id:'MER-E-000001', fecha:'2026-08-27', moneda:'USD', valor:17680.07, valorCOP:0, tasaCambio:0, banco:'Mercury', cuenta:'', beneficiario:'', categoria:'colombia', concepto:'Monetización MON-000001', referencia:'', estado:'Completado', obs:'Egresado — monetizado como MON-000001', createdAt:'2026-08-27T00:00:00.000Z' },
         'MER-E-000002': { id:'MER-E-000002', fecha:'2026-08-27', moneda:'USD', valor:11181.70, valorCOP:0, tasaCambio:0, banco:'Mercury', cuenta:'', beneficiario:'', categoria:'colombia', concepto:'Monetización MON-000002', referencia:'', estado:'Completado', obs:'Egresado — monetizado como MON-000002', createdAt:'2026-08-27T00:00:00.000Z' },
-        'MER-E-000003': { id:'MER-E-000003', fecha:'2026-08-27', moneda:'USD', valor: 3239.55, valorCOP:0, tasaCambio:0, banco:'Mercury', cuenta:'', beneficiario:'', categoria:'colombia', concepto:'Monetización MON-000003', referencia:'', estado:'Completado', obs:'Egresado — monetizado como MON-000003', createdAt:'2026-08-27T00:00:00.000Z' }
+        'MER-E-000003': { id:'MER-E-000003', fecha:'2026-08-27', moneda:'USD', valor: 3239.55, valorCOP:0, tasaCambio:0, banco:'Mercury', cuenta:'', beneficiario:'', categoria:'colombia', concepto:'Monetización MON-000003', referencia:'', estado:'Completado', obs:'Egresado — monetizado como MON-000003', createdAt:'2026-08-27T00:00:00.000Z' },
+        'MER-E-000004': { id:'MER-E-000004', fecha:'2026-09-05', moneda:'USD', valor:24510.05, valorCOP:0, tasaCambio:3113, banco:'Mercury', cuenta:'', beneficiario:'', categoria:'colombia', concepto:'Monetización MON-000011', referencia:'', estado:'Completado', obs:'Egresado — bruto USD 24,510.05, anticipo ANT-000001 USD 3,239.55, neto USD 21,270.50 · TRM $3,113 · COP $66,215,067', createdAt:'2026-09-05T00:00:00.000Z', anticipoId:'ANT-000001', anticipoUSD:3239.55, valorRealTransferido:21270.50 }
       };
 
       // ── PASO 2: Verificar y corregir jd_monetizaciones ──
@@ -21310,32 +21568,32 @@ function monCalcAnticipos(){
         var _modCount = 0;
         _TARGET.forEach(function(monId) {
           var _fb  = _fallback[monId] || {};
-          var _ing = _ingByMon[monId];
-          // Valor esperado: máximo entre jd_ingresos Supabase y fallback canónico
+          // FUENTE DE VERDAD: fallback canónico SIEMPRE — ignorar Supabase para pesosReal
+          // Los valores reales COP fueron confirmados por el usuario:
+          //   MON-000001: $55,185,679 | MON-000002: $35,740,140 | MON-000003: $10,368,504 | MON-000011: $66,215,067
           var _expectedPesos = _fb.pesosReal;
-          if (_ing && _ing.valor > _expectedPesos) _expectedPesos = _ing.valor;
           var _expectedUSD   = _fb.usd;
+          var _expectedFecha = _fb.fecha || '2026-08-27';
 
           if (!_monMap[monId]) {
             // Monetización faltante — crear desde valores canónicos
-            var _src = _ing ? 'jd_ingresos (Supabase)' : 'fallback canónico';
             var _newMon = {
               id: monId, estado: 'CERRADA', pesosReal: _expectedPesos,
               usdMonetizados: _expectedUSD, mercury: _expectedUSD,
               mercuryEgresoId: _fb.egresoId || '', mercuryOrigen: 'auto',
-              fecha: '2026-08-27', fechaMon: '2026-08-27', bancoReceptor: 'Bancolombia',
+              fecha: _expectedFecha, fechaMon: _expectedFecha, bancoReceptor: 'Bancolombia',
               liqIds: [], pagos: [], updatedAt: new Date().toISOString(),
-              _restoradoAuto: true, _restoreSource: _src
+              _restoradoAuto: true, _restoreSource: 'fallback canónico'
             };
             _mons.push(_newMon);
             _monMap[monId] = _newMon;
             _modCount++;
-            console.warn('[RESTORE] ' + monId + ' CREADA: $' + _expectedPesos.toLocaleString('es-CO') + ' COP (' + _src + ')');
+            console.warn('[RESTORE] ' + monId + ' CREADA: $' + _expectedPesos.toLocaleString('es-CO') + ' COP | ' + _expectedFecha);
           } else {
-            // Monetización existe — verificar y corregir pesosReal, usdMonetizados, mercury y gastoUSD
+            // Monetización existe — corregir pesosReal exacto (en ambas direcciones), usdMonetizados, mercury, fecha y gastoUSD
             var _needsFix = false;
             var _fixes = [];
-            if ((_monMap[monId].pesosReal || 0) < _expectedPesos) {
+            if ((_monMap[monId].pesosReal || 0) !== _expectedPesos) {
               _fixes.push('pesosReal: $' + (_monMap[monId].pesosReal||0).toLocaleString('es-CO') + ' → $' + _expectedPesos.toLocaleString('es-CO'));
               _monMap[monId].pesosReal = _expectedPesos;
               _needsFix = true;
@@ -21352,6 +21610,13 @@ function monCalcAnticipos(){
             if ((_monMap[monId].gastoUSD || 0) !== 0) {
               _fixes.push('gastoUSD: ' + _monMap[monId].gastoUSD + ' → 0');
               _monMap[monId].gastoUSD = 0;
+              _needsFix = true;
+            }
+            // Corregir fecha si difiere del valor canónico
+            if (_monMap[monId].fecha !== _expectedFecha) {
+              _fixes.push('fecha: ' + _monMap[monId].fecha + ' → ' + _expectedFecha);
+              _monMap[monId].fecha    = _expectedFecha;
+              _monMap[monId].fechaMon = _expectedFecha;
               _needsFix = true;
             }
             if (_needsFix) {
@@ -21404,6 +21669,270 @@ function monCalcAnticipos(){
           console.info('[RESTORE] Mercury egresos MER-E-000001/2/3 ya presentes. Saldo = $' + (_totalIng2 - _totalUSD2).toFixed(2) + ' USD');
         }
       } catch(_me) { console.warn('[RESTORE] Error restaurando Mercury egresos:', _me.message); }
+
+      // ── PASO 4: Restaurar anticipo ANT-000001 (USD 3,239.55) en jd_anticipos ──
+      // Este anticipo corresponde al ingreso Mercury del período que originó MON-000003.
+      // Se crea como DISPONIBLE si no existe; si ya fue conciliado se deja intacto.
+      try {
+        var _ants = JSON.parse(localStorage.getItem('jd_anticipos') || '[]');
+        var _antIds = _ants.map(function(a){ return a.id; });
+        if (_antIds.indexOf('ANT-000001') < 0) {
+          _ants.push({
+            id: 'ANT-000001',
+            ingresoId: '',
+            plataforma: 'Chaturbate',
+            valorUSD: 3239.55,
+            quincenaDesde: '2026-08-01',
+            quincenaHasta: '2026-08-15',
+            obs: 'Anticipo período ago 1-15 · USD 3,239.55',
+            estado: 'DISPONIBLE',
+            monetizacionId: null,
+            fechaConciliacion: null,
+            fechaRegistro: '2026-08-27T00:00:00.000Z',
+            ingresoDesc: 'Ingreso Mercury · Chaturbate ago 1-15',
+            ingresoFecha: '2026-08-27',
+            _restoradoAuto: true
+          });
+          localStorage.setItem('jd_anticipos', JSON.stringify(_ants));
+          console.info('[RESTORE] ✅ ANT-000001 creado: USD 3,239.55 (DISPONIBLE)');
+        } else {
+          console.info('[RESTORE] ANT-000001 ya existe — sin cambios');
+        }
+      } catch(_ae) { console.warn('[RESTORE] Error restaurando anticipos:', _ae.message); }
+
+      // ── PASO 6: Eliminar MONs auto-Mercury no canónicos ──
+      // Cualquier MON creado automáticamente desde Mercury (mercuryOrigen='auto')
+      // que NO sea MON-000001/2/3 debe eliminarse — son monetizaciones de prueba
+      // o accidentales. Las reales se añaden manualmente al TARGET list.
+      try {
+        var _monsRaw = JSON.parse(localStorage.getItem('jd_monetizaciones') || '[]');
+        var _canonicos = new Set(['MON-000001','MON-000002','MON-000003','MON-000011']);
+        var _monsLimpios = _monsRaw.filter(function(m) {
+          // Eliminar si: origen auto-mercury Y no es canónico
+          if (m.mercuryOrigen === 'auto' && !_canonicos.has(m.id)) {
+            console.warn('[RESTORE] Eliminando MON auto-Mercury no canónico:', m.id, '| pesosReal:', m.pesosReal, '| estado:', m.estado);
+            return false;
+          }
+          return true;
+        });
+        if (_monsLimpios.length < _monsRaw.length) {
+          localStorage.setItem('jd_monetizaciones', JSON.stringify(_monsLimpios));
+          console.info('[RESTORE] ✅ ' + (_monsRaw.length - _monsLimpios.length) + ' MON(s) auto-Mercury no canónico(s) eliminados. Total restante: ' + _monsLimpios.length);
+        } else {
+          console.info('[RESTORE] No hay MONs auto-Mercury no canónicos. Total: ' + _monsRaw.length);
+        }
+      } catch(_p6e) { console.warn('[RESTORE] Error en limpieza de MONs auto-Mercury:', _p6e.message); }
+
+      // ── PASO 5: Garantizar que jd_mon_seq >= 10 ──
+      // Los IDs MON-000004 a MON-000010 están en la lista de prohibidos del OVERRIDE FINAL.
+      // Forzar el contador a 10 para que el próximo MON legítimo sea MON-000011.
+      try {
+        var _seq = parseInt(localStorage.getItem('jd_mon_seq')||'0')||0;
+        if (_seq < 10) {
+          localStorage.setItem('jd_mon_seq', '10');
+          console.info('[RESTORE] jd_mon_seq avanzado de ' + _seq + ' → 10 (próximo MON será MON-000011)');
+        } else {
+          console.info('[RESTORE] jd_mon_seq OK: ' + _seq);
+        }
+      } catch(_se) { console.warn('[RESTORE] Error ajustando jd_mon_seq:', _se.message); }
+
+      // ── PASO 7a: Corregir estudioNombre corrompido (bug datos_extra override) ─
+      // Bug: en _supaToLocalStorage, ...(datos_extra) se aplicaba DESPUÉS de los
+      // campos nombrados, sobreescribiendo estudioNombre con datos obsoletos de
+      // datos_extra (p.ej. 'Black Card'). Esta corrección usa estudioId para
+      // recuperar el nombre correcto desde jd_estudios.
+      try {
+        var _liqsNom = JSON.parse(localStorage.getItem('jd_liqs') || '[]');
+        var _ests = JSON.parse(localStorage.getItem('jd_estudios') || '[]');
+        var _estMap = {};
+        _ests.forEach(function(e){ if(e && e.id) _estMap[e.id] = e.nombreAgencia || e.nombreReal || e.id; });
+        var _nomFixed = 0;
+        _liqsNom.forEach(function(l) {
+          if (!l || !l.estudioId) return;
+          var nombreReal = _estMap[l.estudioId];
+          if (nombreReal && l.estudioNombre !== nombreReal) {
+            console.info('[RESTORE] Corrigiendo estudioNombre: "' + l.estudioNombre + '" → "' + nombreReal + '" (liq ' + l.id + ', fecha ' + l.fecha + ')');
+            l.estudioNombre = nombreReal;
+            _nomFixed++;
+          }
+        });
+        if (_nomFixed > 0) {
+          localStorage.setItem('jd_liqs', JSON.stringify(_liqsNom));
+          console.info('[RESTORE] ✅ estudioNombre corregido en ' + _nomFixed + ' colilla(s)');
+        } else {
+          console.info('[RESTORE] ✅ estudioNombre OK en todas las colillas');
+        }
+      } catch(_nomE) { console.warn('[RESTORE] Error corrigiendo estudioNombre:', _nomE.message); }
+
+      // ── PASO 7: Recuperar TRM faltante en colillas históricas ──────────────
+      // Bug original: _toLiqs tenía 'trm' en known, así que TRM no iba a datos_extra y
+      // se perdía en cada round-trip a Supabase. Este paso lo recupera por dos vías:
+      //   A) derivar TRM = round(brutoCOP / brutoUSD) cuando ambos están disponibles.
+      //   B) buscar TRM en la monetización que referencia esta colilla (tasaBancolombia).
+      // Se ejecuta cada vez (sin flag) para garantizar corrección tras cada reload de Supabase.
+      try {
+        var _liqsTRM = JSON.parse(localStorage.getItem('jd_liqs') || '[]');
+        var _monsTRM = JSON.parse(localStorage.getItem('jd_monetizaciones') || '[]');
+
+        // Construir mapa liqId → tasaBancolombia desde monetizaciones
+        var _liqToTRM = {};
+        _monsTRM.forEach(function(m) {
+          if (!m || !m.tasaBancolombia || m.tasaBancolombia <= 0) return;
+          var tasa = parseFloat(m.tasaBancolombia);
+          if (tasa < 1000 || tasa > 10000) return; // sanidad
+          (m.liqIds || []).forEach(function(lid) {
+            if (!_liqToTRM[lid]) _liqToTRM[lid] = tasa;
+          });
+        });
+
+        var _trmFixed = 0;
+        var _usdFixed = 0;
+        var _trmAudit = [];
+        _liqsTRM.forEach(function(l) {
+          if (!l || !l.id) return;
+
+          // ── Recuperar brutoUSD desde datos de plataforma si está perdido ─────
+          // brutoUSD también estaba en known antes del fix; si falta, lo reconstruimos
+          // sumando baseUSD+bonusUSD de cada plataforma (que sí persiste en datos_extra).
+          if ((!l.brutoUSD || l.brutoUSD <= 0) && l.plataformas) {
+            var _platUSD = 0;
+            Object.values(l.plataformas).forEach(function(p) {
+              _platUSD += parseFloat(p.baseUSD || 0) + parseFloat(p.bonusUSD || 0);
+            });
+            if (_platUSD > 0.01) {
+              l.brutoUSD = _platUSD;
+              _usdFixed++;
+            }
+          }
+
+          if (l.trm && l.trm > 0) return; // ya tiene TRM — no tocar
+
+          // Vía A: derivar desde brutoCOP / brutoUSD (ahora recuperado si faltaba)
+          var bCOP = parseFloat(l.brutoCOP || 0);
+          var bUSD = parseFloat(l.brutoUSD || 0);
+          if (bCOP > 100 && bUSD > 0.01) {
+            var derivada = Math.round(bCOP / bUSD);
+            if (derivada > 1000 && derivada < 10000) {
+              l.trm = derivada;
+              _trmFixed++;
+              _trmAudit.push({ id: l.id, estudio: l.estudioNombre, fecha: l.fecha, trm: derivada, via: 'plataformas' });
+              return;
+            }
+          }
+
+          // Vía B: buscar en monetización vinculada (tasaBancolombia)
+          if (_liqToTRM[l.id]) {
+            l.trm = _liqToTRM[l.id];
+            _trmFixed++;
+            _trmAudit.push({ id: l.id, estudio: l.estudioNombre, fecha: l.fecha, trm: l.trm, via: 'monetizacion' });
+          }
+        });
+
+        if (_trmFixed > 0 || _usdFixed > 0) {
+          localStorage.setItem('jd_liqs', JSON.stringify(_liqsTRM));
+          if (_trmFixed > 0) console.info('[RESTORE] ✅ TRM recuperada en ' + _trmFixed + ' colilla(s):', _trmAudit);
+          if (_usdFixed > 0) console.info('[RESTORE] ✅ brutoUSD recuperado en ' + _usdFixed + ' colilla(s)');
+        } else {
+          console.info('[RESTORE] ✅ TRM y brutoUSD OK en todas las colillas');
+        }
+        // Auditoría completa
+        var _auditAll = _liqsTRM.map(function(l) {
+          return { id:l.id, estudio:l.estudioNombre, fecha:l.fecha, trm:l.trm||0,
+                   pagoEstudio:l.pagoEstudio||0, estado:l.estado||'?' };
+        });
+        console.info('[AUDIT COLILLAS] Estado actual:', JSON.stringify(_auditAll));
+      } catch(_trmE) { console.warn('[RESTORE] Error en recuperación de TRM:', _trmE.message); }
+
+      // ── PASO 8: Reconstruir saldoCOP de ahorros desde liqs ───────────────────
+      // Bug corregido: guardarLiquidacion usaba save() en vez de saveAhorros(),
+      // así que los abonos de ahorros nunca llegaban a Supabase. Al recargar,
+      // saldo_cop volvía al valor original. Este paso recalcula el saldo correcto
+      // sumando los descuentos.ahorros de todas las liqs de cada estudio.
+      try {
+        var _liqs8  = JSON.parse(localStorage.getItem('jd_liqs')    || '[]');
+        var _ahs8   = JSON.parse(localStorage.getItem('jd_ahorros') || '[]');
+
+        // Mapa estudioId → total abonado en ahorros según liqs (fuente de verdad)
+        var _ahoMap8 = {};
+        _liqs8.forEach(function(l) {
+          if (!l || !l.estudioId) return;
+          var mon = parseFloat((l.descuentos && l.descuentos.ahorros) ? l.descuentos.ahorros : 0);
+          if (mon > 0) {
+            _ahoMap8[l.estudioId] = (_ahoMap8[l.estudioId] || 0) + mon;
+          }
+        });
+
+        var _ahoFixed8 = 0;
+        _ahs8.forEach(function(a) {
+          if (!a || !a.estudioId) return;
+          var correcto = _ahoMap8[a.estudioId] || 0;
+          if (correcto > 0 && a.saldoCOP !== correcto) {
+            console.info('[RESTORE] Corrigiendo saldoCOP (' + (a.estudioNombre||a.estudioId) + '):'
+              + ' actual=' + a.saldoCOP + ' → correcto=' + correcto);
+            a.saldoCOP = correcto;
+            _ahoFixed8++;
+          }
+        });
+
+        if (_ahoFixed8 > 0) {
+          localStorage.setItem('jd_ahorros', JSON.stringify(_ahs8));
+          // Sincronizar a Supabase para que el saldo persista
+          if (typeof saveAhorros === 'function') saveAhorros(_ahs8);
+          console.info('[RESTORE] ✅ saldoCOP de ahorros corregido en', _ahoFixed8, 'registro(s)');
+        } else {
+          console.info('[RESTORE] ✅ saldoCOP de ahorros OK');
+        }
+      } catch(_ah8E) { console.warn('[RESTORE] Error en corrección de ahorros:', _ah8E.message); }
+
+      // ── PASO 9: Marcar como Saldo Comprometido toda liq pagada < $100.000 ──
+      // Si una liq fue marcada como Pagada pero su pagoEstudio es menor al
+      // umbral ($100.000), debe revertirse a Pendiente/SaldoComprometido.
+      // Excepción: liqs con excluirComprometido=true (como Prestige Cam) u
+      // ocultarHistorial=true (pagos externos anteriores al sistema).
+      try {
+        var _liqs9   = JSON.parse(localStorage.getItem('jd_liqs')              || '[]');
+        var _movs9   = JSON.parse(localStorage.getItem('jd_banco_movimientos') || '[]');
+        var UMBRAL9  = 100000;
+        var _fixed9  = 0;
+        var _movsElim9 = [];
+
+        _liqs9.forEach(function(l) {
+          if (!l || !l.id) return;
+          if (l.excluirComprometido) return;      // excluida explícitamente
+          if (l.ocultarHistorial)    return;      // pago externo pre-sistema
+          if (l.pendienteUmbral === true) return; // ya comprometida
+          if (l.estado === 'Absorbido') return;   // absorbida en otra liq
+
+          var monto = parseFloat(l.pagoEstudio || 0);
+          if (monto <= 0 || monto >= UMBRAL9) return; // dentro del umbral o sin monto
+
+          // Si estaba pagada individualmente, revertir el pago y limpiar el egreso
+          if (l.pagado === true || l.estado === 'Pagado') {
+            if (l.pagoMovId) _movsElim9.push(l.pagoMovId);
+            delete l.pagado; delete l.pagadoEn;
+            delete l.pagoMovId; delete l.pagoBanco;
+            delete l.pagoBloque;
+          }
+          l.estado          = 'Pendiente';
+          l.pendienteUmbral = true;
+          l.pendienteDesde  = l.pendienteDesde || l.fecha || '';
+          _fixed9++;
+          console.info('[RESTORE] Comprometido (< $100k):', (l.estudioNombre||l.id),
+            '$' + monto, 'liq', l.id);
+        });
+
+        // Eliminar egresos individuales que corresponden a liqs revocadas
+        var _movsFilt9 = _movs9.filter(function(m) { return _movsElim9.indexOf(m.id) < 0; });
+
+        if (_fixed9 > 0) {
+          localStorage.setItem('jd_liqs',               JSON.stringify(_liqs9));
+          localStorage.setItem('jd_banco_movimientos',   JSON.stringify(_movsFilt9));
+          console.info('[RESTORE] ✅ PASO 9: ' + _fixed9 + ' liq(s) reclasificadas a Saldo Comprometido, '
+            + _movsElim9.length + ' egreso(s) eliminado(s)');
+        } else {
+          console.info('[RESTORE] ✅ PASO 9: ninguna liq requiere corrección de umbral');
+        }
+      } catch(_p9E) { console.warn('[RESTORE] Error PASO 9:', _p9E.message); }
     };
   })();
 

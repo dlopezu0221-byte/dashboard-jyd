@@ -938,7 +938,10 @@ function renderMon(p) {
   const byMon  = {};
   (p.modelos||[]).forEach(m => {
     if (monFil && m.monitor !== monFil) return;
-    if (estFil) { const bd=bdOf(m.nombre); if(bd&&bd.estado!==estFil) return; }
+    // Solo mostrar modelos ACTIVOS en las tarjetas de monitor
+    const bd = bdOf(m.nombre);
+    if (bd && bd.estado && bd.estado.toLowerCase() !== 'activo') return;
+    if (estFil) { if(bd&&bd.estado!==estFil) return; }
     (byMon[m.monitor||'Sin monitor'] = byMon[m.monitor||'Sin monitor']||[]).push(m);
   });
   if (!Object.keys(byMon).length) {

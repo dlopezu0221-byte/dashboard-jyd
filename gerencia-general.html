@@ -466,6 +466,7 @@ td[style*="text-align:right"], th[style*="text-align:right"] {
     <div class="nav-item" onclick="goPage('perfiles')"><span class="ico">🔍</span>Perfiles 360°</div>
     <div class="nav-item" onclick="jdExportarBackup()" style="border-top:1px solid rgba(200,168,75,.15);margin-top:6px;padding-top:10px;color:var(--gold);opacity:.85"><span class="ico">📦</span>Exportar Backup</div>
     <div class="nav-item" onclick="goPage('config')"><span class="ico">⚙️</span>Configuración</div>
+    <div id="nav-ejecutivo-item" class="nav-item" onclick="goPage('ejecutivo')" style="display:none;background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(99,102,241,.08));border:1px solid rgba(59,130,246,.25);margin:4px 0;border-radius:6px;padding:9px 12px;color:#3b82f6;font-weight:700"><span class="ico">💼</span>Panel Ejecutivo</div>
     <div id="nav-usuarios-item" class="nav-item" onclick="goPage('usuarios')" style="display:none;border-top:1px solid rgba(200,168,75,.15);margin-top:4px;padding-top:8px;color:#818cf8"><span class="ico">👥</span>Administración Usuarios</div>
   </nav>
   <div class="sidebar-foot">v4.0 · Grupo J&D © 2026</div>
@@ -3811,6 +3812,103 @@ td[style*="text-align:right"], th[style*="text-align:right"] {
   <div id="mer-view-auditoria" style="display:none"></div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════════
+     PANEL EJECUTIVO COMERCIAL
+══════════════════════════════════════════════════════════════════ -->
+<div id="page-ejecutivo" class="page">
+  <div class="page-header" style="border-bottom:2px solid #3b82f6;margin-bottom:0">
+    <div>
+      <div class="page-title" style="color:#3b82f6">💼 <span id="ec-page-title">Panel Ejecutivo Comercial</span></div>
+      <div class="page-sub" id="ec-page-sub">Resumen de producción · Grupo J&D</div>
+    </div>
+    <div class="btn-group">
+      <span id="ec-refresh-badge" style="display:none;align-items:center;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);color:#3b82f6;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700"></span>
+      <button class="btn btn-ghost btn-sm" onclick="_ecCountdown=0;_ecActualizarBadge();" title="Actualizar ahora">🔄 Actualizar</button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div style="display:flex;gap:0;border-bottom:2px solid rgba(59,130,246,.35);margin-bottom:16px;flex-wrap:wrap;background:var(--card);border-top:none">
+    <button id="ec-tab-resumen"   class="btn btn-ghost" style="border-radius:0;font-size:12px;font-weight:700;border-bottom:3px solid #3b82f6;color:#3b82f6"  onclick="ecTab('resumen')">📊 Resumen</button>
+    <button id="ec-tab-estudios"  class="btn btn-ghost" style="border-radius:0;font-size:12px;font-weight:700" onclick="ecTab('estudios')">🏢 Estudios</button>
+    <button id="ec-tab-modelos"   class="btn btn-ghost" style="border-radius:0;font-size:12px;font-weight:700" onclick="ecTab('modelos')">👤 Modelos</button>
+    <button id="ec-tab-liqs"      class="btn btn-ghost" style="border-radius:0;font-size:12px;font-weight:700" onclick="ecTab('liqs')">📋 Liquidaciones</button>
+  </div>
+
+  <!-- TAB: RESUMEN -->
+  <div id="ec-view-resumen">
+    <div id="ec-kpis" class="stats-grid" style="margin-bottom:16px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card">
+        <div class="card-title">🏆 Top Estudios por Facturación</div>
+        <div id="ec-top-estudios"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📅 Últimas Liquidaciones</div>
+        <div id="ec-ultimas-liqs"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">📈 Facturación por Mes <span style="font-size:10px;color:var(--muted);font-weight:400">(últimos 6 meses · COP neto pagado al estudio)</span></div>
+      <div id="ec-chart-mes" style="display:flex;align-items:flex-end;gap:6px;height:120px;padding:12px 0 0 0"></div>
+    </div>
+  </div>
+
+  <!-- TAB: ESTUDIOS -->
+  <div id="ec-view-estudios" style="display:none">
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <label style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px">Estudio</label>
+        <select id="ec-sel-estudio" onchange="ecRenderEstudio()" style="width:100%;background:var(--card2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer">
+          <option value="">— Todos los estudios —</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px">Mes</label>
+        <select id="ec-sel-mes-est" onchange="ecRenderEstudio()" style="background:var(--card2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer">
+          <option value="">Todos</option>
+        </select>
+      </div>
+    </div>
+    <div id="ec-estudio-info" style="margin-bottom:16px"></div>
+    <div id="ec-estudio-liqs"></div>
+  </div>
+
+  <!-- TAB: MODELOS -->
+  <div id="ec-view-modelos" style="display:none">
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <input id="ec-mod-search" oninput="ecFiltrarModelos()" placeholder="🔍 Buscar modelo..." style="flex:1;min-width:200px;background:var(--card2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:10px;font-size:13px;outline:none">
+      <select id="ec-mod-estudio-fil" onchange="ecFiltrarModelos()" style="background:var(--card2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer">
+        <option value="">Todos los estudios</option>
+      </select>
+      <select id="ec-mod-estado-fil" onchange="ecFiltrarModelos()" style="background:var(--card2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer">
+        <option value="">Todos los estados</option>
+        <option value="Activo">Activo</option>
+        <option value="Inactivo">Inactivo</option>
+      </select>
+    </div>
+    <div id="ec-modelos-grid"></div>
+  </div>
+
+  <!-- TAB: LIQUIDACIONES -->
+  <div id="ec-view-liqs" style="display:none">
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <select id="ec-liq-fil-est" onchange="ecFiltrarLiqs()" style="background:var(--card2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer">
+        <option value="">Todos los estudios</option>
+      </select>
+      <select id="ec-liq-fil-mes" onchange="ecFiltrarLiqs()" style="background:var(--card2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer">
+        <option value="">Todos los meses</option>
+      </select>
+      <select id="ec-liq-fil-estado" onchange="ecFiltrarLiqs()" style="background:var(--card2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer">
+        <option value="">Todos los estados</option>
+        <option value="Cerrada">Cerrada</option>
+        <option value="Pendiente">Pendiente</option>
+      </select>
+    </div>
+    <div id="ec-liqs-tabla"></div>
+  </div>
+</div>
+
 <!-- MODAL: NUEVO INGRESO MERCURY -->
 <div class="overlay" id="modal-mercury-ingreso">
 <div class="modal" style="max-width:900px;border-top:3px solid #3b82f6">
@@ -5034,6 +5132,33 @@ function _jdApplyUserUI() {
   // Mostrar nav item de Usuarios solo para super_admin
   const navUsr = document.getElementById('nav-usuarios-item');
   if (navUsr) navUsr.style.display = jdIsSuperAdmin() ? 'flex' : 'none';
+
+  // Mostrar nav item Ejecutivo para rol ejecutivo y super_admin
+  const navEc = document.getElementById('nav-ejecutivo-item');
+  const esEjecutivo = _jdCurrentUser.rol === 'ejecutivo';
+  if (navEc) navEc.style.display = (esEjecutivo || jdIsSuperAdmin()) ? 'flex' : 'none';
+
+  // Si el usuario es ejecutivo comercial, navegar directo a su panel y ocultar nav no relevante
+  if (esEjecutivo) {
+    // Ocultar secciones no relevantes para el ejecutivo
+    ['nav-monetizacion-item'].forEach(function(nid) {
+      var el = document.getElementById(nid);
+      if (el) el.style.display = 'none';
+    });
+    // Ocultar grupos de nav que el ejecutivo no necesita
+    document.querySelectorAll('.nav-group-hdr, .nav-subgroup').forEach(function(el) {
+      el.style.display = 'none';
+    });
+    document.querySelectorAll('.nav-sec').forEach(function(el) {
+      el.style.display = 'none';
+    });
+    document.querySelectorAll('.nav-item:not(#nav-ejecutivo-item)').forEach(function(el) {
+      if (!el.id || el.id !== 'nav-ejecutivo-item') el.style.display = 'none';
+    });
+    if (navEc) navEc.style.display = 'flex';
+    // Navegar a página ejecutivo
+    goPage('ejecutivo');
+  }
 }
 
 // ── Registrar acción de auditoría ────────────────────────────────
@@ -5571,6 +5696,10 @@ function goPage(id) {
   if(id==='informe-financiero') renderInformeFinanciero();
   if(id==='control-financiero') renderControlFinanciero();
   if(id==='estadisticas') renderEstadisticas();
+  if(id==='ejecutivo') renderEjecutivo();
+  // Auto-refresh: iniciar cuando entra al panel ejecutivo, detener al salir
+  if(id==='ejecutivo') { _ecIniciarAutoRefresh(); }
+  else { _ecDetenerAutoRefresh(); }
 }
 
 function renderEstadisticas(){
@@ -5596,6 +5725,418 @@ function estadisticasAbrirNueva(){
   var base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '');
   window.open(base + '/monitores/index.html', '_blank');
 }
+
+// ═══════════════════════════════════════════════════════════════
+// PANEL EJECUTIVO COMERCIAL
+// ═══════════════════════════════════════════════════════════════
+
+// ── Auto-refresh del Panel Ejecutivo ────────────────────────────
+var _ecRefreshTimer = null;
+var _ecRefreshSeg   = 30; // segundos entre actualización
+var _ecCountdown    = 0;
+var _ecCountTimer   = null;
+
+function _ecIniciarAutoRefresh() {
+  _ecDetenerAutoRefresh(); // limpiar cualquier timer previo
+  _ecCountdown = _ecRefreshSeg;
+  _ecActualizarBadge();
+  _ecCountTimer = setInterval(function() {
+    _ecCountdown--;
+    _ecActualizarBadge();
+    if(_ecCountdown <= 0) {
+      _ecCountdown = _ecRefreshSeg;
+      // Recargar datos frescos de Supabase si está disponible, sino usar localStorage
+      if(typeof _loadSupabaseData === 'function' && _supaDb) {
+        _loadSupabaseData().then(function(){
+          if(currentPage === 'ejecutivo') renderEjecutivo();
+        }).catch(function(){ if(currentPage === 'ejecutivo') renderEjecutivo(); });
+      } else {
+        if(currentPage === 'ejecutivo') renderEjecutivo();
+      }
+    }
+  }, 1000);
+}
+
+function _ecDetenerAutoRefresh() {
+  if(_ecCountTimer)  { clearInterval(_ecCountTimer);  _ecCountTimer  = null; }
+  if(_ecRefreshTimer){ clearInterval(_ecRefreshTimer); _ecRefreshTimer = null; }
+  var badge = document.getElementById('ec-refresh-badge');
+  if(badge) badge.style.display = 'none';
+}
+
+function _ecActualizarBadge() {
+  var badge = document.getElementById('ec-refresh-badge');
+  if(!badge) return;
+  badge.style.display = 'flex';
+  badge.textContent = '🔄 ' + _ecCountdown + 's';
+}
+
+function ecCOP(v){ return '$'+(Math.round(v||0)).toLocaleString('es-CO'); }
+function ecFecha(f){ if(!f) return '—'; try{ return new Date(f+'T00:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}); } catch(e){ return f; } }
+function ecMesLabel(f){ if(!f) return ''; try{ var d=new Date(f+'T00:00:00'); return d.toLocaleDateString('es-CO',{month:'long',year:'numeric'}); } catch(e){ return f.slice(0,7); } }
+function ecMesKey(f){ if(!f) return ''; return (f+'').slice(0,7); }
+
+function ecTab(tab) {
+  ['resumen','estudios','modelos','liqs'].forEach(function(t) {
+    var btn = document.getElementById('ec-tab-'+t);
+    var view = document.getElementById('ec-view-'+t);
+    if(btn) { btn.style.borderBottom = t===tab ? '3px solid #3b82f6' : '3px solid transparent'; btn.style.color = t===tab ? '#3b82f6' : ''; }
+    if(view) view.style.display = t===tab ? 'block' : 'none';
+  });
+  if(tab==='estudios') ecRenderEstudio();
+  if(tab==='modelos') ecRenderModelos();
+  if(tab==='liqs') ecRenderLiqs();
+}
+
+function renderEjecutivo() {
+  var estudios = load('jd_estudios') || [];
+  var modelos  = load('jd_modelos')  || [];
+  var liqs     = load('jd_liqs')     || [];
+
+  // Actualizar título según usuario
+  var nombre = _jdCurrentUser ? (_jdCurrentUser.nombre || _jdCurrentUser.email || '') : '';
+  if(nombre) {
+    var tEl = document.getElementById('ec-page-title');
+    var sEl = document.getElementById('ec-page-sub');
+    if(tEl) tEl.textContent = '💼 Panel Ejecutivo — ' + nombre;
+    if(sEl) sEl.textContent = 'Resumen de producción · Grupo J&D · ' + estudios.length + ' estudios · ' + modelos.length + ' modelos';
+  }
+
+  // Poblar selectores
+  ecPoblarSelectores(estudios, liqs);
+
+  // Render resumen (tab activo por defecto)
+  ecRenderResumen(estudios, modelos, liqs);
+}
+
+function ecPoblarSelectores(estudios, liqs) {
+  // Meses disponibles
+  var meses = {};
+  liqs.forEach(function(l) { var mk = ecMesKey(l.fecha); if(mk) meses[mk] = ecMesLabel(l.fecha); });
+  var mesOpts = Object.keys(meses).sort().reverse().map(function(mk) {
+    return '<option value="'+mk+'">'+meses[mk]+'</option>';
+  }).join('');
+
+  // Estudio options
+  var estOpts = estudios.map(function(e) {
+    return '<option value="'+e.id+'">'+e.nombreAgencia+'</option>';
+  }).join('');
+
+  // Poblar selectores en tab estudios
+  var selEst = document.getElementById('ec-sel-estudio');
+  if(selEst) selEst.innerHTML = '<option value="">— Todos los estudios —</option>' + estOpts;
+  var selMesEst = document.getElementById('ec-sel-mes-est');
+  if(selMesEst) selMesEst.innerHTML = '<option value="">Todos</option>' + mesOpts;
+
+  // En tab modelos
+  var selModEst = document.getElementById('ec-mod-estudio-fil');
+  if(selModEst) selModEst.innerHTML = '<option value="">Todos los estudios</option>' + estOpts;
+
+  // En tab liqs
+  var selLiqEst = document.getElementById('ec-liq-fil-est');
+  if(selLiqEst) selLiqEst.innerHTML = '<option value="">Todos los estudios</option>' + estOpts;
+  var selLiqMes = document.getElementById('ec-liq-fil-mes');
+  if(selLiqMes) selLiqMes.innerHTML = '<option value="">Todos los meses</option>' + mesOpts;
+}
+
+function ecRenderResumen(estudios, modelos, liqs) {
+  estudios = estudios || (load('jd_estudios')||[]);
+  modelos  = modelos  || (load('jd_modelos') ||[]);
+  liqs     = liqs     || (load('jd_liqs')    ||[]);
+
+  // KPIs
+  var now = new Date();
+  var mesActualKey = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  var liqsMes = liqs.filter(function(l){ return ecMesKey(l.fecha)===mesActualKey; });
+  var totalNeto = liqs.reduce(function(s,l){ return s+(l.pagoEstudio||l.netoCOP||0); }, 0);
+  var netoMes   = liqsMes.reduce(function(s,l){ return s+(l.pagoEstudio||l.netoCOP||0); }, 0);
+  var pendiente = liqs.filter(function(l){ return !l.pagado && (l.estado||'').toLowerCase()==='cerrada'; }).length;
+
+  var kpis = [
+    {ico:'🏢', lbl:'Estudios Activos',    val: estudios.filter(function(e){return (e.estado||'Activo')==='Activo';}).length, color:'#3b82f6'},
+    {ico:'👤', lbl:'Modelos Activos',     val: modelos.filter(function(m){return (m.estado||'Activo')==='Activo';}).length, color:'#10b981'},
+    {ico:'📋', lbl:'Liq. del Mes',        val: liqsMes.length, color:'#f59e0b'},
+    {ico:'💰', lbl:'Neto Mes (COP)',       val: ecCOP(netoMes), color:'#22c55e', isStr:true},
+    {ico:'💎', lbl:'Total Facturado',      val: ecCOP(totalNeto), color:'#a78bfa', isStr:true},
+    {ico:'⏳', lbl:'Pend. de Pago',        val: pendiente, color:'#ef4444'},
+  ];
+  var kpiEl = document.getElementById('ec-kpis');
+  if(kpiEl) kpiEl.innerHTML = kpis.map(function(k) {
+    return '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center">'+
+      '<div style="font-size:22px">'+k.ico+'</div>'+
+      '<div style="font-size:'+(k.isStr?'18':'26')+'px;font-weight:900;color:'+k.color+';margin:4px 0;font-variant-numeric:tabular-nums">'+k.val+'</div>'+
+      '<div style="font-size:11px;color:var(--muted)">'+k.lbl+'</div></div>';
+  }).join('');
+
+  // Top estudios
+  var porEst = {};
+  liqs.forEach(function(l) {
+    var key = l.estudioNombre || l.estudioId || 'Sin estudio';
+    porEst[key] = (porEst[key]||0) + (l.pagoEstudio||l.netoCOP||0);
+  });
+  var topEst = Object.keys(porEst).map(function(k){ return {n:k, v:porEst[k]}; })
+    .sort(function(a,b){return b.v-a.v;}).slice(0,5);
+  var maxV = topEst.length ? topEst[0].v : 1;
+  var topEl = document.getElementById('ec-top-estudios');
+  if(topEl) {
+    if(!topEst.length) { topEl.innerHTML='<div style="color:var(--muted);padding:16px;text-align:center">Sin datos</div>'; }
+    else topEl.innerHTML = topEst.map(function(e, i) {
+      var pct = maxV>0 ? Math.round(e.v/maxV*100) : 0;
+      var col = ['#f59e0b','#94a3b8','#cd7f32','#3b82f6','#6366f1'][i]||'#3b82f6';
+      return '<div style="padding:8px 0;border-bottom:1px solid var(--border)">'+
+        '<div style="display:flex;justify-content:space-between;margin-bottom:4px">'+
+        '<span style="font-size:12px;font-weight:700;color:var(--text)"><span style="color:'+col+';margin-right:6px">'+(i+1)+'°</span>'+e.n+'</span>'+
+        '<span style="font-size:12px;font-weight:800;color:'+col+'">'+ecCOP(e.v)+'</span></div>'+
+        '<div style="height:4px;background:var(--border);border-radius:2px"><div style="height:4px;width:'+pct+'%;background:'+col+';border-radius:2px"></div></div></div>';
+    }).join('');
+  }
+
+  // Últimas liquidaciones
+  var ultLiqs = liqs.slice().sort(function(a,b){ return (b.fecha||'').localeCompare(a.fecha||''); }).slice(0,6);
+  var ultEl = document.getElementById('ec-ultimas-liqs');
+  if(ultEl) {
+    if(!ultLiqs.length) { ultEl.innerHTML='<div style="color:var(--muted);padding:16px;text-align:center">Sin liquidaciones</div>'; }
+    else ultEl.innerHTML = ultLiqs.map(function(l) {
+      var pagCol = l.pagado ? '#10b981' : (l.estado==='Cerrada'?'#f59e0b':'#6b7280');
+      var pagLbl = l.pagado ? '✅ Pagado' : (l.estado==='Cerrada'?'⏳ Pend.':'📝 '+(l.estado||''));
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">'+
+        '<div><div style="font-size:12px;font-weight:700;color:var(--text)">'+(l.estudioNombre||l.estudioId||'—')+'</div>'+
+        '<div style="font-size:10px;color:var(--muted)">'+ecFecha(l.fecha)+'</div></div>'+
+        '<div style="text-align:right"><div style="font-size:13px;font-weight:800;color:#22c55e">'+ecCOP(l.pagoEstudio||l.netoCOP)+'</div>'+
+        '<div style="font-size:10px;font-weight:700;color:'+pagCol+'">'+pagLbl+'</div></div></div>';
+    }).join('');
+  }
+
+  // Chart barras por mes
+  var porMes = {};
+  liqs.forEach(function(l) {
+    var mk = ecMesKey(l.fecha); if(!mk) return;
+    porMes[mk] = (porMes[mk]||0) + (l.pagoEstudio||l.netoCOP||0);
+  });
+  var mesesChart = Object.keys(porMes).sort().slice(-6);
+  var maxMes = mesesChart.reduce(function(m,mk){ return Math.max(m,porMes[mk]); }, 1);
+  var chartEl = document.getElementById('ec-chart-mes');
+  if(chartEl) {
+    if(!mesesChart.length) { chartEl.innerHTML='<div style="color:var(--muted);padding:24px">Sin datos históricos</div>'; }
+    else chartEl.innerHTML = mesesChart.map(function(mk) {
+      var v = porMes[mk]; var pct = maxMes>0 ? Math.round(v/maxMes*100) : 0;
+      var lbl = mk.slice(5); // MM
+      var mNames=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+      var mNum = parseInt(lbl,10);
+      return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0">'+
+        '<div style="font-size:10px;color:#22c55e;font-weight:700;white-space:nowrap">'+ecCOP(v).replace('$','')+'</div>'+
+        '<div style="width:100%;background:var(--border);border-radius:4px 4px 0 0;display:flex;flex-direction:column;justify-content:flex-end;height:80px">'+
+        '<div style="background:linear-gradient(180deg,#3b82f6,#1d4ed8);border-radius:4px 4px 0 0;height:'+pct+'%"></div></div>'+
+        '<div style="font-size:9px;color:var(--muted);font-weight:700">'+(mNames[mNum]||lbl)+'</div></div>';
+    }).join('');
+  }
+}
+
+function ecRenderEstudio() {
+  var estudios = load('jd_estudios') || [];
+  var liqs     = load('jd_liqs')     || [];
+  var selEst   = document.getElementById('ec-sel-estudio');
+  var selMes   = document.getElementById('ec-sel-mes-est');
+  var estId    = selEst ? selEst.value : '';
+  var mesKey   = selMes ? selMes.value : '';
+
+  // Info del estudio
+  var infoEl = document.getElementById('ec-estudio-info');
+  if(infoEl) {
+    if(!estId) {
+      infoEl.innerHTML = '';
+    } else {
+      var est = estudios.find(function(e){ return e.id===estId; });
+      if(est) {
+        var actCol = (est.estado||'Activo')==='Activo' ? '#10b981' : '#ef4444';
+        infoEl.innerHTML = '<div style="background:var(--card);border:1px solid rgba(59,130,246,.3);border-radius:12px;padding:16px;display:flex;gap:20px;flex-wrap:wrap">'+
+          '<div><div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Estudio</div>'+
+          '<div style="font-size:18px;font-weight:900;color:#3b82f6">'+est.nombreAgencia+'</div>'+
+          '<div style="font-size:12px;color:var(--muted)">'+est.nombreReal+'</div></div>'+
+          '<div><div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Estado</div>'+
+          '<span style="background:'+actCol+'22;color:'+actCol+';padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800">'+(est.estado||'Activo')+'</span></div>'+
+          '<div><div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Documento</div>'+
+          '<div style="font-size:13px;font-weight:600;color:var(--text)">'+(est.documento||'—')+'</div></div></div>';
+      }
+    }
+  }
+
+  // Liquidaciones filtradas
+  var liqsFil = liqs.filter(function(l) {
+    if(estId && l.estudioId !== estId) return false;
+    if(mesKey && ecMesKey(l.fecha) !== mesKey) return false;
+    return true;
+  }).sort(function(a,b){ return (b.fecha||'').localeCompare(a.fecha||''); });
+
+  var totalFil = liqsFil.reduce(function(s,l){ return s+(l.pagoEstudio||l.netoCOP||0); },0);
+  var pagadas  = liqsFil.filter(function(l){ return l.pagado; }).length;
+  var liqsEl   = document.getElementById('ec-estudio-liqs');
+  if(!liqsEl) return;
+
+  if(!liqsFil.length) {
+    liqsEl.innerHTML = '<div style="color:var(--muted);text-align:center;padding:32px">Sin liquidaciones para este filtro</div>';
+    return;
+  }
+
+  liqsEl.innerHTML = '<div style="margin-bottom:12px;display:flex;gap:16px;flex-wrap:wrap">'+
+    '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 20px;text-align:center">'+
+    '<div style="font-size:20px;font-weight:900;color:#22c55e">'+ecCOP(totalFil)+'</div>'+
+    '<div style="font-size:10px;color:var(--muted)">Total Neto</div></div>'+
+    '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 20px;text-align:center">'+
+    '<div style="font-size:20px;font-weight:900;color:#3b82f6">'+liqsFil.length+'</div>'+
+    '<div style="font-size:10px;color:var(--muted)">Liquidaciones</div></div>'+
+    '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 20px;text-align:center">'+
+    '<div style="font-size:20px;font-weight:900;color:#10b981">'+pagadas+'</div>'+
+    '<div style="font-size:10px;color:var(--muted)">Pagadas</div></div></div>'+
+    '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'+
+    '<thead><tr style="border-bottom:2px solid var(--border)">'+
+    '<th style="padding:10px 12px;text-align:left;color:var(--muted);font-weight:700">ID</th>'+
+    '<th style="padding:10px 12px;text-align:left;color:var(--muted);font-weight:700">Estudio</th>'+
+    '<th style="padding:10px 12px;text-align:left;color:var(--muted);font-weight:700">Fecha</th>'+
+    '<th style="padding:10px 12px;text-align:right;color:var(--muted);font-weight:700">Bruto</th>'+
+    '<th style="padding:10px 12px;text-align:right;color:var(--muted);font-weight:700">Neto Estudio</th>'+
+    '<th style="padding:10px 12px;text-align:center;color:var(--muted);font-weight:700">Estado</th>'+
+    '<th style="padding:10px 12px;text-align:center;color:var(--muted);font-weight:700">Pago</th>'+
+    '</tr></thead><tbody>'+
+    liqsFil.map(function(l) {
+      var pagCol = l.pagado ? '#10b981' : (l.estado==='Cerrada'?'#f59e0b':'#6b7280');
+      var pagLbl = l.pagado ? '✅ Pagado' : (l.estado==='Cerrada'?'⏳ Pendiente':'📝 '+(l.estado||'Borrador'));
+      var estCol = l.estado==='Cerrada'?'#3b82f6':l.estado==='Pendiente'?'#f59e0b':'#6b7280';
+      return '<tr style="border-bottom:1px solid var(--border);transition:background .15s" onmouseover="this.style.background=\'var(--card)\'" onmouseout="this.style.background=\'\'">'+
+        '<td style="padding:10px 12px;font-family:monospace;color:var(--muted);font-size:11px">'+(l.id||'').slice(0,8)+'...</td>'+
+        '<td style="padding:10px 12px;font-weight:700;color:var(--text)">'+(l.estudioNombre||l.estudioId||'—')+'</td>'+
+        '<td style="padding:10px 12px;color:var(--muted)">'+ecFecha(l.fecha)+'</td>'+
+        '<td style="padding:10px 12px;text-align:right;color:var(--muted)">'+ecCOP(l.brutoCOP)+'</td>'+
+        '<td style="padding:10px 12px;text-align:right;font-weight:800;color:#22c55e">'+ecCOP(l.pagoEstudio||l.netoCOP)+'</td>'+
+        '<td style="padding:10px 12px;text-align:center"><span style="background:'+estCol+'22;color:'+estCol+';padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700">'+(l.estado||'Borrador')+'</span></td>'+
+        '<td style="padding:10px 12px;text-align:center;font-size:11px;font-weight:700;color:'+pagCol+'">'+pagLbl+'</td>'+
+        '</tr>';
+    }).join('')+
+    '</tbody></table></div>';
+}
+
+function ecRenderModelos() {
+  ecFiltrarModelos();
+}
+
+function ecFiltrarModelos() {
+  var modelos  = load('jd_modelos')  || [];
+  var estudios = load('jd_estudios') || [];
+  var q        = (document.getElementById('ec-mod-search')?.value||'').toLowerCase();
+  var filEst   = document.getElementById('ec-mod-estudio-fil')?.value || '';
+  var filEst2  = document.getElementById('ec-mod-estado-fil')?.value || '';
+
+  var filtered = modelos.filter(function(m) {
+    if(filEst  && m.estudioId !== filEst && m.estudioNombre !== filEst) {
+      // try to match by estudio id - modelos may not have estudioId, check nombre
+      var estNombre = (estudios.find(function(e){return e.id===filEst;})||{}).nombreAgencia||'';
+      if(m.estudioNombre !== estNombre) return false;
+    }
+    if(filEst2 && (m.estado||'Activo') !== filEst2) return false;
+    if(q) {
+      var txt = ((m.nombreAgencia||'')+(m.nombreReal||'')+(m.monitor||'')+(m.estudioNombre||'')).toLowerCase();
+      if(!txt.includes(q)) return false;
+    }
+    return true;
+  });
+
+  var gridEl = document.getElementById('ec-modelos-grid');
+  if(!gridEl) return;
+
+  if(!filtered.length) {
+    gridEl.innerHTML = '<div style="color:var(--muted);text-align:center;padding:32px">Sin modelos para este filtro</div>';
+    return;
+  }
+
+  var PLATCOLORS = {F4F:'#EC4899',SC:'#3B82F6',CB:'#F5B800',CAM:'#10B981',STR:'#8B5CF6',Chaturbate:'#F5B800',Stripchat:'#3B82F6',CamSoda:'#10B981',Streamate:'#8B5CF6','Flirt4free':'#EC4899'};
+
+  gridEl.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">'+
+    filtered.map(function(m) {
+      var actCol = (m.estado||'Activo')==='Activo' ? '#10b981' : '#ef4444';
+      var plats = (m.paginasVinculadas||[]);
+      var platPills = plats.slice(0,4).map(function(p) {
+        var pname = p.plataforma||p.nombre||p||'';
+        var col = PLATCOLORS[pname]||'#6b7280';
+        return '<span style="background:'+col+'22;color:'+col+';border:1px solid '+col+'44;padding:2px 6px;border-radius:10px;font-size:9px;font-weight:700">'+pname+'</span>';
+      }).join('');
+      var ini = ((m.nombreAgencia||'?')[0]||'?').toUpperCase();
+      return '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;transition:border-color .2s" onmouseover="this.style.borderColor=\'rgba(59,130,246,.4)\'" onmouseout="this.style.borderColor=\'var(--border)\'" >'+
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'+
+        '<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff;flex-shrink:0">'+ini+'</div>'+
+        '<div style="min-width:0"><div style="font-weight:800;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+m.nombreAgencia+'</div>'+
+        '<div style="font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(m.nombreReal||'')+'</div></div>'+
+        '<span style="background:'+actCol+'22;color:'+actCol+';padding:2px 8px;border-radius:20px;font-size:9px;font-weight:800;flex-shrink:0">'+(m.estado||'Activo')+'</span></div>'+
+        (m.estudioNombre?'<div style="font-size:10px;color:var(--muted);margin-bottom:6px">🏢 '+(m.estudioNombre||m.estudioId||'')+'</div>':'')+
+        (m.monitor?'<div style="font-size:10px;color:var(--muted);margin-bottom:6px">👁 Monitor: '+m.monitor+'</div>':'')+
+        (platPills?'<div style="display:flex;gap:4px;flex-wrap:wrap">'+platPills+'</div>':'')+
+        '</div>';
+    }).join('')+'</div>';
+}
+
+function ecRenderLiqs() {
+  ecFiltrarLiqs();
+}
+
+function ecFiltrarLiqs() {
+  var liqs    = load('jd_liqs') || [];
+  var filEst  = document.getElementById('ec-liq-fil-est')?.value   || '';
+  var filMes  = document.getElementById('ec-liq-fil-mes')?.value   || '';
+  var filEst2 = document.getElementById('ec-liq-fil-estado')?.value || '';
+
+  var filtered = liqs.filter(function(l) {
+    if(filEst  && l.estudioId !== filEst) return false;
+    if(filMes  && ecMesKey(l.fecha) !== filMes) return false;
+    if(filEst2 && (l.estado||'') !== filEst2)   return false;
+    return true;
+  }).sort(function(a,b){ return (b.fecha||'').localeCompare(a.fecha||''); });
+
+  var el = document.getElementById('ec-liqs-tabla');
+  if(!el) return;
+
+  if(!filtered.length) {
+    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:32px">Sin liquidaciones para este filtro</div>';
+    return;
+  }
+
+  var total = filtered.reduce(function(s,l){ return s+(l.pagoEstudio||l.netoCOP||0); },0);
+  var bruto = filtered.reduce(function(s,l){ return s+(l.brutoCOP||0); },0);
+
+  el.innerHTML = '<div style="margin-bottom:12px;display:flex;gap:12px;flex-wrap:wrap">'+
+    '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 18px;text-align:center">'+
+    '<div style="font-size:18px;font-weight:900;color:#22c55e">'+ecCOP(total)+'</div>'+
+    '<div style="font-size:10px;color:var(--muted)">Neto total</div></div>'+
+    '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 18px;text-align:center">'+
+    '<div style="font-size:18px;font-weight:900;color:var(--muted)">'+ecCOP(bruto)+'</div>'+
+    '<div style="font-size:10px;color:var(--muted)">Bruto total</div></div>'+
+    '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 18px;text-align:center">'+
+    '<div style="font-size:18px;font-weight:900;color:#3b82f6">'+filtered.length+'</div>'+
+    '<div style="font-size:10px;color:var(--muted)">Registros</div></div></div>'+
+    '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'+
+    '<thead><tr style="border-bottom:2px solid var(--border)">'+
+    '<th style="padding:10px 12px;text-align:left;color:var(--muted);font-weight:700">Estudio</th>'+
+    '<th style="padding:10px 12px;text-align:left;color:var(--muted);font-weight:700">Fecha</th>'+
+    '<th style="padding:10px 12px;text-align:right;color:var(--muted);font-weight:700">Bruto COP</th>'+
+    '<th style="padding:10px 12px;text-align:right;color:var(--muted);font-weight:700">Neto Estudio</th>'+
+    '<th style="padding:10px 12px;text-align:center;color:var(--muted);font-weight:700">Estado</th>'+
+    '<th style="padding:10px 12px;text-align:center;color:var(--muted);font-weight:700">Pago</th>'+
+    '</tr></thead><tbody>'+
+    filtered.map(function(l) {
+      var pagCol = l.pagado ? '#10b981' : (l.estado==='Cerrada'?'#f59e0b':'#6b7280');
+      var pagLbl = l.pagado ? '✅' : (l.estado==='Cerrada'?'⏳':'📝');
+      var estCol = l.estado==='Cerrada'?'#3b82f6':l.estado==='Pendiente'?'#f59e0b':'#6b7280';
+      return '<tr style="border-bottom:1px solid var(--border)" onmouseover="this.style.background=\'var(--card)\'" onmouseout="this.style.background=\'\'">'+
+        '<td style="padding:9px 12px;font-weight:700;color:var(--text)">'+(l.estudioNombre||l.estudioId||'—')+'</td>'+
+        '<td style="padding:9px 12px;color:var(--muted)">'+ecFecha(l.fecha)+'</td>'+
+        '<td style="padding:9px 12px;text-align:right;color:var(--muted)">'+ecCOP(l.brutoCOP)+'</td>'+
+        '<td style="padding:9px 12px;text-align:right;font-weight:800;color:#22c55e">'+ecCOP(l.pagoEstudio||l.netoCOP)+'</td>'+
+        '<td style="padding:9px 12px;text-align:center"><span style="background:'+estCol+'22;color:'+estCol+';padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700">'+(l.estado||'Borrador')+'</span></td>'+
+        '<td style="padding:9px 12px;text-align:center;font-weight:700;color:'+pagCol+'">'+pagLbl+'</td>'+
+        '</tr>';
+    }).join('')+
+    '</tbody></table></div>';
+}
+
+// ── Fin Panel Ejecutivo Comercial ────────────────────────────
 
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }

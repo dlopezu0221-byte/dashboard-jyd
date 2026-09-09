@@ -180,10 +180,7 @@ tr.hl td{background:rgba(200,168,75,.06)!important}
   .nav-subsec:hover{color:var(--text)}
   .nav-arr{font-size:12px;transition:transform .2s}
   .nav-arr2{font-size:11px;transition:transform .2s}
-  .nav-item.nav-sub{padding-left:32px;padding-top:6px;padding-bottom:6px;font-size:11.5px;font-weight:400;color:var(--muted);border-left-color:transparent!important}
-.nav-item.nav-sub .ico{font-size:13px;opacity:.7}
-.nav-item.nav-sub:hover{background:rgba(255,255,255,.04);color:var(--text)}
-.nav-item.nav-sub.active{color:var(--gold);background:rgba(200,168,75,.08);font-weight:500}
+  .nav-item.nav-sub{padding-left:30px;font-size:12.5px}
   /* ─── END NAV GROUPS ─── */
   /* ─── MOD PAGE CHIPS ─── */
   .mod-page-chip{cursor:pointer;user-select:none}
@@ -1715,48 +1712,19 @@ body.exec-fullscreen #fab-logout-btn { display: flex; }
 <div id="page-dashboard" class="page active">
   <div class="page-header">
     <div>
-      <div class="page-title">🏠 Inicio</div>
-      <div class="page-sub" id="dash-fecha-hoy">—</div>
+      <div class="page-title">🏠 Dashboard</div>
+      <div class="page-sub">Resumen general del sistema</div>
     </div>
   </div>
-
-  <!-- KPI tiles -->
-  <div class="stats-grid" id="dash-stats" style="grid-template-columns:repeat(4,1fr)"></div>
-
-  <!-- Layout principal: tabla izquierda, accesos + alertas derecha -->
-  <div style="display:grid;grid-template-columns:1fr 300px;gap:16px;margin-top:4px">
-
-    <!-- ÚLTIMAS LIQUIDACIONES -->
-    <div class="card" style="padding:0;overflow:hidden">
-      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);margin:0">
-        <span>📋 Últimas Liquidaciones</span>
-        <button class="btn btn-ghost btn-sm" onclick="goPage('nueva-liq')" style="font-size:11px;padding:4px 10px">+ Nueva</button>
-      </div>
-      <div id="dash-last-liqs" style="padding:0"></div>
+  <div class="stats-grid" id="dash-stats"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="card">
+      <div class="card-title">📋 Últimas liquidaciones</div>
+      <div id="dash-last-liqs"></div>
     </div>
-
-    <!-- COLUMNA DERECHA -->
-    <div style="display:flex;flex-direction:column;gap:14px">
-
-      <!-- ACCESOS RÁPIDOS -->
-      <div class="card" style="padding:14px 16px">
-        <div class="card-title" style="margin-bottom:10px">⚡ Accesos Rápidos</div>
-        <div style="display:flex;flex-direction:column;gap:6px" id="dash-quick">
-          <button class="btn btn-ghost" onclick="goPage('registro-diario')" style="text-align:left;justify-content:flex-start;gap:8px;font-size:12px;padding:8px 12px">📋 Registro Diario</button>
-          <button class="btn btn-ghost" onclick="goPage('monetizacion')" style="text-align:left;justify-content:flex-start;gap:8px;font-size:12px;padding:8px 12px">💱 Monetización</button>
-          <button class="btn btn-ghost" onclick="goPage('nueva-liq')" style="text-align:left;justify-content:flex-start;gap:8px;font-size:12px;padding:8px 12px">➕ Nueva Liquidación</button>
-          <button class="btn btn-ghost" onclick="goPage('bases-de-datos','modelos')" style="text-align:left;justify-content:flex-start;gap:8px;font-size:12px;padding:8px 12px">👤 Base de Modelos</button>
-          <button class="btn btn-ghost" onclick="goPage('prestamos')" style="text-align:left;justify-content:flex-start;gap:8px;font-size:12px;padding:8px 12px">💳 Préstamos</button>
-          <button class="btn btn-ghost" onclick="goPage('historico')" style="text-align:left;justify-content:flex-start;gap:8px;font-size:12px;padding:8px 12px">📁 Histórico</button>
-        </div>
-      </div>
-
-      <!-- ALERTAS -->
-      <div class="card" style="padding:14px 16px">
-        <div class="card-title" style="margin-bottom:10px">⚠️ Alertas</div>
-        <div id="dash-alerts"></div>
-      </div>
-
+    <div class="card">
+      <div class="card-title">⚠️ Alertas del sistema</div>
+      <div id="dash-alerts"></div>
     </div>
   </div>
 </div>
@@ -11988,77 +11956,41 @@ function saveConfig(){
 // DASHBOARD
 // ============================================================
 function renderDashboard(){
-  const liqs     = load(K.liqs)||[];
-  const prest    = load(K.prest)||[];
-  const ahorros  = load(K.ahorros)||[];
-  const ss       = load(K.ss)||[];
-  const modelos  = (load(K.modelos)||[]);
   const estudios = load(K.estudios)||[];
+  const liqs = load(K.liqs)||[];
+  const prest = load(K.prest)||[];
+  const ahorros = load(K.ahorros)||[];
+  const ss = load(K.ss)||[];
 
-  // Fecha de hoy
-  const hoy = new Date();
-  const diasSemana = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  const elFechaEl = document.getElementById('dash-fecha-hoy');
-  if(elFechaEl) elFechaEl.textContent = diasSemana[hoy.getDay()] + ', ' + hoy.getDate() + ' de ' + meses[hoy.getMonth()] + ' de ' + hoy.getFullYear();
-
-  // KPIs
-  const modelosActivas = modelos.filter(m=>m.estado==='Activa'||m.estado==='Activo').length;
-
-  // Ingresos del mes actual (sum pagoEstudio de liqs del mes)
-  const mesActual = hoy.getFullYear()+'-'+(String(hoy.getMonth()+1).padStart(2,'0'));
-  const ingresosMes = liqs
-    .filter(l=>{ const f=(l.fecha||l.createdAt||''); return f.startsWith(mesActual); })
-    .reduce((s,l)=>s+(Number(l.pagoEstudio)||0), 0);
-
+  const activos = estudios.filter(e=>e.estado==='Activo').length;
+  const totalLiqs = liqs.length;
   const prestActivos = prest.filter(p=>p.estado==='Activo').length;
   const saldoAhorros = ahorros.reduce((s,a)=>s+(a.saldoCOP||0),0);
 
   document.getElementById('dash-stats').innerHTML = `
-    <div class="stat-card">
-      <div class="stat-lbl">Modelos Activas</div>
-      <div class="stat-val">${modelosActivas}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:4px">${estudios.filter(e=>e.estado==='Activo').length} estudio(s) activo(s)</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-lbl">Ingresos del Mes</div>
-      <div class="stat-val green" style="font-size:18px">${fmtCOP(ingresosMes)}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:4px">${liqs.filter(l=>{const f=(l.fecha||l.createdAt||'');return f.startsWith(mesActual);}).length} liquidación(es)</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-lbl">Préstamos Activos</div>
-      <div class="stat-val" style="color:${prestActivos>0?'var(--danger)':'var(--success)'}">${prestActivos}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:4px">${prest.length} total histórico</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-lbl">Saldo en Ahorros</div>
-      <div class="stat-val blue" style="font-size:18px">${fmtCOP(saldoAhorros)}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:4px">${ahorros.length} cuenta(s)</div>
-    </div>
+    <div class="stat-card"><div class="stat-lbl">Estudios Activos</div><div class="stat-val">${activos}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Liquidaciones</div><div class="stat-val blue">${totalLiqs}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Préstamos Activos</div><div class="stat-val" style="color:var(--danger)">${prestActivos}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Saldo Total Ahorros</div><div class="stat-val green">${fmtCOP(saldoAhorros)}</div></div>
   `;
 
-  // Últimas liquidaciones — tabla limpia
-  const lastLiqs = liqs.slice(-10).reverse();
-  const tbl = lastLiqs.length
-    ? `<div class="tbl-wrap"><table>
-        <thead><tr><th>Fecha</th><th>Estudio</th><th>Modelo</th><th>Neto COP</th></tr></thead>
-        <tbody>${lastLiqs.map(l=>`<tr>
-          <td style="color:var(--muted);font-size:11px">${l.fecha||l.createdAt?.slice(0,10)||'—'}</td>
-          <td>${l.estudioNombre||'—'}</td>
-          <td style="color:var(--muted)">${l.modeloNombre||l.nombreModelo||'—'}</td>
-          <td class="gold fw6">${fmtCOP(l.pagoEstudio)}</td>
-        </tr>`).join('')}</tbody>
-      </table></div>`
-    : '<div class="empty"><div class="ei">📋</div><p>Sin liquidaciones aún</p></div>';
+  const lastLiqs = liqs.slice(-8).reverse();
+  const tbl = lastLiqs.length ? `<div class="tbl-wrap"><table>
+    <thead><tr><th>Fecha</th><th>Estudio</th><th>Neto COP</th></tr></thead>
+    <tbody>${lastLiqs.map(l=>`<tr>
+      <td>${l.fecha||l.createdAt?.slice(0,10)||'—'}</td>
+      <td>${l.estudioNombre||'—'}</td>
+      <td class="gold fw6">${fmtCOP(l.pagoEstudio)}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>` : '<div class="empty"><div class="ei">📋</div><p>Sin liquidaciones aún</p></div>';
   document.getElementById('dash-last-liqs').innerHTML = tbl;
 
-  // Alertas
+  // Alerts
   const alerts = [];
-  if(prestActivos>0) alerts.push(`<div class="alert al-warn">💰 ${prestActivos} préstamo(s) activo(s) pendiente(s)</div>`);
+  const prestVenc = prest.filter(p=>p.estado==='Activo');
+  if(prestVenc.length) alerts.push(`<div class="alert al-warn">💰 ${prestVenc.length} préstamo(s) activo(s)</div>`);
   const ssAct = ss.filter(s=>s.estado==='Activo');
   if(ssAct.length) alerts.push(`<div class="alert al-info">🛍️ ${ssAct.length} artículo(s) Sex-Shop activo(s)</div>`);
-  const ahoBaj = ahorros.filter(a=>(a.saldoCOP||0)<50000);
-  if(ahoBaj.length) alerts.push(`<div class="alert al-warn">🏦 ${ahoBaj.length} cuenta(s) de ahorro con saldo bajo</div>`);
   if(!alerts.length) alerts.push(`<div class="alert al-success">✅ Sin alertas pendientes</div>`);
   document.getElementById('dash-alerts').innerHTML = alerts.join('');
 }

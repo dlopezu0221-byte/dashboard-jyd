@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Auditoría Histórico J&D 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  body { font-family:system-ui; background:#0f172a; color:#e2e8f0; padding:32px; }
+  h1 { color:#d4af37; } h2 { color:#94a3b8; font-size:14px; }
+  .card { background:#1e293b; border-radius:12px; padding:24px; margin:16px 0; }
+  .btn { background:#d4af37; color:#0f172a; font-weight:700; border:none; border-radius:8px; padding:12px 32px; font-size:15px; cursor:pointer; }
+  .btn:disabled { opacity:.5; }
+  table { border-collapse:collapse; width:100%; font-size:13px; margin-top:16px; }
+  th { background:#d4af37; color:#0f172a; padding:8px 12px; text-align:left; }
+  td { padding:7px 12px; border-bottom:1px solid #334155; }
+  .ok { color:#22c55e; font-weight:700; } .er { color:#ef4444; font-weight:700; }
+  #log { font-family:monospace; font-size:12px; color:#94a3b8; margin-top:12px; }
+</style>
+</head>
+<body>
+<h1>🔍 Auditoría Histórico J&amp;D 2026</h1>
+<p style="color:#94a3b8">Verifica que los 14,080 registros importados coincidan exactamente con el Excel fuente, mes por mes.</p>
+
+<div class="card">
+  <button class="btn" id="btn" onclick="auditar()">▶ Ejecutar Auditoría Completa</button>
+  <div id="log"></div>
+  <div id="result"></div>
+</div>
+
+<script>
+var SUPA_URL = 'https://mqafwoaghwhnvorerjha.supabase.co';
+var SUPA_KEY = 'sb_publishable_aFR9VQR68If1Nc-ZO0cI6w_FgDLLsNP';
+var db = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+var EXP = {"2026-01": {"n": 1024, "v": 1556024.0}, "2026-02": {"n": 768, "v": 946434.0}, "2026-03": {"n": 993, "v": 1207386.0}, "2026-04": {"n": 2025, "v": 2544324.0}, "2026-05": {"n": 2056, "v": 2337217.0}, "2026-06": {"n": 2042, "v": 2383009.0}, "2026-07": {"n": 2302, "v": 2690635.96}, "2026-08": {"n": 2213, "v": 2908397.11}, "2026-09": {"n": 657, "v": 807003.24}};
+
+var MESES = [
+  ['2026-01','Enero',  '2026-02-01'],
+  ['2026-02','Febrero','2026-03-01'],
+  ['2026-03','Marzo',  '2026-04-01'],
+  ['2026-04','Abril',  '2026-05-01'],
+  ['2026-05','Mayo',   '2026-06-01'],
+  ['2026-06','Junio',  '2026-07-01'],
+  ['2026-07','Julio',  '2026-08-01'],
+  ['2026-08','Agosto', '2026-09-01'],
+  ['2026-09','Septiembre','2026-10-01'],
+];
+
+function log(m) { document.getElementById('log').innerHTML += '<div>'+m+'</div>'; }
+
+async function auditar() {
+  document.getElementById('btn').disabled = true;
+  document.getElementById('log').innerHTML = '';
+  document.getElementById('result').innerHTML = '';
+  log('⏳ Consultando Supabase con paginación completa...');
+
+  // Contar total global
+  var total_chk = await db.from('facturacion_diaria').select('id',{count:'exact',head:true});
+  var total_db = (total_chk && total_chk.count) || 0;
+  log('Total registros en DB: <strong style="color:#d4af37">'+total_db.toLocaleString('es-CO')+'</strong>');
+
+  var rows_html = '';
+  var global_ok = true;
+
+  for (var i = 0; i < MESES.length; i++) {
+    var mes = MESES[i][0], nombre = MESES[i][1], desde_sig = MESES[i][2];
+    var desde = mes+'-01';
+    log('  📅 Consultando '+nombre+'...');
+
+    // Contar exacto usando head:true
+    var cnt = await db.from('facturacion_diaria')
+      .select('id',{count:'exact',head:true})
+      .gte('fecha',desde).lt('fecha',desde_sig);
+    var n_db = (cnt && cnt.count != null) ? cnt.count : -1;
+
+    // Obtener suma paginando (max 1000 por query)
+    var suma_db = 0;
+    var offset = 0, page_size = 1000;
+    while (true) {
+      var pg = await db.from('facturacion_diaria')
+        .select('valor')
+        .gte('fecha',desde).lt('fecha',desde_sig)
+        .range(offset, offset+page_size-1);
+      if (!pg || !pg.data || pg.data.length===0) break;
+      pg.data.forEach(function(r){ suma_db += parseFloat(r.valor||0); });
+      if (pg.data.length < page_size) break;
+      offset += page_size;
+    }
+
+    var e = EXP[mes] || {n:0,v:0};
+    var ok_n = n_db === e.n;
+    var ok_v = Math.abs(suma_db - e.v) < 1;
+    if (!ok_n || !ok_v) global_ok = false;
+
+    rows_html +=
+      '<tr>'+
+      '<td>'+nombre+'</td>'+
+      '<td style="text-align:right">'+e.n.toLocaleString('es-CO')+'</td>'+
+      '<td class="'+(ok_n?'ok':'er')+'" style="text-align:right">'+n_db.toLocaleString('es-CO')+(ok_n?' ✓':' ✗')+'</td>'+
+      '<td style="text-align:right">'+Math.round(e.v).toLocaleString('es-CO')+'</td>'+
+      '<td class="'+(ok_v?'ok':'er')+'" style="text-align:right">'+Math.round(suma_db).toLocaleString('es-CO')+(ok_v?' ✓':' ✗')+'</td>'+
+      '</tr>';
+  }
+
+  var color = global_ok ? '#22c55e' : '#ef4444';
+  var msg   = global_ok ? '✅ AUDITORÍA APROBADA — todos los meses coinciden exactamente con el Excel.' : '⚠ Hay diferencias — revisa la tabla.';
+
+  document.getElementById('result').innerHTML =
+    '<p style="color:'+color+';font-weight:800;font-size:16px;margin-top:16px">'+msg+'</p>'+
+    '<p>Total en base de datos: <strong style="color:#d4af37">'+total_db.toLocaleString('es-CO')+'</strong> registros</p>'+
+    '<table>'+
+    '<tr><th>Mes</th><th>Excel (reg.)</th><th>DB (reg.)</th><th>Excel (total $)</th><th>DB (total $)</th></tr>'+
+    rows_html +
+    '</table>';
+
+  log(global_ok ? '✅ Completo — sin diferencias.' : '⚠ Diferencias encontradas.');
+  document.getElementById('btn').disabled = false;
+}
+</script>
+</body>
+</html>

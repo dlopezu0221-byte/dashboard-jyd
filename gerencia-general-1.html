@@ -1984,6 +1984,7 @@ body.exec-fullscreen #fab-logout-btn { display: flex; }
     </div>
     <div class="btn-group">
       <button class="btn btn-secondary btn-sm" onclick="exportEstudios()">⬇ Exportar Excel</button>
+      <button class="btn btn-secondary btn-sm" id="btn-upload-fab" style="display:none" onclick="openFabAliadosModal()">🔄 Actualizar Cómo Vamos</button>
       <button class="btn btn-primary" onclick="openEstudioModal()">+ Nuevo Estudio</button>
     </div>
   </div>
@@ -3104,6 +3105,30 @@ body.exec-fullscreen #fab-logout-btn { display: flex; }
 ============================================================ -->
 
 <!-- ESTUDIO MODAL -->
+<!-- ============================================================
+     MODAL — ACTUALIZAR CÓMO VAMOS (fab_ALIADOS)
+============================================================ -->
+<div class="overlay" id="modal-fab-aliados" style="display:none">
+<div class="modal lg">
+  <div class="mh">
+    <div class="mh-title">🔄 Actualizar Cómo Vamos</div>
+    <button class="mclose" onclick="closeFabAliadosModal()">✕</button>
+  </div>
+  <div class="mb">
+    <p style="font-size:13px;margin:0 0 8px;color:var(--text-secondary,#888)">
+      Pega el JSON actualizado de <strong>Cómo Vamos Grupo Empresarial</strong> (fab_ALIADOS). Se guardará en Supabase y se aplicará inmediatamente en todos los dispositivos al iniciar sesión.
+    </p>
+    <div style="font-size:12px;color:#4A9;margin-bottom:8px" id="fab-aliados-info"></div>
+    <textarea id="fab-aliados-textarea" style="width:100%;height:320px;font-family:monospace;font-size:11px;padding:8px;border:1px solid var(--border,#ccc);border-radius:6px;resize:vertical;background:var(--bg2,#f8f8f8);color:var(--text,#222)" placeholder='{ "NombreEstudio": { "nombre_real": "...", "estado": "Activo", "plan_pct": 6, "refiere": "Fabio Robledo", "data": { "Enero": { "dias": 31, "modelos": {} }, ... } }, ... }'></textarea>
+    <div style="color:#E05252;font-size:12px;margin-top:6px;min-height:18px" id="fab-aliados-err"></div>
+  </div>
+  <div class="mf" style="display:flex;gap:10px;justify-content:flex-end">
+    <button class="btn btn-ghost" onclick="closeFabAliadosModal()">Cancelar</button>
+    <button class="btn btn-primary" id="fab-aliados-save-btn" onclick="saveFabAliados()">Guardar y Aplicar</button>
+  </div>
+</div>
+</div>
+
 <div class="overlay" id="modal-estudio">
 <div class="modal lg">
   <div class="mh">
@@ -6078,7 +6103,29 @@ function _supaToLocalStorage(sbData) {
       ...(e.datos_extra || {})
     }));
     localStorage.setItem('jd_estudios', JSON.stringify(ests));
-    console.log('[SUPA] estudios:', ests.length);
+    console.log('[SUPA] estudios cargados desde Supabase:', ests.length);
+  } else {
+    // Supabase vacío: subir estudios locales como carga inicial
+    try {
+      const locales = JSON.parse(localStorage.getItem('jd_estudios') || '[]');
+      if (locales.length && _supaDb) {
+        const rows = locales.map(e => {
+          const {id, nombreAgencia, nombreReal, documento, estado, ...rest} = e;
+          return {
+            id: id,
+            nombre: nombreAgencia || '',
+            propietario: nombreReal || '',
+            nit: documento || '',
+            activo: estado === 'Activo',
+            datos_extra: rest
+          };
+        });
+        _supaDb.from('estudios').upsert(rows, {onConflict: 'id'}).then(({error}) => {
+          if (error) console.warn('[SUPA] carga inicial estudios error:', error);
+          else console.log('[SUPA] carga inicial estudios OK:', rows.length, 'registros subidos');
+        });
+      }
+    } catch(e) { console.warn('[SUPA] carga inicial estudios excepcion:', e); }
   }
   // modelos
   if (sbData.modelos && sbData.modelos.length) {
@@ -6167,6 +6214,20 @@ function _supaToLocalStorage(sbData) {
     const pinRow = sbData.config.find(r => r.clave === 'jd_mercury_pin');
     if (pinRow && pinRow.valor) {
       localStorage.setItem('jd_mercury_pin', pinRow.valor);
+    }
+    // fab_ALIADOS dinámico — Supabase tiene prioridad sobre el hardcoded en HTML
+    const fabRow = sbData.config.find(r => r.clave === 'jd_fab_aliados');
+    if (fabRow && fabRow.valor) {
+      try {
+        const parsed = typeof fabRow.valor === 'object' ? fabRow.valor : JSON.parse(fabRow.valor);
+        if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+          if (typeof fab_ALIADOS !== 'undefined') {
+            Object.keys(fab_ALIADOS).forEach(k => delete fab_ALIADOS[k]);
+            Object.assign(fab_ALIADOS, parsed);
+          }
+          console.log('[SUPA] fab_ALIADOS cargado desde Supabase:', Object.keys(parsed).length, 'estudios');
+        }
+      } catch(e) { console.warn('[SUPA] fab_ALIADOS parse error:', e); }
     }
     console.log('[SUPA] config:', sbData.config.length, 'claves');
   }
@@ -6910,6 +6971,10 @@ function _jdApplyUserUI() {
       <button onclick="jdSuperLogout()" style="width:100%;margin-top:8px;padding:6px;background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:#E05252;border-radius:6px;cursor:pointer;font-size:11px;font-family:Outfit,sans-serif">⬅ Cerrar sesión</button>`;
     }
   } catch(e) {}
+
+  // Mostrar botón "Actualizar Cómo Vamos" solo para super_admin
+  const btnFab = document.getElementById('btn-upload-fab');
+  if (btnFab) btnFab.style.display = jdIsSuperAdmin() ? 'inline-flex' : 'none';
 
   // Mostrar nav item de Usuarios solo para super_admin
   const navUsr = document.getElementById('nav-usuarios-item');
@@ -8302,72 +8367,200 @@ function _jdGetExtras() {
 
 // Prefijo especial para estudios que solo están en jd_estudios (sin datos de facturación)
 var _JD_PREFIX = '__JD__';
+// Prefijo para selección de modelo individual en consultas
+var _CNS_MOD_PREFIX = '__MOD__';
+
+// Cache de búsqueda de modelos en fab_ALIADOS para estudios sin clave directa
+var _cnsJdModsCache = {};
+
+// Busca en fab_ALIADOS todos los modelos que pertenecen a un estudio de jd_estudios
+// (para studios como Fornax, Gold Online que no tienen clave directa en fab_ALIADOS)
+// Retorna: { found, byMonth:{mes:{modelos:{},dias}}, modelList:[], studioKeys:{} }
+function _findStudioModsInFab(estudioNombre) {
+  if (_cnsJdModsCache[estudioNombre]) return _cnsJdModsCache[estudioNombre];
+
+  var jdMods = [];
+  try { jdMods = JSON.parse(localStorage.getItem('jd_modelos') || '[]'); } catch(e) {}
+  var jdEsts = [];
+  try { jdEsts = JSON.parse(localStorage.getItem('jd_estudios') || '[]'); } catch(e) {}
+
+  // Hallar el ID del estudio
+  var estEntry = jdEsts.find(function(e) {
+    return _jdNorm(e.nombreAgencia||'') === _jdNorm(estudioNombre) ||
+           _jdNorm(e.nombreReal||'')    === _jdNorm(estudioNombre);
+  });
+  var estudioId = estEntry ? estEntry.id : null;
+
+  // Modelos vinculados a este estudio (por estudioId o estudioNombre)
+  var modelosDel = jdMods.filter(function(m) {
+    if (estudioId && m.estudioId === estudioId) return true;
+    if (m.estudioNombre && _jdNorm(m.estudioNombre) === _jdNorm(estudioNombre)) return true;
+    return false;
+  });
+
+  var byMonth    = {};
+  var modelList  = [];
+  var studioKeys = {}; // modelName → clave en fab_ALIADOS donde se encontraron sus datos
+
+  modelosDel.forEach(function(m) {
+    var mName = (m.nombreAgencia || '').trim();
+    if (!mName || modelList.indexOf(mName) >= 0) return;
+    modelList.push(mName);
+
+    if (!fab_ALIADOS) return;
+    Object.keys(fab_ALIADOS).forEach(function(sk) {
+      var sd = fab_ALIADOS[sk];
+      if (!sd || !sd.data) return;
+      fab_MESES.forEach(function(mes) {
+        var mData = sd.data[mes];
+        if (!mData || !mData.modelos) return;
+        // Buscar modelo por nombre (normalizado)
+        var foundKey = null;
+        Object.keys(mData.modelos).forEach(function(mn) {
+          if (_jdNorm(mn) === _jdNorm(mName)) foundKey = mn;
+        });
+        if (foundKey) {
+          if (!byMonth[mes]) byMonth[mes] = { modelos: {}, dias: mData.dias || 30 };
+          byMonth[mes].modelos[mName] = mData.modelos[foundKey];
+          studioKeys[mName] = sk;
+        }
+      });
+    });
+  });
+
+  var result = {
+    found:      Object.keys(byMonth).length > 0,
+    byMonth:    byMonth,
+    modelList:  modelList,
+    studioKeys: studioKeys,
+    modelCount: modelosDel.length
+  };
+  _cnsJdModsCache[estudioNombre] = result;
+  return result;
+}
 
 function renderConsultas() {
   cns_init();
+}
+
+// ── Helper: construir lista unificada de estudios para dropdowns de consultas ─
+// Retorna [{value, label, hasFab, estado}]
+// Prioridad: jd_estudios primero (todos), luego fab_ALIADOS sin reclamar.
+// Para ejecutivo (no super_admin): filtra por campo "refiere" en fab_ALIADOS.
+function _buildAliadosOpts() {
+  var jdEst = [];
+  try { jdEst = JSON.parse(localStorage.getItem('jd_estudios')||'[]'); } catch(e){}
+
+  var claimedFab = {};
+  var opts = [];
+
+  jdEst.forEach(function(e) {
+    var nombre = (e.nombreAgencia||e.nombreReal||'').trim();
+    if (!nombre) return;
+    var fabKey = _jdFindFabKey(nombre) || _jdFindFabKey(e.nombreReal||'');
+    if (fabKey) claimedFab[fabKey] = true;
+    opts.push({
+      value : fabKey ? fabKey : (_JD_PREFIX + nombre),
+      label : nombre,
+      hasFab: !!fabKey,
+      estado: e.estado || 'Activo'
+    });
+  });
+
+  // Estudios de fab_ALIADOS que no están en jd_estudios
+  if (fab_ALIADOS) {
+    var remaining = Object.keys(fab_ALIADOS).filter(function(k){ return !claimedFab[k]; });
+
+    if (!jdIsSuperAdmin()) {
+      // Filtrar por ejecutivo
+      var uNombre = (_jdCurrentUser && _jdCurrentUser.nombre) || '';
+      var uWords  = uNombre.toLowerCase().split(/\s+/).filter(function(w){ return w.length > 2; });
+      var matched = remaining.filter(function(k) {
+        var r = (fab_ALIADOS[k].refiere || '').toLowerCase().trim();
+        return uWords.some(function(w){ return r.indexOf(w) !== -1; });
+      });
+      remaining = matched.length > 0 ? matched : remaining;
+    }
+
+    remaining.forEach(function(k) {
+      opts.push({
+        value : k,
+        label : k,
+        hasFab: true,
+        estado: fab_ALIADOS[k].estado || 'Activo'
+      });
+    });
+  }
+
+  // Ordenar: Activos primero, luego alfabético
+  opts.sort(function(a,b) {
+    var ea = (a.estado === 'Activo') ? 0 : 1;
+    var eb = (b.estado === 'Activo') ? 0 : 1;
+    return ea - eb || a.label.localeCompare(b.label, 'es');
+  });
+
+  return opts;
 }
 
 function cns_init() {
   var s = document.getElementById('cns-sel-al');
   if (!s) return;
   s.innerHTML = '<option value="">— Seleccionar aliado —</option>';
-  if (!fab_ALIADOS || Object.keys(fab_ALIADOS).length === 0) return;
 
-  var keys;
-  if (jdIsSuperAdmin()) {
-    // Super admin: ver TODOS los estudios sin excepción
-    keys = Object.keys(fab_ALIADOS);
-  } else {
-    // Ejecutivo: filtrar por su nombre en el campo refiere
-    var userNombre = (_jdCurrentUser && _jdCurrentUser.nombre) || '';
-    var userWords  = userNombre.toLowerCase().split(/\s+/).filter(function(w){ return w.length > 2; });
-    var matched = Object.keys(fab_ALIADOS).filter(function(k) {
-      var r = (fab_ALIADOS[k].refiere || '').toLowerCase().trim();
-      if (!r) return false;
-      return userWords.some(function(w){ return r.indexOf(w) !== -1; });
-    });
-    var sinAsignar = Object.keys(fab_ALIADOS).filter(function(k) {
-      return !(fab_ALIADOS[k].refiere || '').trim();
-    });
-    keys = matched.length > 0
-      ? matched.concat(sinAsignar.filter(function(k){ return matched.indexOf(k) === -1; }))
-      : Object.keys(fab_ALIADOS);
+  // ── Sección estudios ──
+  var opts = _buildAliadosOpts();
+  if (opts.length) {
+    var sepEst = document.createElement('option');
+    sepEst.disabled = true;
+    sepEst.textContent = '── Estudios ──';
+    s.appendChild(sepEst);
   }
-
-  keys.sort(function(a, b) {
-    var ea = fab_ALIADOS[a].estado === 'Activo' ? 0 : 1;
-    var eb = fab_ALIADOS[b].estado === 'Activo' ? 0 : 1;
-    return ea - eb || a.localeCompare(b, 'es');
-  });
-
-  keys.forEach(function(k) {
+  opts.forEach(function(opt) {
     var o = document.createElement('option');
-    o.value = k;
-    o.textContent = fab_ALIADOS[k].estado === 'Retirado' ? k + ' (Retirado)' : k;
+    o.value = opt.value;
+    var label = opt.label;
+    if (opt.estado && opt.estado !== 'Activo') label += ' (' + opt.estado + ')';
+    o.textContent = label;
     s.appendChild(o);
   });
 
-  // Agregar estudios de jd_estudios que no están en fab_ALIADOS
-  var extras = _jdGetExtras();
-  if(extras.length) {
-    var sep = document.createElement('option');
-    sep.disabled = true;
-    sep.textContent = '── Solo en base de datos local ──';
-    s.appendChild(sep);
-    extras.forEach(function(ex) {
-      var o = document.createElement('option');
-      o.value = _JD_PREFIX + ex.label;
-      o.textContent = ex.label + (ex.estado==='Inactivo' ? ' (Inactivo)' : '') + ' *';
-      s.appendChild(o);
+  // ── Sección modelos (de fab_ALIADOS) ──
+  if (fab_ALIADOS) {
+    var modelsMap = {};
+    Object.keys(fab_ALIADOS).forEach(function(sk) {
+      var sd = fab_ALIADOS[sk];
+      if (!sd || !sd.data) return;
+      Object.keys(sd.data).forEach(function(mes) {
+        var mData = sd.data[mes];
+        if (!mData || !mData.modelos) return;
+        Object.keys(mData.modelos).forEach(function(mn) {
+          var mKey = sk + '||' + mn;
+          if (!modelsMap[mKey]) modelsMap[mKey] = {studioKey: sk, modelName: mn};
+        });
+      });
     });
+    var modelsList = Object.keys(modelsMap).map(function(k){ return modelsMap[k]; });
+    modelsList.sort(function(a,b){ return a.modelName.localeCompare(b.modelName, 'es'); });
+    if (modelsList.length) {
+      var sepMod = document.createElement('option');
+      sepMod.disabled = true;
+      sepMod.textContent = '── Modelos ──';
+      s.appendChild(sepMod);
+      modelsList.forEach(function(m) {
+        var o = document.createElement('option');
+        o.value = _CNS_MOD_PREFIX + m.studioKey + '||' + m.modelName;
+        o.textContent = m.modelName + ' · ' + m.studioKey;
+        s.appendChild(o);
+      });
+    }
   }
 
-  // Auto-seleccionar el primer aliado activo disponible
+  // Auto-seleccionar primer estudio activo
   var first = null;
-  for (var i = 0; i < keys.length; i++) {
-    if (fab_ALIADOS[keys[i]].estado !== 'Retirado') { first = keys[i]; break; }
+  for (var i = 0; i < opts.length; i++) {
+    if (opts[i].estado === 'Activo') { first = opts[i].value; break; }
   }
-  if (!first && keys.length > 0) first = keys[0];
+  if (!first && opts.length > 0) first = opts[0].value;
   if (first) { s.value = first; cns_onAliado(); }
 }
 
@@ -8392,16 +8585,79 @@ function cns_onAliado() {
     return;
   }
 
-  // Si el estudio está solo en jd_estudios (sin datos Cómo Vamos)
+  // Si el estudio está solo en jd_estudios (buscar sus modelos en fab_ALIADOS)
   if(al.indexOf(_JD_PREFIX) === 0) {
     var nombre = al.replace(_JD_PREFIX, '');
-    if(info)    info.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--muted)"><b style="color:var(--text)">'+nombre+'</b><br><br>Este estudio está registrado en la base de datos local pero aún no tiene datos de facturación en Cómo Vamos.</div>';
-    if(mesWrap) mesWrap.style.display = 'none';
-    if(kpis)   kpis.innerHTML = '';
-    if(pills)  pills.innerHTML = '';
     if(title)  title.textContent = nombre;
-    if(sub)    sub.textContent = 'Sin datos de facturación en Cómo Vamos';
-    if(matrix) matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>Sin datos registrados en Cómo Vamos para este estudio</span></div>';
+    var fabRes = _findStudioModsInFab(nombre);
+
+    if (!fabRes.found) {
+      var sinModMsg = fabRes.modelCount === 0
+        ? 'Sin modelos registrados para este estudio.'
+        : fabRes.modelList.length + ' modelo(s) registrado(s) pero sin datos en Cómo Vamos aún.';
+      if(info)    info.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--muted)"><b style="color:var(--text)">'+nombre+'</b><br><br>'+sinModMsg+'</div>';
+      if(mesWrap) mesWrap.style.display = 'none';
+      if(kpis)    kpis.innerHTML = '';
+      if(pills)   pills.innerHTML = '';
+      if(sub)     sub.textContent = 'Sin datos en Cómo Vamos';
+      if(matrix)  matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>'+sinModMsg+'</span></div>';
+      return;
+    }
+
+    // Tiene datos via modelos — mostrar info básica
+    if(info)   info.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--muted)"><b style="color:var(--text)">'+nombre+'</b><br><span style="color:var(--gold)">'+fabRes.modelList.length+' modelo(s) encontrado(s) en Cómo Vamos</span><br><span style="font-size:11px">'+fabRes.modelList.join(', ')+'</span></div>';
+    if(sub)    sub.textContent = fabRes.modelList.length + ' modelo(s) · datos via Cómo Vamos';
+
+    // Poblar meses
+    var smJ = document.getElementById('cns-sel-mes');
+    smJ.innerHTML = '<option value="">— Seleccionar mes —</option>';
+    var lastJMes = '';
+    fab_MESES.forEach(function(m) {
+      if (fabRes.byMonth[m] && Object.keys(fabRes.byMonth[m].modelos||{}).length > 0) {
+        var o = document.createElement('option');
+        o.value = m; o.textContent = m; smJ.appendChild(o);
+        lastJMes = m;
+      }
+    });
+    if(mesWrap) mesWrap.style.display = 'block';
+    if(lastJMes) { smJ.value = lastJMes; cns_render(); }
+    else {
+      if(kpis)   kpis.innerHTML  = '';
+      if(pills)  pills.innerHTML = '';
+      if(matrix) matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>Sin actividad registrada</span></div>';
+    }
+    return;
+  }
+
+  // Si se seleccionó un MODELO individual
+  if(al.indexOf(_CNS_MOD_PREFIX) === 0) {
+    var modRaw   = al.replace(_CNS_MOD_PREFIX, '');
+    var modSep   = modRaw.indexOf('||');
+    var modStudio = modRaw.substring(0, modSep);
+    var modName   = modRaw.substring(modSep + 2);
+    if(info && typeof fab_renderInfo === 'function') fab_renderInfo('cns-info', modStudio);
+    if(title) title.textContent = modName;
+    if(sub)   sub.textContent   = 'Modelo · ' + modStudio;
+    var sm2 = document.getElementById('cns-sel-mes');
+    sm2.innerHTML = '<option value="">— Seleccionar mes —</option>';
+    var sdMod = fab_ALIADOS[modStudio];
+    var lastModMes = '';
+    fab_MESES.forEach(function(m) {
+      if(sdMod && sdMod.data && sdMod.data[m] &&
+         sdMod.data[m].modelos && sdMod.data[m].modelos[modName]) {
+        var o = document.createElement('option');
+        o.value = m; o.textContent = m; sm2.appendChild(o);
+        lastModMes = m;
+      }
+    });
+    if(mesWrap) mesWrap.style.display = 'block';
+    if(lastModMes) { sm2.value = lastModMes; cns_render(); }
+    else {
+      if(kpis)   kpis.innerHTML  = '';
+      if(pills)  pills.innerHTML = '';
+      if(matrix) matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>Sin actividad registrada para '+modName+'</span></div>';
+      if(sub)    sub.textContent  = 'Sin actividad registrada';
+    }
     return;
   }
 
@@ -8454,11 +8710,46 @@ function cns_render() {
     return;
   }
 
-  var a = fab_ALIADOS[al];
+  // Estudio JD sin clave directa en fab_ALIADOS → usar modelos buscados
+  if (al.indexOf(_JD_PREFIX) === 0) {
+    var _jdNom = al.replace(_JD_PREFIX, '');
+    var _jdRes = _cnsJdModsCache[_jdNom] || _findStudioModsInFab(_jdNom);
+    var _jdMd  = _jdRes.byMonth[mes];
+    if (title) title.textContent = _jdNom + ' — ' + mes + ' 2026';
+    if (!_jdMd || !Object.keys(_jdMd.modelos || {}).length) {
+      if (sub)    sub.textContent  = 'Sin actividad en ' + mes;
+      if (matrix) matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>Sin actividad en ' + mes + '</span></div>';
+      if (kpis)   kpis.innerHTML  = '';
+      if (pills)  pills.innerHTML = '';
+      return;
+    }
+    var _jdModelos = _jdMd.modelos, _jdDias = _jdMd.dias || 30;
+    var _jdDL = []; for (var _jdI = 1; _jdI <= _jdDias; _jdI++) _jdDL.push(_jdI);
+    if (sub) sub.textContent = Object.keys(_jdModelos).length + ' modelo(s) · ' + _jdDias + ' días';
+    var _jdTots = [];
+    Object.values(_jdModelos).forEach(function(m){ Object.values(m).forEach(function(c){ _jdTots.push(fab_cT(c)||0); }); });
+    var _jdMx = Math.max.apply(null, _jdTots.concat([1]));
+    var _jdRes2 = fab_buildMatrix(_jdModelos, _jdDL, _jdMx);
+    if (matrix) { matrix.innerHTML = _jdRes2.html; if (typeof fab_setupTT === 'function') fab_setupTT(matrix); }
+    if (typeof fab_renderKpis === 'function') fab_renderKpis('cns-kpis','cns-pills',_jdRes2.totG,_jdRes2.mAct,_jdRes2.tD,_jdRes2.tDV,_jdRes2.tM,_jdRes2.tMV,_jdRes2.pts);
+    return;
+  }
+
+  // Detectar si se está consultando un modelo individual
+  var _cnsModFiltro = null;
+  var _cnsAlKey = al;
+  if (al.indexOf(_CNS_MOD_PREFIX) === 0) {
+    var _cnsRaw = al.replace(_CNS_MOD_PREFIX, '');
+    var _cnsSep = _cnsRaw.indexOf('||');
+    _cnsAlKey     = _cnsRaw.substring(0, _cnsSep);
+    _cnsModFiltro = _cnsRaw.substring(_cnsSep + 2);
+  }
+
+  var a = fab_ALIADOS[_cnsAlKey];
   if (!a) return;
 
   var md = a.data && a.data[mes];
-  if (title) title.textContent = al + ' — ' + mes + ' 2026';
+  if (title) title.textContent = (_cnsModFiltro ? _cnsModFiltro + ' — ' : _cnsAlKey + ' — ') + mes + ' 2026';
 
   if (!md || !Object.keys(md.modelos || {}).length) {
     if (sub)    sub.textContent  = 'Sin actividad en ' + mes;
@@ -8469,8 +8760,16 @@ function cns_render() {
   }
 
   var modelos = md.modelos, dias = md.dias;
+
+  // Si hay filtro de modelo, mostrar solo ese modelo
+  if (_cnsModFiltro && modelos) {
+    var _modFilt = {};
+    if (modelos[_cnsModFiltro]) _modFilt[_cnsModFiltro] = modelos[_cnsModFiltro];
+    modelos = _modFilt;
+  }
+
   var dL = []; for (var i = 1; i <= dias; i++) dL.push(i);
-  if (sub) sub.textContent = Object.keys(modelos).length + ' modelo(s) · ' + dias + ' días registrados';
+  if (sub) sub.textContent = (_cnsModFiltro ? '1 modelo' : Object.keys(modelos).length + ' modelo(s)') + ' · ' + dias + ' días registrados';
 
   var allTots = [];
   Object.values(modelos).forEach(function(m) {
@@ -8562,63 +8861,62 @@ function qnc_init() {
   var s = document.getElementById('qnc-sel-al');
   if(!s) return;
   s.innerHTML = '<option value="">— Seleccionar aliado —</option>';
-  if(!fab_ALIADOS || Object.keys(fab_ALIADOS).length === 0) return;
 
-  var keys;
-  if(jdIsSuperAdmin()) {
-    // Super admin: ver TODOS los estudios sin excepción
-    keys = Object.keys(fab_ALIADOS);
-  } else {
-    // Ejecutivo: filtrar por su nombre en el campo refiere
-    var userNombre = (_jdCurrentUser && _jdCurrentUser.nombre) || '';
-    var userWords  = userNombre.toLowerCase().split(/\s+/).filter(function(w){ return w.length > 2; });
-    var matched = Object.keys(fab_ALIADOS).filter(function(k) {
-      var r = (fab_ALIADOS[k].refiere || '').toLowerCase().trim();
-      if(!r) return false;
-      return userWords.some(function(w){ return r.indexOf(w) !== -1; });
-    });
-    var sinAsignar = Object.keys(fab_ALIADOS).filter(function(k) {
-      return !(fab_ALIADOS[k].refiere || '').trim();
-    });
-    keys = matched.length > 0
-      ? matched.concat(sinAsignar.filter(function(k){ return matched.indexOf(k) === -1; }))
-      : Object.keys(fab_ALIADOS);
+  // ── Sección estudios ──
+  var opts = _buildAliadosOpts();
+  if (opts.length) {
+    var sepEstQ = document.createElement('option');
+    sepEstQ.disabled = true;
+    sepEstQ.textContent = '── Estudios ──';
+    s.appendChild(sepEstQ);
   }
-
-  keys.sort(function(a,b) {
-    var ea = fab_ALIADOS[a].estado === 'Activo' ? 0 : 1;
-    var eb = fab_ALIADOS[b].estado === 'Activo' ? 0 : 1;
-    return ea - eb || a.localeCompare(b,'es');
-  });
-  keys.forEach(function(k) {
+  opts.forEach(function(opt) {
     var o = document.createElement('option');
-    o.value = k;
-    o.textContent = fab_ALIADOS[k].estado === 'Retirado' ? k + ' (Retirado)' : k;
+    o.value = opt.value;
+    var label = opt.label;
+    if (opt.estado && opt.estado !== 'Activo') label += ' (' + opt.estado + ')';
+    o.textContent = label;
     s.appendChild(o);
   });
 
-  // Agregar estudios de jd_estudios que no están en fab_ALIADOS
-  var extrasQ = _jdGetExtras();
-  if(extrasQ.length) {
-    var sepQ = document.createElement('option');
-    sepQ.disabled = true;
-    sepQ.textContent = '── Solo en base de datos local ──';
-    s.appendChild(sepQ);
-    extrasQ.forEach(function(ex) {
-      var o = document.createElement('option');
-      o.value = _JD_PREFIX + ex.label;
-      o.textContent = ex.label + (ex.estado==='Inactivo' ? ' (Inactivo)' : '') + ' *';
-      s.appendChild(o);
+  // ── Sección modelos (de fab_ALIADOS) ──
+  if (fab_ALIADOS) {
+    var modelsMapQ = {};
+    Object.keys(fab_ALIADOS).forEach(function(sk) {
+      var sd = fab_ALIADOS[sk];
+      if (!sd || !sd.data) return;
+      Object.keys(sd.data).forEach(function(mes) {
+        var mData = sd.data[mes];
+        if (!mData || !mData.modelos) return;
+        Object.keys(mData.modelos).forEach(function(mn) {
+          var mKey = sk + '||' + mn;
+          if (!modelsMapQ[mKey]) modelsMapQ[mKey] = {studioKey: sk, modelName: mn};
+        });
+      });
     });
+    var modelsListQ = Object.keys(modelsMapQ).map(function(k){ return modelsMapQ[k]; });
+    modelsListQ.sort(function(a,b){ return a.modelName.localeCompare(b.modelName, 'es'); });
+    if (modelsListQ.length) {
+      var sepModQ = document.createElement('option');
+      sepModQ.disabled = true;
+      sepModQ.textContent = '── Modelos ──';
+      s.appendChild(sepModQ);
+      modelsListQ.forEach(function(m) {
+        var o = document.createElement('option');
+        o.value = _CNS_MOD_PREFIX + m.studioKey + '||' + m.modelName;
+        o.textContent = m.modelName + ' · ' + m.studioKey;
+        s.appendChild(o);
+      });
+    }
   }
 
-  // Auto-seleccionar primer aliado activo
+  // Auto-seleccionar primer estudio activo
   var first = null;
-  for(var i = 0; i < keys.length; i++) {
-    if(fab_ALIADOS[keys[i]].estado !== 'Retirado') { first = keys[i]; break; }
+  for (var i = 0; i < opts.length; i++) {
+    if (opts[i].estado === 'Activo') { first = opts[i].value; break; }
   }
-  if(!first && keys.length > 0) first = keys[0];
-  if(first) { s.value = first; qnc_onAliado(); }
+  if (!first && opts.length > 0) first = opts[0].value;
+  if (first) { s.value = first; qnc_onAliado(); }
 }
 
 function qnc_onAliado() {
@@ -8642,16 +8940,89 @@ function qnc_onAliado() {
     return;
   }
 
-  // Si el estudio está solo en jd_estudios (sin datos Cómo Vamos)
+  // Si el estudio está solo en jd_estudios (buscar sus modelos en fab_ALIADOS)
   if(al.indexOf(_JD_PREFIX) === 0) {
     var nombreQ = al.replace(_JD_PREFIX, '');
-    if(info)     info.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--muted)"><b style="color:var(--text)">'+nombreQ+'</b><br><br>Este estudio está registrado en la base de datos local pero aún no tiene datos de facturación en Cómo Vamos.</div>';
-    if(quinWrap) quinWrap.style.display = 'none';
-    if(kpis)     kpis.innerHTML = '';
-    if(pills)    pills.innerHTML = '';
     if(title)    title.textContent = nombreQ;
-    if(sub)      sub.textContent = 'Sin datos de facturación en Cómo Vamos';
-    if(matrix)   matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>Sin datos registrados en Cómo Vamos para este estudio</span></div>';
+    var fabResQ = _findStudioModsInFab(nombreQ);
+
+    if (!fabResQ.found) {
+      var sinModMsgQ = fabResQ.modelCount === 0
+        ? 'Sin modelos registrados para este estudio.'
+        : fabResQ.modelList.length + ' modelo(s) registrado(s) pero sin datos en Cómo Vamos aún.';
+      if(info)     info.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--muted)"><b style="color:var(--text)">'+nombreQ+'</b><br><br>'+sinModMsgQ+'</div>';
+      if(quinWrap) quinWrap.style.display = 'none';
+      if(kpis)     kpis.innerHTML = '';
+      if(pills)    pills.innerHTML = '';
+      if(sub)      sub.textContent = 'Sin datos en Cómo Vamos';
+      if(matrix)   matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>'+sinModMsgQ+'</span></div>';
+      return;
+    }
+
+    if(info) info.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--muted)"><b style="color:var(--text)">'+nombreQ+'</b><br><span style="color:var(--gold)">'+fabResQ.modelList.length+' modelo(s) en Cómo Vamos</span><br><span style="font-size:11px">'+fabResQ.modelList.join(', ')+'</span></div>';
+    if(sub)  sub.textContent = fabResQ.modelList.length + ' modelo(s) · datos via Cómo Vamos';
+
+    // Poblar quincenas con datos
+    var sqQ = document.getElementById('qnc-sel-quin');
+    sqQ.innerHTML = '<option value="">— Seleccionar quincena —</option>';
+    var lastQQuin = '';
+    _qnc_QUINCENAS.forEach(function(q) {
+      var qMd = fabResQ.byMonth[q.mes];
+      if (!qMd) return;
+      // Verificar si hay datos en el rango de días
+      var hasDays = Object.values(qMd.modelos||{}).some(function(mDays) {
+        return Object.keys(mDays).some(function(d){
+          var dn = parseInt(d); return dn >= q.d1 && dn <= q.d2 && fab_cT(mDays[d]);
+        });
+      });
+      var o = document.createElement('option');
+      o.value = q.id;
+      o.textContent = q.label + (hasDays ? '' : ' (sin datos)');
+      if (!hasDays) o.style.color = 'var(--muted)';
+      sqQ.appendChild(o);
+      if (hasDays) lastQQuin = q.id;
+    });
+    if(quinWrap) quinWrap.style.display = 'block';
+    if(lastQQuin) { sqQ.value = lastQQuin; qnc_render(); }
+    else {
+      if(kpis)   kpis.innerHTML  = '';
+      if(pills)  pills.innerHTML = '';
+      if(matrix) matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>Sin actividad quincenal registrada</span></div>';
+    }
+    return;
+  }
+
+  // Si se seleccionó un MODELO individual (quincenal)
+  if(al.indexOf(_CNS_MOD_PREFIX) === 0) {
+    var qModRaw    = al.replace(_CNS_MOD_PREFIX, '');
+    var qModSep    = qModRaw.indexOf('||');
+    var qModStudio = qModRaw.substring(0, qModSep);
+    var qModName   = qModRaw.substring(qModSep + 2);
+    if(info && typeof fab_renderInfo === 'function') fab_renderInfo('qnc-info', qModStudio);
+    if(title) title.textContent = qModName;
+    if(sub)   sub.textContent   = 'Modelo · ' + qModStudio;
+    if(quinWrap) quinWrap.style.display = 'block';
+    // Habilitar todas las quincenas (qnc_render filtra por modelo)
+    var sqM = document.getElementById('qnc-sel-quin');
+    sqM.innerHTML = '<option value="">— Seleccionar quincena —</option>';
+    var aMod = fab_ALIADOS[qModStudio];
+    var lastQM = '';
+    _qnc_QUINCENAS.forEach(function(q) {
+      var hasData = aMod && aMod.data && aMod.data[q.mes] &&
+                    aMod.data[q.mes].modelos && aMod.data[q.mes].modelos[qModName];
+      var o = document.createElement('option');
+      o.value = q.id;
+      o.textContent = q.label + (hasData ? ' ★' : '');
+      sqM.appendChild(o);
+      if(hasData) lastQM = q.id;
+    });
+    if(lastQM) { sqM.value = lastQM; qnc_render(); }
+    else {
+      if(kpis)   kpis.innerHTML  = '';
+      if(pills)  pills.innerHTML = '';
+      if(matrix) matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>Sin actividad registrada para '+qModName+'</span></div>';
+      if(sub)    sub.textContent  = 'Sin actividad registrada';
+    }
     return;
   }
 
@@ -8716,11 +9087,60 @@ function qnc_render() {
   _qnc_QUINCENAS.forEach(function(x){ if(x.id === qId) q = x; });
   if(!q) return;
 
-  var a = fab_ALIADOS[al];
+  // Estudio JD sin clave directa → usar modelos buscados en fab_ALIADOS
+  if (al.indexOf(_JD_PREFIX) === 0) {
+    var _qjdNom = al.replace(_JD_PREFIX, '');
+    var _qjdRes = _cnsJdModsCache[_qjdNom] || _findStudioModsInFab(_qjdNom);
+    var _qjdMd  = _qjdRes.byMonth[q.mes];
+    if(title) title.textContent = _qjdNom + ' — ' + q.label;
+    if (!_qjdMd || !Object.keys(_qjdMd.modelos || {}).length) {
+      if(sub)    sub.textContent  = 'Sin actividad en ' + q.label;
+      if(matrix) matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>Sin actividad en '+q.label+'</span></div>';
+      if(kpis)   kpis.innerHTML   = '';
+      if(pills)  pills.innerHTML  = '';
+      return;
+    }
+    var _qjdDias = _qjdMd.dias || q.d2;
+    var _qjdD2   = Math.min(q.d2, _qjdDias);
+    var _qjdDL   = []; for(var _qi = q.d1; _qi <= _qjdD2; _qi++) _qjdDL.push(_qi);
+    var _qjdFilt = {};
+    Object.keys(_qjdMd.modelos).forEach(function(mn) {
+      var mDays = _qjdMd.modelos[mn];
+      var hasV  = _qjdDL.some(function(dd){ var c=mDays[String(dd)]; return c && fab_PLATS.some(function(p){ return (c[p]||0)>0; }); });
+      if(hasV) _qjdFilt[mn] = mDays;
+    });
+    if(!Object.keys(_qjdFilt).length) {
+      if(sub)    sub.textContent  = 'Sin actividad en ' + q.label;
+      if(matrix) matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>Sin actividad en '+q.label+'</span></div>';
+      if(kpis)   kpis.innerHTML   = '';
+      if(pills)  pills.innerHTML  = '';
+      return;
+    }
+    if(sub) sub.textContent = Object.keys(_qjdFilt).length + ' modelo(s) · ' + _qjdDL.length + ' días — ' + q.label;
+    var _qjdTots = [];
+    Object.values(_qjdFilt).forEach(function(m){ _qjdDL.forEach(function(dd){ _qjdTots.push(fab_cT(m[String(dd)])||0); }); });
+    var _qjdMx = Math.max.apply(null, _qjdTots.concat([1]));
+    var _qjdR2 = fab_buildMatrix(_qjdFilt, _qjdDL, _qjdMx);
+    if(matrix){ matrix.innerHTML = _qjdR2.html; qnc_setupTT(matrix); }
+    if(typeof fab_renderKpis === 'function') fab_renderKpis('qnc-kpis','qnc-pills',_qjdR2.totG,_qjdR2.mAct,_qjdR2.tD,_qjdR2.tDV,_qjdR2.tM,_qjdR2.tMV,_qjdR2.pts);
+    return;
+  }
+
+  // Detectar si se está consultando un modelo individual
+  var _qncModFiltro = null;
+  var _qncAlKey = al;
+  if (al.indexOf(_CNS_MOD_PREFIX) === 0) {
+    var _qncRaw = al.replace(_CNS_MOD_PREFIX, '');
+    var _qncSep = _qncRaw.indexOf('||');
+    _qncAlKey     = _qncRaw.substring(0, _qncSep);
+    _qncModFiltro = _qncRaw.substring(_qncSep + 2);
+  }
+
+  var a = fab_ALIADOS[_qncAlKey];
   if(!a) return;
 
   var md = a.data && a.data[q.mes];
-  if(title) title.textContent = al + ' — ' + q.label;
+  if(title) title.textContent = (_qncModFiltro ? _qncModFiltro : _qncAlKey) + ' — ' + q.label;
 
   if(!md || !Object.keys(md.modelos || {}).length) {
     if(sub) sub.textContent = 'Sin actividad en ' + q.label;
@@ -8738,6 +9158,14 @@ function qnc_render() {
 
   // Filtrar solo modelos con al menos un valor en la quincena
   var modelos = md.modelos;
+
+  // Si hay filtro de modelo individual, aplicarlo primero
+  if (_qncModFiltro && modelos) {
+    var _qncOnlyMod = {};
+    if (modelos[_qncModFiltro]) _qncOnlyMod[_qncModFiltro] = modelos[_qncModFiltro];
+    modelos = _qncOnlyMod;
+  }
+
   var modFilt = {};
   Object.keys(modelos).forEach(function(m) {
     var hasVal = dL.some(function(dd) {
@@ -10768,6 +11196,66 @@ function deleteEstudio(id){
   }catch(e){console.warn('[SUPA] deleteEstudio error:',e);}})();
   renderEstudios();
   toast('Estudio eliminado','warn');
+}
+
+// ══ CÓMO VAMOS — Actualización dinámica de fab_ALIADOS ══
+function openFabAliadosModal() {
+  if (!jdIsSuperAdmin()) { toast('Sin permisos', 'error'); return; }
+  // Mostrar JSON actual comprimido en el textarea
+  var current = (typeof fab_ALIADOS !== 'undefined') ? JSON.stringify(fab_ALIADOS, null, 2) : '{}';
+  document.getElementById('fab-aliados-textarea').value = current;
+  document.getElementById('fab-aliados-err').textContent = '';
+  document.getElementById('fab-aliados-info').textContent =
+    Object.keys(typeof fab_ALIADOS !== 'undefined' ? fab_ALIADOS : {}).length + ' estudios actualmente cargados' +
+    ((document.getElementById('fab-aliados-source') && document.getElementById('fab-aliados-source').textContent) || '');
+  document.getElementById('modal-fab-aliados').style.display = 'flex';
+}
+function closeFabAliadosModal() {
+  document.getElementById('modal-fab-aliados').style.display = 'none';
+}
+async function saveFabAliados() {
+  if (!jdIsSuperAdmin()) { toast('Sin permisos', 'error'); return; }
+  const raw = document.getElementById('fab-aliados-textarea').value.trim();
+  const errEl = document.getElementById('fab-aliados-err');
+  const btnEl = document.getElementById('fab-aliados-save-btn');
+  errEl.textContent = '';
+  if (!raw) { errEl.textContent = '⛔ El JSON no puede estar vacío.'; return; }
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch(e) { errEl.textContent = '⛔ JSON inválido: ' + e.message; return; }
+  if (typeof parsed !== 'object' || Array.isArray(parsed) || Object.keys(parsed).length === 0) {
+    errEl.textContent = '⛔ El JSON debe ser un objeto con al menos un estudio.'; return;
+  }
+  // Validar estructura mínima: cada clave debe tener .data
+  const invalid = Object.keys(parsed).filter(k => !parsed[k] || typeof parsed[k].data !== 'object');
+  if (invalid.length > 0) {
+    errEl.textContent = '⛔ Los siguientes estudios no tienen campo "data": ' + invalid.slice(0,5).join(', ');
+    return;
+  }
+  btnEl.disabled = true;
+  btnEl.textContent = 'Guardando...';
+  try {
+    if (!_supaDb) throw new Error('Sin conexión a Supabase');
+    const { error } = await _supaDb.from('configuracion').upsert(
+      { clave: 'jd_fab_aliados', valor: parsed },
+      { onConflict: 'clave' }
+    );
+    if (error) throw error;
+    // Aplicar inmediatamente en memoria
+    if (typeof fab_ALIADOS !== 'undefined') {
+      Object.keys(fab_ALIADOS).forEach(k => delete fab_ALIADOS[k]);
+      Object.assign(fab_ALIADOS, parsed);
+    }
+    _cnsJdModsCache = {}; // limpiar caché para que las consultas recarguen con datos nuevos
+    closeFabAliadosModal();
+    toast('✅ Cómo Vamos actualizado: ' + Object.keys(parsed).length + ' estudios', 'ok');
+    console.log('[FAB] fab_ALIADOS actualizado:', Object.keys(parsed).length, 'estudios');
+  } catch(e) {
+    errEl.textContent = '⛔ Error guardando: ' + (e.message || e);
+    console.error('[FAB] saveFabAliados error:', e);
+  } finally {
+    btnEl.disabled = false;
+    btnEl.textContent = 'Guardar y Aplicar';
+  }
 }
 
 function exportEstudios(){
@@ -16711,7 +17199,7 @@ function saveHorarios(d){
   }catch(e){console.warn('[SUPA] saveHorarios error:',e);}})();
 }
 function getModelos(){ return load(K.modelos)||[]; }
-function saveModelos(arr){ save(K.modelos, arr); }
+function saveModelos(arr){ save(K.modelos, arr); _cnsJdModsCache = {}; }
 
 function horLunesDeOffset(offset){
   const d = new Date();

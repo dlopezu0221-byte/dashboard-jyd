@@ -1519,7 +1519,6 @@ body.exec-fullscreen #fab-logout-btn { display: flex; }
       </div>
       <div class="nav-subgroup2 open" id="ng-ge-admin">
         <div class="nav-item nav-sub" onclick="goPage('estudios')"><span class="ico">🎥</span>Estudios</div>
-        <div class="nav-item nav-sub" onclick="goPage('empleados')"><span class="ico">👷</span>Empleados</div>
       </div>
       <div class="nav-subsec" onclick="toggleNavGroup('ge-cont')">
         <span>Contabilidad</span>
@@ -1549,20 +1548,6 @@ body.exec-fullscreen #fab-logout-btn { display: flex; }
         <div class="nav-item nav-sub" onclick="goPage('modelos')"><span class="ico">👤</span>Modelos</div>
         <div class="nav-item nav-sub" onclick="goPage('horarios')"><span class="ico">📅</span>Horarios</div>
         <div class="nav-item nav-sub" onclick="goPage('estadisticas')"><span class="ico">📊</span>Estadísticas y Datos</div>
-      </div>
-    </div>
-
-    <!-- CONSULTAS GLOBALES — solo super_admin -->
-    <div id="nav-consultas-admin-group" style="display:none">
-      <div class="nav-group-hdr" onclick="toggleNavGroup('admin-cons')">
-        <span>📋 Consultas Globales</span>
-        <span class="nav-arr" id="na-admin-cons">▾</span>
-      </div>
-      <div class="nav-subgroup open" id="ng-admin-cons">
-        <div class="nav-item nav-sub" onclick="goPage('consultas')"><span class="ico">📊</span>Consulta Mensual</div>
-        <div class="nav-item nav-sub" onclick="goPage('consulta-quincenal')"><span class="ico">📅</span>Consulta Quincenal</div>
-        <div class="nav-item nav-sub" onclick="goPage('consolidado')"><span class="ico">📈</span>Consolidado</div>
-        <div class="nav-item nav-sub" onclick="goPage('top20')"><span class="ico">🏆</span>TOP 20 Grupo</div>
       </div>
     </div>
 
@@ -2023,55 +2008,6 @@ body.exec-fullscreen #fab-logout-btn { display: flex; }
         <th>Acciones</th>
       </tr></thead>
       <tbody id="estudios-tbody"></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ============================================================
-     EMPLEADOS
-============================================================ -->
-<div id="page-empleados" class="page">
-  <div class="page-header">
-    <div>
-      <div class="page-title">👷 <span>Empleados</span></div>
-      <div class="page-sub">Base de datos del personal del Grupo Empresarial</div>
-    </div>
-    <div class="btn-group">
-      <button class="btn btn-secondary btn-sm" onclick="exportEmpleados()">⬇ Exportar Excel</button>
-      <button class="btn btn-primary" onclick="openEmpModal()">+ Nuevo Empleado</button>
-    </div>
-  </div>
-  <div class="tabs">
-    <div class="tab active" onclick="filterEmpleados('Activo',this)">Activos</div>
-    <div class="tab" onclick="filterEmpleados('Inactivo',this)">Inactivos</div>
-    <div class="tab" onclick="filterEmpleados('',this)">Todos</div>
-  </div>
-  <div class="search-row">
-    <input type="text" id="emp-search" placeholder="Buscar por nombre, cédula, cargo..." oninput="renderEmpleados()">
-    <select id="emp-cargo-filter" style="max-width:180px" onchange="renderEmpleados()">
-      <option value="">Todos los cargos</option>
-      <option value="Administrador">Administrador</option>
-      <option value="Ejecutivo Comercial">Ejecutivo Comercial</option>
-      <option value="Coordinador">Coordinador</option>
-      <option value="Asistente">Asistente</option>
-      <option value="Contador">Contador</option>
-      <option value="Otro">Otro</option>
-    </select>
-  </div>
-  <div class="tbl-wrap">
-    <table>
-      <thead><tr>
-        <th>Nombre</th>
-        <th>Cédula</th>
-        <th>Cargo</th>
-        <th>Rol</th>
-        <th>Salario</th>
-        <th>Teléfono</th>
-        <th>F. Ingreso</th>
-        <th>Estado</th>
-        <th>Acciones</th>
-      </tr></thead>
-      <tbody id="empleados-tbody"></tbody>
     </table>
   </div>
 </div>
@@ -3213,58 +3149,6 @@ body.exec-fullscreen #fab-logout-btn { display: flex; }
   <div class="mf">
     <button class="btn btn-ghost" onclick="closeModal('modal-estudio')">Cancelar</button>
     <button class="btn btn-primary" onclick="saveEstudio()">💾 Guardar</button>
-  </div>
-</div>
-</div>
-
-<!-- EMPLEADO MODAL -->
-<div class="overlay" id="modal-empleado">
-<div class="modal lg">
-  <div class="mh">
-    <div class="mh-title" id="modal-empleado-title">Nuevo Empleado</div>
-    <button class="mclose" onclick="closeModal('modal-empleado')">✕</button>
-  </div>
-  <div class="mb">
-    <input type="hidden" id="emp-id">
-    <div class="form-grid c3" style="gap:12px">
-      <div class="fg s2"><label>Nombre Completo *</label><input type="text" id="emp-nombre" placeholder="Ej: Juan Pérez García"></div>
-      <div class="fg"><label>Cédula</label><input type="text" id="emp-cedula" placeholder="Ej: 1234567890"></div>
-      <div class="fg"><label>Cargo *</label>
-        <select id="emp-cargo">
-          <option value="">Seleccionar...</option>
-          <option value="Administrador">Administrador</option>
-          <option value="Ejecutivo Comercial">Ejecutivo Comercial</option>
-          <option value="Coordinador">Coordinador</option>
-          <option value="Asistente">Asistente</option>
-          <option value="Contador">Contador</option>
-          <option value="Otro">Otro</option>
-        </select>
-      </div>
-      <div class="fg"><label>Rol en Sistema</label>
-        <select id="emp-rol">
-          <option value="">Sin acceso</option>
-          <option value="super_admin">Administrador</option>
-          <option value="ejecutivo">Ejecutivo Comercial</option>
-        </select>
-      </div>
-      <div class="fg"><label>Salario</label><input type="number" id="emp-salario" placeholder="Ej: 2000000" min="0" step="1000"></div>
-      <div class="fg"><label>Teléfono</label><input type="tel" id="emp-telefono" placeholder="+57 300 0000000"></div>
-      <div class="fg s2"><label>Correo Electrónico</label><input type="email" id="emp-email" placeholder="correo@empresa.com"></div>
-      <div class="fg"><label>Fecha de Ingreso</label><input type="date" id="emp-fechaIngreso"></div>
-      <div class="fg"><label>Fecha de Salida</label><input type="date" id="emp-fechaSalida"></div>
-      <div class="fg"><label>Estado</label>
-        <select id="emp-estado">
-          <option value="Activo">Activo</option>
-          <option value="Inactivo">Inactivo</option>
-        </select>
-      </div>
-    </div>
-    <hr>
-    <div class="fg"><label>Notas u Observaciones</label><textarea id="emp-notas" placeholder="Información adicional del empleado..."></textarea></div>
-  </div>
-  <div class="mf">
-    <button class="btn btn-ghost" onclick="closeModal('modal-empleado')">Cancelar</button>
-    <button class="btn btn-primary" onclick="saveEmpleado()">💾 Guardar</button>
   </div>
 </div>
 </div>
@@ -6915,10 +6799,6 @@ function _jdApplyUserUI() {
   const navUsr = document.getElementById('nav-usuarios-item');
   if (navUsr) navUsr.style.display = jdIsSuperAdmin() ? 'flex' : 'none';
 
-  // Mostrar grupo Consultas Globales solo para super_admin
-  const navConsAdmin = document.getElementById('nav-consultas-admin-group');
-  if (navConsAdmin) navConsAdmin.style.display = jdIsSuperAdmin() ? 'block' : 'none';
-
   // Mostrar nav item Liquidación Ejecutivos solo para super_admin
   const navLiqEjec = document.getElementById('nav-liqs-ejecutivos-item');
   if (navLiqEjec) navLiqEjec.style.display = jdIsSuperAdmin() ? 'flex' : 'none';
@@ -7255,19 +7135,17 @@ function leReset(){
 }
 
 /** Main calculation — dos fuentes cruzadas:
- *  FLUJO CORRECTO:
- *  1. jd_estudios (ADMINISTRACIÓN → ESTUDIOS): FUENTE DE VERDAD del Ejecutivo Comercial.
- *     Se itera jd_estudios y se lee jd_estudios[i].ejecutivo (4ta columna).
- *     Esto garantiza que los 3 ejecutivos aparezcan: Erika, Fabio, Grupo JD.
+ *  1. jd_estudios (ADMINISTRACIÓN → ESTUDIOS): FUENTE DE VERDAD para el Ejecutivo Comercial.
+ *     Se lee jd_estudios[i].ejecutivo (4ta columna) para determinar a qué ejecutivo pertenece
+ *     cada estudio. NO se usa fab_ALIADOS.refiere (puede estar desactualizado/incorrecto).
  *  2. fab_ALIADOS (Cómo Vamos Grupo Empresarial): fuente de facturación real.
- *     Para cada estudio de jd_estudios se busca su entrada en fab_ALIADOS por nombre
- *     y se verifica si tuvo billing en el período/página seleccionados.
- *  Solo aparecen estudios que (a) tienen ejecutivo en jd_estudios Y (b) facturaron
+ *     Determina QUIÉN facturó y CUÁNTO en el período seleccionado por plataforma/día.
+ *  Resultado: solo aparecen estudios que (a) tienen ejecutivo en jd_estudios y (b) facturaron
  *  en Cómo Vamos durante el período seleccionado. */
 function leCalcular(){
   var trm = parseFloat((document.getElementById('le-trm')||{}).value||0)||0;
 
-  // Recolectar plataformas seleccionadas con sus rangos de fecha
+  // Collect selected platforms with their date ranges (yyyy-mm-dd inputs)
   var platsSel = [];
   var valid = true;
   Object.keys(LE_PLAT_CFG).forEach(function(pid){
@@ -7290,51 +7168,51 @@ function leCalcular(){
   if(!valid) return;
   if(platsSel.length === 0){ alert('Seleccione al menos una plataforma y su período.'); return; }
 
-  function _leNorm(s){ return (s||'').toLowerCase().replace(/[\s_\-]+/g,' ').trim(); }
+  // ══════════════════════════════════════════════════════════════════════════
+  // FUENTE PRIMARIA: fab_ALIADOS (Cómo Vamos Grupo Empresarial)
+  // — Contiene TODA la facturación real por estudio/día/plataforma.
+  // — fab_ALIADOS[k].refiere → ejecutivo comercial asignado (fuente autoritativa).
+  // — fab_ALIADOS[k].plan_pct → porcentaje de plan de monetización.
+  //
+  // FUENTE COMPLEMENTARIA: jd_estudios (Administración → Estudios)
+  // — Se usa SOLO para filtrar por paginasVinculadas y obtener documento.
+  // — Si no hay match en jd_estudios, se incluye el estudio si tiene billing real.
+  // ══════════════════════════════════════════════════════════════════════════
 
-  // ══ PASO 1: Leer jd_estudios — determina Ejecutivo Comercial (4ta columna) ══
+  function _leNorm(s){ return (s||'').toLowerCase().replace(/[\s_\-]+/g,' ').trim(); }
+  var _pid2pv = { F4F:'F4F', SC:'STC', CB:'CHB', CAM:'CSD', STR:'STM' };
+
+  // Índice de jd_estudios por nombre normalizado (para lookup cruzado)
   var _rawEstudios = [];
   try { _rawEstudios = JSON.parse(localStorage.getItem('jd_estudios')||'[]'); } catch(_e){}
-
-  // ══ PASO 2: Construir índice de fab_ALIADOS por nombre normalizado ══
-  // (fab_ALIADOS = Cómo Vamos Grupo Empresarial → fuente de billing real)
-  var _aliados = (typeof fab_ALIADOS !== 'undefined') ? fab_ALIADOS : {};
-  var aliadosByKey = {}; // nombre normalizado → clave en fab_ALIADOS
-  Object.keys(_aliados).forEach(function(studioKey){
-    var norm = _leNorm(studioKey);
-    if(!aliadosByKey[norm]) aliadosByKey[norm] = studioKey;
-    // También indexar por nombre_real si existe
-    var nr = _leNorm(_aliados[studioKey].nombre_real||'');
-    if(nr && !aliadosByKey[nr]) aliadosByKey[nr] = studioKey;
+  var jdByNombre = {};
+  _rawEstudios.forEach(function(e){
+    var key = _leNorm(e.nombreAgencia||e.nombreReal||'');
+    if(key) jdByNombre[key] = e;
   });
 
+  var _aliados = (typeof fab_ALIADOS !== 'undefined') ? fab_ALIADOS : {};
   var ejecMap = {};
 
-  // ══ PASO 3: Iterar jd_estudios → ejecutivo desde base de Estudios, billing desde fab_ALIADOS ══
-  _rawEstudios.forEach(function(jdEntry){
-    // Ejecutivo EXCLUSIVAMENTE desde jd_estudios (4ta columna)
-    var ejecutivo = (jdEntry.ejecutivo||'').trim();
-    if(!ejecutivo) return; // sin ejecutivo asignado → ignorar
+  Object.keys(_aliados).forEach(function(studioKey){
+    var fabEntry = _aliados[studioKey];
 
-    var nombreAgencia = (jdEntry.nombreAgencia||'').trim();
-    var nombreReal    = (jdEntry.nombreReal||'').trim();
+    // ══ FUENTE DE VERDAD: jd_estudios.ejecutivo (4ta columna de ESTUDIOS) ══
+    // Buscar el estudio primero por clave fab_ALIADOS, luego por nombre_real como fallback
+    var jdEntry = jdByNombre[_leNorm(studioKey)]
+                || jdByNombre[_leNorm(fabEntry.nombre_real||'')]
+                || null;
+    // Ejecutivo EXCLUSIVAMENTE desde jd_estudios — NO desde fab_ALIADOS.refiere
+    var ejecutivo = (jdEntry && (jdEntry.ejecutivo||'').trim()) || '';
+    if(!ejecutivo) return; // estudio sin registro en base de Estudios o sin ejecutivo asignado
 
-    // Buscar este estudio en fab_ALIADOS (Cómo Vamos) — primer por nombreAgencia, luego nombreReal
-    var studioKey = aliadosByKey[_leNorm(nombreAgencia)]
-                 || aliadosByKey[_leNorm(nombreReal)]
-                 || null;
-    var fabEntry = studioKey ? _aliados[studioKey] : null;
-    // Si no está en fab_ALIADOS no hay datos de Cómo Vamos para este estudio → omitir
-    if(!fabEntry) return;
+    var planPct = parseFloat((jdEntry&&jdEntry.planMon)||fabEntry.plan_pct||0)||0;
 
-    var planPct = parseFloat(jdEntry.planMon||fabEntry.plan_pct||0)||0;
-    var displayName = nombreAgencia || nombreReal || studioKey;
-
-    // ══ Filtrar plataformas por billing real en fab_ALIADOS (Cómo Vamos) ══
-    // F4F y STR son ingreso manual (autoUSD=false) → siempre incluir si están seleccionadas
-    // SC, CB, CAM → solo incluir si hay tokens > 0 en el período en fab_ALIADOS
+    // Filtrar plataformas: SIEMPRE usar billing real de fab_ALIADOS como única fuente.
+    // NO se usa paginasVinculadas de jd_estudios — la fuente es Cómo Vamos Grupo Empresarial.
+    // Plataformas de ingreso manual (F4F, STR) se incluyen siempre para ingreso manual de USD.
     var platsSel_match = platsSel.filter(function(ps){
-      if(!ps.cfg.autoUSD) return true;
+      if(!ps.cfg.autoUSD) return true; // F4F y STR: siempre incluir (ingreso manual)
       if(!fabEntry.data) return false;
       var _dt = new Date(ps.dtStart.getFullYear(), ps.dtStart.getMonth(), ps.dtStart.getDate());
       while(_dt <= ps.dtEnd){
@@ -7352,22 +7230,21 @@ function leCalcular(){
       }
       return false;
     });
-    if(platsSel_match.length === 0) return; // no facturó en las plataformas/período seleccionados
+    if(platsSel_match.length === 0) return;
 
     if(!ejecMap[ejecutivo]) ejecMap[ejecutivo] = { aliados:{} };
-    if(!ejecMap[ejecutivo].aliados[displayName]){
-      ejecMap[ejecutivo].aliados[displayName] = {
+    if(!ejecMap[ejecutivo].aliados[studioKey]){
+      ejecMap[ejecutivo].aliados[studioKey] = {
         planPct:       planPct,
         commPct:       _getExecCommPct(planPct),
-        nombreReal:    nombreReal || fabEntry.nombre_real || '',
-        nombreAgencia: displayName,
-        documento:     jdEntry.documento||'',
+        nombreReal:    fabEntry.nombre_real||(jdEntry&&jdEntry.nombreReal)||'',
+        nombreAgencia: studioKey,
+        documento:     (jdEntry&&jdEntry.documento)||'',
         platData: {}
       };
     }
-    var estData = ejecMap[ejecutivo].aliados[displayName];
+    var estData = ejecMap[ejecutivo].aliados[studioKey];
 
-    // ══ Acumular tokens/billing desde fab_ALIADOS para cada plataforma/período ══
     platsSel_match.forEach(function(ps){
       var pkey = ps.pid+'__'+ps.periodStr.replace(/\//g,'-').replace(/ /g,'');
       if(!estData.platData[pkey]){
@@ -7385,6 +7262,7 @@ function leCalcular(){
           Object.keys(modelos).forEach(function(mname){
             var mData = modelos[mname];
             if(!mData) return;
+            // fab_ALIADOS uses both numeric and string day keys — check both
             var dayCell = mData[dayNum]||mData[String(dayNum)];
             if(!dayCell) return;
             var val = dayCell[ps.cfg.fabKey];
@@ -7407,7 +7285,7 @@ function leCalcular(){
       '<div style="font-size:38px">⚠️</div>'+
       '<div style="font-size:15px;font-weight:600;margin-top:12px">Sin resultados</div>'+
       '<div style="font-size:13px;margin-top:6px">No se encontraron estudios con <strong>Ejecutivo Comercial asignado</strong> en la base de Estudios que hayan facturado para: <strong>'+_pvNames+'</strong></div>'+
-      '<div style="font-size:11px;color:#94A3B8;margin-top:8px">Verifique que: (1) los estudios tengan Ejecutivo Comercial asignado en ADMINISTRACIÓN → ESTUDIOS, y (2) los datos del período estén en Cómo Vamos Grupo Empresarial.</div>'+
+      '<div style="font-size:11px;color:#94A3B8;margin-top:8px">Verifique que: (1) los estudios tengan Ejecutivo Comercial asignado en ADMINISTRACIÓN → ESTUDIOS (4ta columna), (2) los datos del período estén ingresados en Cómo Vamos Grupo Empresarial.</div>'+
       '</div>';
     return;
   }
@@ -7970,55 +7848,8 @@ function leImprimirColilla(uid, ejec){
 
   html += '</div></body></html>';
 
-  // Intentar abrir en nueva ventana (puede ser bloqueado por popup blocker)
-  try {
-    var blob = new Blob([html], {type:'text/html;charset=utf-8'});
-    var blobUrl = URL.createObjectURL(blob);
-    var win = window.open(blobUrl, '_blank', 'width=940,height=860,scrollbars=yes');
-    if(win){
-      win.focus();
-      setTimeout(function(){ try{ win.print(); }catch(e){} URL.revokeObjectURL(blobUrl); }, 900);
-    } else {
-      // Fallback: mostrar colilla en iframe modal sobre la página actual
-      URL.revokeObjectURL(blobUrl);
-      _leMostrarColillaModal(html);
-    }
-  } catch(e) {
-    _leMostrarColillaModal(html);
-  }
-}
-
-/** Muestra la colilla en un iframe modal cuando window.open es bloqueado */
-function _leMostrarColillaModal(html){
-  // Eliminar modal previo si existe
-  var prev = document.getElementById('le-colilla-modal-overlay');
-  if(prev) prev.parentNode.removeChild(prev);
-
-  var overlay = document.createElement('div');
-  overlay.id = 'le-colilla-modal-overlay';
-  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99998;background:rgba(0,0,0,.7);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:16px;box-sizing:border-box';
-
-  var toolbar = document.createElement('div');
-  toolbar.style.cssText = 'width:100%;max-width:960px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px';
-  toolbar.innerHTML =
-    '<span style="color:#fff;font-weight:700;font-size:14px">🖨️ Vista previa — Colilla de Comisión</span>'+
-    '<div style="display:flex;gap:8px">'+
-    '<button onclick="(function(){var f=document.getElementById(\'le-colilla-iframe\');if(f&&f.contentWindow){f.contentWindow.focus();f.contentWindow.print();}})()" style="padding:8px 18px;background:#34D399;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px">🖨️ Imprimir</button>'+
-    '<button onclick="(function(){var o=document.getElementById(\'le-colilla-modal-overlay\');if(o)o.parentNode.removeChild(o);})()" style="padding:8px 16px;background:#ef4444;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px">✕ Cerrar</button>'+
-    '</div>';
-
-  var iframe = document.createElement('iframe');
-  iframe.id = 'le-colilla-iframe';
-  iframe.style.cssText = 'width:100%;max-width:960px;flex:1;border:none;border-radius:8px;background:#fff;min-height:0';
-  iframe.srcdoc = html;
-
-  overlay.appendChild(toolbar);
-  overlay.appendChild(iframe);
-  document.body.appendChild(overlay);
-  // Disparar impresión automáticamente después de que cargue el iframe
-  iframe.onload = function(){
-    try { setTimeout(function(){ iframe.contentWindow.focus(); iframe.contentWindow.print(); }, 500); } catch(e){}
-  };
+  var win = window.open('','_blank','width=940,height=860');
+  if(win){ win.document.write(html); win.document.close(); setTimeout(function(){ win.print(); },700); }
 }
 
 // ─── HISTÓRICO EJECUTIVOS helpers ───────────────────────────────────────────
@@ -8260,49 +8091,6 @@ function renderLiqEjecutivos_REMOVED(){
 // SISTEMA DE CONSULTAS MENSUALES — EJECUTIVO COMERCIAL
 // ═══════════════════════════════════════════════════════════════
 
-// ─── Helpers: cruzar jd_estudios con fab_ALIADOS ───────────────────────
-// Normalización de nombres (igual a _leNorm dentro de leCalcular)
-function _jdNorm(s){ return (s||'').toLowerCase().replace(/[\s_\-]+/g,' ').trim(); }
-
-// Dado un nombre de estudio, devuelve la clave exacta de fab_ALIADOS o null
-function _jdFindFabKey(nombre) {
-  if(!fab_ALIADOS || !nombre) return null;
-  var n = _jdNorm(nombre);
-  var found = null;
-  Object.keys(fab_ALIADOS).forEach(function(k) {
-    if(_jdNorm(k) === n) found = k;
-    var nr = _jdNorm(fab_ALIADOS[k].nombre_real||'');
-    if(nr && nr === n) found = k;
-  });
-  return found;
-}
-
-// Devuelve estudios de jd_estudios que NO tienen entrada en fab_ALIADOS
-// Retorna [{label, estado}]  — los que SÍ tienen entrada se muestran via fab_ALIADOS normal
-function _jdGetExtras() {
-  var jdEst = [];
-  try { jdEst = JSON.parse(localStorage.getItem('jd_estudios')||'[]'); } catch(e){}
-  var extras = [];
-  jdEst.forEach(function(e) {
-    var nombre = (e.nombreAgencia||e.nombreReal||'').trim();
-    if(!nombre) return;
-    var fabKey = _jdFindFabKey(nombre) || _jdFindFabKey(e.nombreReal||'');
-    if(!fabKey) {
-      extras.push({ label: nombre, estado: e.estado||'Activo' });
-    }
-  });
-  // Deduplicar por label
-  var seen = {};
-  return extras.filter(function(x){
-    if(seen[x.label]) return false;
-    seen[x.label] = true;
-    return true;
-  });
-}
-
-// Prefijo especial para estudios que solo están en jd_estudios (sin datos de facturación)
-var _JD_PREFIX = '__JD__';
-
 function renderConsultas() {
   cns_init();
 }
@@ -8313,26 +8101,24 @@ function cns_init() {
   s.innerHTML = '<option value="">— Seleccionar aliado —</option>';
   if (!fab_ALIADOS || Object.keys(fab_ALIADOS).length === 0) return;
 
-  var keys;
-  if (jdIsSuperAdmin()) {
-    // Super admin: ver TODOS los estudios sin excepción
-    keys = Object.keys(fab_ALIADOS);
-  } else {
-    // Ejecutivo: filtrar por su nombre en el campo refiere
-    var userNombre = (_jdCurrentUser && _jdCurrentUser.nombre) || '';
-    var userWords  = userNombre.toLowerCase().split(/\s+/).filter(function(w){ return w.length > 2; });
-    var matched = Object.keys(fab_ALIADOS).filter(function(k) {
-      var r = (fab_ALIADOS[k].refiere || '').toLowerCase().trim();
-      if (!r) return false;
-      return userWords.some(function(w){ return r.indexOf(w) !== -1; });
-    });
-    var sinAsignar = Object.keys(fab_ALIADOS).filter(function(k) {
-      return !(fab_ALIADOS[k].refiere || '').trim();
-    });
-    keys = matched.length > 0
-      ? matched.concat(sinAsignar.filter(function(k){ return matched.indexOf(k) === -1; }))
-      : Object.keys(fab_ALIADOS);
-  }
+  // Filtrar: solo aliados cuyo campo "refiere" coincida con el ejecutivo logueado
+  var userNombre = (_jdCurrentUser && _jdCurrentUser.nombre) || '';
+  var userWords  = userNombre.toLowerCase().split(/\s+/).filter(function(w){ return w.length > 2; });
+
+  // Aliados asignados al ejecutivo por nombre
+  var matched = Object.keys(fab_ALIADOS).filter(function(k) {
+    var r = (fab_ALIADOS[k].refiere || '').toLowerCase().trim();
+    if (!r) return false;
+    return userWords.some(function(w){ return r.indexOf(w) !== -1; });
+  });
+  // Aliados sin ejecutivo asignado (refiere vacío) — incluirlos siempre junto a los del ejecutivo
+  var sinAsignar = Object.keys(fab_ALIADOS).filter(function(k) {
+    return !(fab_ALIADOS[k].refiere || '').trim();
+  });
+  // Si hay coincidencias: mostrar los del ejecutivo + sin asignar; si no: mostrar todos (fallback super_admin)
+  var keys = matched.length > 0
+    ? matched.concat(sinAsignar.filter(function(k){ return matched.indexOf(k) === -1; }))
+    : Object.keys(fab_ALIADOS);
 
   keys.sort(function(a, b) {
     var ea = fab_ALIADOS[a].estado === 'Activo' ? 0 : 1;
@@ -8346,21 +8132,6 @@ function cns_init() {
     o.textContent = fab_ALIADOS[k].estado === 'Retirado' ? k + ' (Retirado)' : k;
     s.appendChild(o);
   });
-
-  // Agregar estudios de jd_estudios que no están en fab_ALIADOS
-  var extras = _jdGetExtras();
-  if(extras.length) {
-    var sep = document.createElement('option');
-    sep.disabled = true;
-    sep.textContent = '── Solo en base de datos local ──';
-    s.appendChild(sep);
-    extras.forEach(function(ex) {
-      var o = document.createElement('option');
-      o.value = _JD_PREFIX + ex.label;
-      o.textContent = ex.label + (ex.estado==='Inactivo' ? ' (Inactivo)' : '') + ' *';
-      s.appendChild(o);
-    });
-  }
 
   // Auto-seleccionar el primer aliado activo disponible
   var first = null;
@@ -8389,19 +8160,6 @@ function cns_onAliado() {
     if (matrix)  matrix.innerHTML = '<div class="neutral-state"><div class="fab-ns-icon">📊</div><p>Seleccione un aliado para comenzar</p></div>';
     if (title)   title.textContent = 'Seleccione un aliado';
     if (sub)     sub.textContent   = 'Elija un aliado y mes para ver la facturación diaria';
-    return;
-  }
-
-  // Si el estudio está solo en jd_estudios (sin datos Cómo Vamos)
-  if(al.indexOf(_JD_PREFIX) === 0) {
-    var nombre = al.replace(_JD_PREFIX, '');
-    if(info)    info.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--muted)"><b style="color:var(--text)">'+nombre+'</b><br><br>Este estudio está registrado en la base de datos local pero aún no tiene datos de facturación en Cómo Vamos.</div>';
-    if(mesWrap) mesWrap.style.display = 'none';
-    if(kpis)   kpis.innerHTML = '';
-    if(pills)  pills.innerHTML = '';
-    if(title)  title.textContent = nombre;
-    if(sub)    sub.textContent = 'Sin datos de facturación en Cómo Vamos';
-    if(matrix) matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>Sin datos registrados en Cómo Vamos para este estudio</span></div>';
     return;
   }
 
@@ -8564,26 +8322,25 @@ function qnc_init() {
   s.innerHTML = '<option value="">— Seleccionar aliado —</option>';
   if(!fab_ALIADOS || Object.keys(fab_ALIADOS).length === 0) return;
 
-  var keys;
-  if(jdIsSuperAdmin()) {
-    // Super admin: ver TODOS los estudios sin excepción
-    keys = Object.keys(fab_ALIADOS);
-  } else {
-    // Ejecutivo: filtrar por su nombre en el campo refiere
-    var userNombre = (_jdCurrentUser && _jdCurrentUser.nombre) || '';
-    var userWords  = userNombre.toLowerCase().split(/\s+/).filter(function(w){ return w.length > 2; });
-    var matched = Object.keys(fab_ALIADOS).filter(function(k) {
-      var r = (fab_ALIADOS[k].refiere || '').toLowerCase().trim();
-      if(!r) return false;
-      return userWords.some(function(w){ return r.indexOf(w) !== -1; });
-    });
-    var sinAsignar = Object.keys(fab_ALIADOS).filter(function(k) {
-      return !(fab_ALIADOS[k].refiere || '').trim();
-    });
-    keys = matched.length > 0
-      ? matched.concat(sinAsignar.filter(function(k){ return matched.indexOf(k) === -1; }))
-      : Object.keys(fab_ALIADOS);
-  }
+  // Filtrar aliados del ejecutivo logueado
+  var userNombre = (_jdCurrentUser && _jdCurrentUser.nombre) || '';
+  var userWords  = userNombre.toLowerCase().split(/\s+/).filter(function(w){ return w.length > 2; });
+
+  // Aliados asignados al ejecutivo por nombre
+  var matched = Object.keys(fab_ALIADOS).filter(function(k) {
+    var r = (fab_ALIADOS[k].refiere || '').toLowerCase().trim();
+    if(!r) return false;
+    return userWords.some(function(w){ return r.indexOf(w) !== -1; });
+  });
+  // Aliados sin ejecutivo asignado (refiere vacío) — incluirlos siempre
+  var sinAsignar = Object.keys(fab_ALIADOS).filter(function(k) {
+    return !(fab_ALIADOS[k].refiere || '').trim();
+  });
+  // Si hay coincidencias por nombre: mostrar los del ejecutivo + los sin asignar
+  // Si no hay coincidencias (super_admin u otro rol): mostrar todos
+  var keys = matched.length > 0
+    ? matched.concat(sinAsignar.filter(function(k){ return matched.indexOf(k) === -1; }))
+    : Object.keys(fab_ALIADOS);
 
   keys.sort(function(a,b) {
     var ea = fab_ALIADOS[a].estado === 'Activo' ? 0 : 1;
@@ -8596,21 +8353,6 @@ function qnc_init() {
     o.textContent = fab_ALIADOS[k].estado === 'Retirado' ? k + ' (Retirado)' : k;
     s.appendChild(o);
   });
-
-  // Agregar estudios de jd_estudios que no están en fab_ALIADOS
-  var extrasQ = _jdGetExtras();
-  if(extrasQ.length) {
-    var sepQ = document.createElement('option');
-    sepQ.disabled = true;
-    sepQ.textContent = '── Solo en base de datos local ──';
-    s.appendChild(sepQ);
-    extrasQ.forEach(function(ex) {
-      var o = document.createElement('option');
-      o.value = _JD_PREFIX + ex.label;
-      o.textContent = ex.label + (ex.estado==='Inactivo' ? ' (Inactivo)' : '') + ' *';
-      s.appendChild(o);
-    });
-  }
 
   // Auto-seleccionar primer aliado activo
   var first = null;
@@ -8639,19 +8381,6 @@ function qnc_onAliado() {
     if(matrix) matrix.innerHTML = '<div class="neutral-state"><div class="fab-ns-icon">📅</div><p>Seleccione un aliado para comenzar</p></div>';
     if(title) title.textContent = 'Seleccione un aliado';
     if(sub) sub.textContent = 'Elija un aliado y quincena para ver la facturación diaria';
-    return;
-  }
-
-  // Si el estudio está solo en jd_estudios (sin datos Cómo Vamos)
-  if(al.indexOf(_JD_PREFIX) === 0) {
-    var nombreQ = al.replace(_JD_PREFIX, '');
-    if(info)     info.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--muted)"><b style="color:var(--text)">'+nombreQ+'</b><br><br>Este estudio está registrado en la base de datos local pero aún no tiene datos de facturación en Cómo Vamos.</div>';
-    if(quinWrap) quinWrap.style.display = 'none';
-    if(kpis)     kpis.innerHTML = '';
-    if(pills)    pills.innerHTML = '';
-    if(title)    title.textContent = nombreQ;
-    if(sub)      sub.textContent = 'Sin datos de facturación en Cómo Vamos';
-    if(matrix)   matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>Sin datos registrados en Cómo Vamos para este estudio</span></div>';
     return;
   }
 
@@ -8785,9 +8514,18 @@ var _CON_PALETTE = ['#C8A84B','#3B82F6','#EC4899','#10B981','#8B5CF6','#F59E0B',
 
 // Helper: obtener los aliados del ejecutivo actual
 function _con_getEjecAliados() {
-  // Consolidado siempre muestra TODOS los aliados del Grupo Empresarial
   if(!fab_ALIADOS) return [];
-  return Object.keys(fab_ALIADOS);
+  var userNombre = (_jdCurrentUser && _jdCurrentUser.nombre) || '';
+  var userWords  = userNombre.toLowerCase().split(/\s+/).filter(function(w){ return w.length > 2; });
+  var matched    = Object.keys(fab_ALIADOS).filter(function(k) {
+    var r = (fab_ALIADOS[k].refiere || '').toLowerCase().trim();
+    if(!r) return false;
+    return userWords.some(function(w){ return r.indexOf(w) !== -1; });
+  });
+  var sinAsignar = Object.keys(fab_ALIADOS).filter(function(k){ return !(fab_ALIADOS[k].refiere || '').trim(); });
+  return matched.length > 0
+    ? matched.concat(sinAsignar.filter(function(k){ return matched.indexOf(k) === -1; }))
+    : Object.keys(fab_ALIADOS);
 }
 
 // Helper: suma todos los valores de un aliado en un rango de días de un mes
@@ -8876,7 +8614,7 @@ function _con_renderMensual(allAliados, body, sub, kpis) {
   var maxVal = Math.max.apply(null, allVals.concat([1]));
 
   var grandTotal = activos.reduce(function(s,al){ return s + totByAliado[al]; }, 0);
-  if(sub) sub.textContent = activos.length + ' aliado(s) con producción · Total acumulado: ' + fab_fmtN(grandTotal);
+  if(sub) sub.textContent = activos.length + ' aliado(s) con producción · Total acumulado: ' + fab_fmtK(grandTotal);
 
   // KPIs sidebar
   if(kpis) {
@@ -8901,7 +8639,7 @@ function _con_renderMensual(allAliados, body, sub, kpis) {
       if(platTots[p] > 0) {
         kHtml += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px">';
         kHtml += '<span style="color:'+fab_PCOLORS[p]+';font-weight:600">'+fab_PNAMES[p]+'</span>';
-        kHtml += '<span style="color:#C8A84B;font-weight:700">'+fab_fmtN(platTots[p])+'</span></div>';
+        kHtml += '<span style="color:#C8A84B;font-weight:700">'+fab_fmtK(platTots[p])+'</span></div>';
       }
     });
     kHtml += '</div>';
@@ -8942,9 +8680,9 @@ function _con_renderMensual(allAliados, body, sub, kpis) {
       var v = dataM[al][m] || 0;
       var intensity = v / maxVal;
       var bg = v > 0 ? 'rgba(16,185,129,' + (0.06 + intensity * 0.45).toFixed(2) + ')' : 'transparent';
-      html += '<td style="text-align:right;background:'+bg+'">'+(v>0?fab_fmtN(v):'<span style="color:#374151">—</span>')+'</td>';
+      html += '<td style="text-align:right;background:'+bg+'">'+(v>0?fab_fmtK(v):'<span style="color:#374151">—</span>')+'</td>';
     });
-    html += '<td style="text-align:right;font-weight:800;color:#C8A84B">'+fab_fmtN(rowTotal)+'</td>';
+    html += '<td style="text-align:right;font-weight:800;color:#C8A84B">'+fab_fmtK(rowTotal)+'</td>';
     html += '</tr>';
   });
 
@@ -8953,9 +8691,9 @@ function _con_renderMensual(allAliados, body, sub, kpis) {
   html += '<td style="font-weight:800;color:#C8A84B;font-size:11px;text-transform:uppercase;letter-spacing:.5px">TOTAL</td>';
   mesesActivos.forEach(function(m) {
     var colTotal = activos.reduce(function(s,al){ return s + (dataM[al][m]||0); }, 0);
-    html += '<td style="text-align:right;font-weight:800;color:#C8A84B">'+fab_fmtN(colTotal)+'</td>';
+    html += '<td style="text-align:right;font-weight:800;color:#C8A84B">'+fab_fmtK(colTotal)+'</td>';
   });
-  html += '<td style="text-align:right;font-weight:900;color:#C8A84B;font-size:14px">'+fab_fmtN(grandTotal)+'</td>';
+  html += '<td style="text-align:right;font-weight:900;color:#C8A84B;font-size:14px">'+fab_fmtK(grandTotal)+'</td>';
   html += '</tr>';
 
   html += '</tbody></table></div>';
@@ -8993,7 +8731,7 @@ function _con_renderQuincenal(allAliados, body, sub, kpis) {
   }
 
   var grandTotal = activos.reduce(function(s,al){ return s + totByAliado[al]; }, 0);
-  if(sub) sub.textContent = activos.length + ' aliado(s) · Total: ' + fab_fmtN(grandTotal);
+  if(sub) sub.textContent = activos.length + ' aliado(s) · Total: ' + fab_fmtK(grandTotal);
 
   // Quincenas con datos
   var quinActivas = quincenas.filter(function(q) {
@@ -9024,9 +8762,9 @@ function _con_renderQuincenal(allAliados, body, sub, kpis) {
       var v = dataQ[al][q.id] || 0;
       var intensity = v / maxVal;
       var bg = v > 0 ? 'rgba(16,185,129,' + (0.06 + intensity * 0.45).toFixed(2) + ')' : 'transparent';
-      html += '<td style="text-align:right;background:'+bg+'">'+(v>0?fab_fmtN(v):'<span style="color:#374151">—</span>')+'</td>';
+      html += '<td style="text-align:right;background:'+bg+'">'+(v>0?fab_fmtK(v):'<span style="color:#374151">—</span>')+'</td>';
     });
-    html += '<td style="text-align:right;font-weight:800;color:#C8A84B">'+fab_fmtN(totByAliado[al])+'</td>';
+    html += '<td style="text-align:right;font-weight:800;color:#C8A84B">'+fab_fmtK(totByAliado[al])+'</td>';
     html += '</tr>';
   });
 
@@ -9035,9 +8773,9 @@ function _con_renderQuincenal(allAliados, body, sub, kpis) {
   html += '<td style="font-weight:800;color:#C8A84B;font-size:11px;text-transform:uppercase">TOTAL</td>';
   quinActivas.forEach(function(q) {
     var colT = activos.reduce(function(s,al){ return s + (dataQ[al][q.id]||0); }, 0);
-    html += '<td style="text-align:right;font-weight:800;color:#C8A84B">'+fab_fmtN(colT)+'</td>';
+    html += '<td style="text-align:right;font-weight:800;color:#C8A84B">'+fab_fmtK(colT)+'</td>';
   });
-  html += '<td style="text-align:right;font-weight:900;color:#C8A84B;font-size:14px">'+fab_fmtN(grandTotal)+'</td>';
+  html += '<td style="text-align:right;font-weight:900;color:#C8A84B;font-size:14px">'+fab_fmtK(grandTotal)+'</td>';
   html += '</tr>';
   html += '</tbody></table></div>';
   body.innerHTML = html;
@@ -9163,9 +8901,6 @@ function top20_render() {
     return;
   }
 
-  // Modelos permanentemente excluidos del TOP 20
-  var _TOP20_EXCLUIDOS = ['Connie Deep', 'Katherine Bond'];
-
   // Usar fab_TOP20[mes] — contiene TODOS los modelos del Grupo Empresarial
   var ranking = (fab_TOP20 && fab_TOP20[mes]) ? fab_TOP20[mes] : [];
 
@@ -9175,11 +8910,6 @@ function top20_render() {
     var fb = _top_buildRanking(mes, todosAliados);
     ranking = fb.map(function(r){ return { modelo: r.model, studio: r.studio, total: r.total }; });
   }
-
-  // Siempre omitir los modelos excluidos
-  ranking = ranking.filter(function(r) {
-    return _TOP20_EXCLUIDOS.indexOf(r.modelo) === -1;
-  });
 
   // Mes anterior para flechas de evolución
   var mesIdx   = fab_MESES.indexOf(mes);
@@ -9995,7 +9725,7 @@ window.addEventListener('load', async () => {
 // STORAGE & KEYS
 // ============================================================
 const K = {
-  cfg:'jd_cfg', estudios:'jd_estudios', liqs:'jd_liqs', empleados:'jd_empleados',
+  cfg:'jd_cfg', estudios:'jd_estudios', liqs:'jd_liqs',
   prest:'jd_prest', ahorros:'jd_ahorros', ss:'jd_ss', mon:'jd_monetizaciones',
   horarios:'jd_horarios', ingresos:'jd_ingresos', egresos:'jd_egresos',
   conciliacion:'jd_conciliacion', perfilesExt:'jd_perfiles_ext', auditLog:'jd_audit_log', modelos:'jd_modelos',
@@ -10051,7 +9781,6 @@ const toast = (msg,type='info') => {
 // ============================================================
 let currentPage = 'dashboard';
 const estFilter = {status:'Activo'};
-const empFilter = {status:'Activo'};
 const prestFilter = {status:'Activo'};
 const ssFilter = {status:'Activo'};
 
@@ -10079,7 +9808,6 @@ function goPage(id) {
   currentPage = id;
   if(id==='dashboard') renderDashboard();
   if(id==='estudios') renderEstudios();
-  if(id==='empleados') renderEmpleados();
   if(id==='prestamos') renderPrestamos();
   if(id==='ahorros') renderAhorros();
   if(id==='sexshop') renderSexshop();
@@ -10777,141 +10505,6 @@ function exportEstudios(){
     ws['!freeze']={xSplit:0,ySplit:4,topLeftCell:'A5'};
     XLSX.utils.book_append_sheet(wb,ws,'Estudios');
     XLSX.writeFile(wb,'Estudios_JD_'+new Date().toISOString().slice(0,10)+'.xlsx');
-    toast('Excel exportado correctamente','success');
-  }catch(ex){ toast('Error exportando: '+ex.message,'error'); }
-}
-
-// ============================================================
-// EMPLEADOS
-// ============================================================
-function getEmpleados(){ return load(K.empleados)||[]; }
-function saveEmpleados(data){ save(K.empleados, data); }
-
-function filterEmpleados(status, tabEl){
-  empFilter.status = status;
-  document.querySelectorAll('#page-empleados .tab').forEach(t=>t.classList.remove('active'));
-  if(tabEl) tabEl.classList.add('active');
-  renderEmpleados();
-}
-
-function renderEmpleados(){
-  const empleados = getEmpleados();
-  const q = (document.getElementById('emp-search')?.value||'').toLowerCase();
-  const cargoF = document.getElementById('emp-cargo-filter')?.value||'';
-  const tbody = document.getElementById('empleados-tbody');
-  if(!tbody) return;
-
-  let filtered = empleados;
-  if(empFilter.status) filtered = filtered.filter(e=>e.estado===empFilter.status);
-  if(q) filtered = filtered.filter(e=>
-    (e.nombre||'').toLowerCase().includes(q)||
-    (e.cedula||'').toLowerCase().includes(q)||
-    (e.cargo||'').toLowerCase().includes(q)
-  );
-  if(cargoF) filtered = filtered.filter(e=>e.cargo===cargoF);
-
-  if(!filtered.length){
-    tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><div class="ei">👷</div><p>Sin empleados${empFilter.status?' '+empFilter.status.toLowerCase()+'s':''}</p></div></td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = filtered.map(e=>{
-    const badge = e.estado==='Activo'
-      ? '<span class="badge bg-green">Activo</span>'
-      : '<span class="badge bg-muted">Inactivo</span>';
-    const sal = e.salario ? '$'+Number(e.salario).toLocaleString('es-CO') : '—';
-    const fi = e.fechaIngreso ? e.fechaIngreso.slice(0,10) : '—';
-    return `<tr>
-      <td><div class="fw6">${e.nombre||'—'}</div><div class="fs12 muted">${e.email||''}</div></td>
-      <td>${e.cedula||'—'}</td>
-      <td>${e.cargo||'—'}</td>
-      <td><span class="badge bg-muted fs11">${e.rol||'Sin acceso'}</span></td>
-      <td class="fw6">${sal}</td>
-      <td>${e.telefono||'—'}</td>
-      <td>${fi}</td>
-      <td>${badge}</td>
-      <td>
-        <button class="btn btn-ghost btn-sm" onclick="openEmpModal('${e.id}')" title="Editar">✏️</button>
-        <button class="btn btn-ghost btn-sm" onclick="deleteEmpleado('${e.id}')" title="Eliminar">🗑️</button>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-function openEmpModal(id){
-  const empleados = getEmpleados();
-  const e = id ? empleados.find(x=>x.id===id) : null;
-  document.getElementById('modal-empleado-title').textContent = e ? 'Editar Empleado' : 'Nuevo Empleado';
-  document.getElementById('emp-id').value = e?.id||'';
-  const fields = ['nombre','cedula','cargo','rol','salario','telefono','email','fechaIngreso','fechaSalida','estado','notas'];
-  const ids    = ['emp-nombre','emp-cedula','emp-cargo','emp-rol','emp-salario','emp-telefono','emp-email','emp-fechaIngreso','emp-fechaSalida','emp-estado','emp-notas'];
-  fields.forEach((f,i)=>{ const el=document.getElementById(ids[i]); if(el) el.value=e?.[f]||''; });
-  if(!e){ document.getElementById('emp-estado').value='Activo'; }
-  openModal('modal-empleado');
-}
-
-function saveEmpleado(){
-  const id = document.getElementById('emp-id').value;
-  const nombre = document.getElementById('emp-nombre').value.trim();
-  if(!nombre){ toast('El nombre del empleado es obligatorio','error'); return; }
-  const cargo = document.getElementById('emp-cargo').value;
-  if(!cargo){ toast('Selecciona un cargo','error'); return; }
-
-  const data = {
-    id: id||uid(),
-    nombre: nombre,
-    cedula: document.getElementById('emp-cedula').value.trim(),
-    cargo: cargo,
-    rol: document.getElementById('emp-rol').value,
-    salario: parseFloat(document.getElementById('emp-salario').value)||0,
-    telefono: document.getElementById('emp-telefono').value.trim(),
-    email: document.getElementById('emp-email').value.trim(),
-    fechaIngreso: document.getElementById('emp-fechaIngreso').value,
-    fechaSalida: document.getElementById('emp-fechaSalida').value,
-    estado: document.getElementById('emp-estado').value||'Activo',
-    notas: document.getElementById('emp-notas').value.trim(),
-    createdAt: id ? (getEmpleados().find(e=>e.id===id)?.createdAt||new Date().toISOString()) : new Date().toISOString()
-  };
-
-  const empleados = getEmpleados();
-  const idx = empleados.findIndex(e=>e.id===data.id);
-  if(idx>=0) empleados[idx]=data; else empleados.push(data);
-  saveEmpleados(empleados);
-  closeModal('modal-empleado');
-  renderEmpleados();
-  toast(id?'Empleado actualizado':'Empleado registrado','success');
-}
-
-function deleteEmpleado(id){
-  if(!confirm('¿Eliminar este empleado? Esta acción no se puede deshacer.')) return;
-  const empleados = getEmpleados().filter(e=>e.id!==id);
-  saveEmpleados(empleados);
-  renderEmpleados();
-  toast('Empleado eliminado','warn');
-}
-
-function exportEmpleados(){
-  if(typeof XLSX==='undefined'){ toast('Librería Excel no disponible','error'); return; }
-  const empleados = getEmpleados();
-  if(!empleados.length){ toast('No hay empleados para exportar','warn'); return; }
-  const rows = [
-    ['GRUPO EMPRESARIAL J&D — EMPLEADOS','','','','','','','','','',''],
-    ['Generado: '+new Date().toLocaleDateString('es-CO'),'','','','','','','','','',''],
-    ['','','','','','','','','','',''],
-    ['ID','Nombre','Cédula','Cargo','Rol','Salario','Teléfono','Email','F. Ingreso','F. Salida','Estado','Notas']
-  ];
-  empleados.forEach(e=>rows.push([
-    e.id, e.nombre, e.cedula, e.cargo, e.rol||'Sin acceso',
-    e.salario, e.telefono, e.email, e.fechaIngreso, e.fechaSalida||'', e.estado, e.notas
-  ]));
-  try{
-    const wb=XLSX.utils.book_new();
-    const ws=XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols']=[{wch:10},{wch:24},{wch:14},{wch:20},{wch:16},{wch:14},
-      {wch:16},{wch:26},{wch:14},{wch:14},{wch:10},{wch:32}];
-    ws['!freeze']={xSplit:0,ySplit:4,topLeftCell:'A5'};
-    XLSX.utils.book_append_sheet(wb,ws,'Empleados');
-    XLSX.writeFile(wb,'Empleados_JD_'+new Date().toISOString().slice(0,10)+'.xlsx');
     toast('Excel exportado correctamente','success');
   }catch(ex){ toast('Error exportando: '+ex.message,'error'); }
 }

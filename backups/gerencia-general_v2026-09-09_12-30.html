@@ -8260,49 +8260,6 @@ function renderLiqEjecutivos_REMOVED(){
 // SISTEMA DE CONSULTAS MENSUALES — EJECUTIVO COMERCIAL
 // ═══════════════════════════════════════════════════════════════
 
-// ─── Helpers: cruzar jd_estudios con fab_ALIADOS ───────────────────────
-// Normalización de nombres (igual a _leNorm dentro de leCalcular)
-function _jdNorm(s){ return (s||'').toLowerCase().replace(/[\s_\-]+/g,' ').trim(); }
-
-// Dado un nombre de estudio, devuelve la clave exacta de fab_ALIADOS o null
-function _jdFindFabKey(nombre) {
-  if(!fab_ALIADOS || !nombre) return null;
-  var n = _jdNorm(nombre);
-  var found = null;
-  Object.keys(fab_ALIADOS).forEach(function(k) {
-    if(_jdNorm(k) === n) found = k;
-    var nr = _jdNorm(fab_ALIADOS[k].nombre_real||'');
-    if(nr && nr === n) found = k;
-  });
-  return found;
-}
-
-// Devuelve estudios de jd_estudios que NO tienen entrada en fab_ALIADOS
-// Retorna [{label, estado}]  — los que SÍ tienen entrada se muestran via fab_ALIADOS normal
-function _jdGetExtras() {
-  var jdEst = [];
-  try { jdEst = JSON.parse(localStorage.getItem('jd_estudios')||'[]'); } catch(e){}
-  var extras = [];
-  jdEst.forEach(function(e) {
-    var nombre = (e.nombreAgencia||e.nombreReal||'').trim();
-    if(!nombre) return;
-    var fabKey = _jdFindFabKey(nombre) || _jdFindFabKey(e.nombreReal||'');
-    if(!fabKey) {
-      extras.push({ label: nombre, estado: e.estado||'Activo' });
-    }
-  });
-  // Deduplicar por label
-  var seen = {};
-  return extras.filter(function(x){
-    if(seen[x.label]) return false;
-    seen[x.label] = true;
-    return true;
-  });
-}
-
-// Prefijo especial para estudios que solo están en jd_estudios (sin datos de facturación)
-var _JD_PREFIX = '__JD__';
-
 function renderConsultas() {
   cns_init();
 }
@@ -8347,21 +8304,6 @@ function cns_init() {
     s.appendChild(o);
   });
 
-  // Agregar estudios de jd_estudios que no están en fab_ALIADOS
-  var extras = _jdGetExtras();
-  if(extras.length) {
-    var sep = document.createElement('option');
-    sep.disabled = true;
-    sep.textContent = '── Solo en base de datos local ──';
-    s.appendChild(sep);
-    extras.forEach(function(ex) {
-      var o = document.createElement('option');
-      o.value = _JD_PREFIX + ex.label;
-      o.textContent = ex.label + (ex.estado==='Inactivo' ? ' (Inactivo)' : '') + ' *';
-      s.appendChild(o);
-    });
-  }
-
   // Auto-seleccionar el primer aliado activo disponible
   var first = null;
   for (var i = 0; i < keys.length; i++) {
@@ -8389,19 +8331,6 @@ function cns_onAliado() {
     if (matrix)  matrix.innerHTML = '<div class="neutral-state"><div class="fab-ns-icon">📊</div><p>Seleccione un aliado para comenzar</p></div>';
     if (title)   title.textContent = 'Seleccione un aliado';
     if (sub)     sub.textContent   = 'Elija un aliado y mes para ver la facturación diaria';
-    return;
-  }
-
-  // Si el estudio está solo en jd_estudios (sin datos Cómo Vamos)
-  if(al.indexOf(_JD_PREFIX) === 0) {
-    var nombre = al.replace(_JD_PREFIX, '');
-    if(info)    info.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--muted)"><b style="color:var(--text)">'+nombre+'</b><br><br>Este estudio está registrado en la base de datos local pero aún no tiene datos de facturación en Cómo Vamos.</div>';
-    if(mesWrap) mesWrap.style.display = 'none';
-    if(kpis)   kpis.innerHTML = '';
-    if(pills)  pills.innerHTML = '';
-    if(title)  title.textContent = nombre;
-    if(sub)    sub.textContent = 'Sin datos de facturación en Cómo Vamos';
-    if(matrix) matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>Sin datos registrados en Cómo Vamos para este estudio</span></div>';
     return;
   }
 
@@ -8597,21 +8526,6 @@ function qnc_init() {
     s.appendChild(o);
   });
 
-  // Agregar estudios de jd_estudios que no están en fab_ALIADOS
-  var extrasQ = _jdGetExtras();
-  if(extrasQ.length) {
-    var sepQ = document.createElement('option');
-    sepQ.disabled = true;
-    sepQ.textContent = '── Solo en base de datos local ──';
-    s.appendChild(sepQ);
-    extrasQ.forEach(function(ex) {
-      var o = document.createElement('option');
-      o.value = _JD_PREFIX + ex.label;
-      o.textContent = ex.label + (ex.estado==='Inactivo' ? ' (Inactivo)' : '') + ' *';
-      s.appendChild(o);
-    });
-  }
-
   // Auto-seleccionar primer aliado activo
   var first = null;
   for(var i = 0; i < keys.length; i++) {
@@ -8639,19 +8553,6 @@ function qnc_onAliado() {
     if(matrix) matrix.innerHTML = '<div class="neutral-state"><div class="fab-ns-icon">📅</div><p>Seleccione un aliado para comenzar</p></div>';
     if(title) title.textContent = 'Seleccione un aliado';
     if(sub) sub.textContent = 'Elija un aliado y quincena para ver la facturación diaria';
-    return;
-  }
-
-  // Si el estudio está solo en jd_estudios (sin datos Cómo Vamos)
-  if(al.indexOf(_JD_PREFIX) === 0) {
-    var nombreQ = al.replace(_JD_PREFIX, '');
-    if(info)     info.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--muted)"><b style="color:var(--text)">'+nombreQ+'</b><br><br>Este estudio está registrado en la base de datos local pero aún no tiene datos de facturación en Cómo Vamos.</div>';
-    if(quinWrap) quinWrap.style.display = 'none';
-    if(kpis)     kpis.innerHTML = '';
-    if(pills)    pills.innerHTML = '';
-    if(title)    title.textContent = nombreQ;
-    if(sub)      sub.textContent = 'Sin datos de facturación en Cómo Vamos';
-    if(matrix)   matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>Sin datos registrados en Cómo Vamos para este estudio</span></div>';
     return;
   }
 

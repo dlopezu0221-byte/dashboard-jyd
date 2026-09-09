@@ -1563,6 +1563,8 @@ body.exec-fullscreen #fab-logout-btn { display: flex; }
         <div class="nav-item nav-sub" onclick="goPage('consulta-quincenal')"><span class="ico">📅</span>Consulta Quincenal</div>
         <div class="nav-item nav-sub" onclick="goPage('consolidado')"><span class="ico">📈</span>Consolidado</div>
         <div class="nav-item nav-sub" onclick="goPage('top20')"><span class="ico">🏆</span>TOP 20 Grupo</div>
+        <div class="nav-item nav-sub" onclick="goPage('top-estudios')"><span class="ico">⭐</span>TOP Estudios</div>
+        <div class="nav-item nav-sub" onclick="goPage('consulta-financiero')"><span class="ico">💰</span>Financiero</div>
       </div>
     </div>
 
@@ -8260,49 +8262,6 @@ function renderLiqEjecutivos_REMOVED(){
 // SISTEMA DE CONSULTAS MENSUALES — EJECUTIVO COMERCIAL
 // ═══════════════════════════════════════════════════════════════
 
-// ─── Helpers: cruzar jd_estudios con fab_ALIADOS ───────────────────────
-// Normalización de nombres (igual a _leNorm dentro de leCalcular)
-function _jdNorm(s){ return (s||'').toLowerCase().replace(/[\s_\-]+/g,' ').trim(); }
-
-// Dado un nombre de estudio, devuelve la clave exacta de fab_ALIADOS o null
-function _jdFindFabKey(nombre) {
-  if(!fab_ALIADOS || !nombre) return null;
-  var n = _jdNorm(nombre);
-  var found = null;
-  Object.keys(fab_ALIADOS).forEach(function(k) {
-    if(_jdNorm(k) === n) found = k;
-    var nr = _jdNorm(fab_ALIADOS[k].nombre_real||'');
-    if(nr && nr === n) found = k;
-  });
-  return found;
-}
-
-// Devuelve estudios de jd_estudios que NO tienen entrada en fab_ALIADOS
-// Retorna [{label, estado}]  — los que SÍ tienen entrada se muestran via fab_ALIADOS normal
-function _jdGetExtras() {
-  var jdEst = [];
-  try { jdEst = JSON.parse(localStorage.getItem('jd_estudios')||'[]'); } catch(e){}
-  var extras = [];
-  jdEst.forEach(function(e) {
-    var nombre = (e.nombreAgencia||e.nombreReal||'').trim();
-    if(!nombre) return;
-    var fabKey = _jdFindFabKey(nombre) || _jdFindFabKey(e.nombreReal||'');
-    if(!fabKey) {
-      extras.push({ label: nombre, estado: e.estado||'Activo' });
-    }
-  });
-  // Deduplicar por label
-  var seen = {};
-  return extras.filter(function(x){
-    if(seen[x.label]) return false;
-    seen[x.label] = true;
-    return true;
-  });
-}
-
-// Prefijo especial para estudios que solo están en jd_estudios (sin datos de facturación)
-var _JD_PREFIX = '__JD__';
-
 function renderConsultas() {
   cns_init();
 }
@@ -8313,26 +8272,24 @@ function cns_init() {
   s.innerHTML = '<option value="">— Seleccionar aliado —</option>';
   if (!fab_ALIADOS || Object.keys(fab_ALIADOS).length === 0) return;
 
-  var keys;
-  if (jdIsSuperAdmin()) {
-    // Super admin: ver TODOS los estudios sin excepción
-    keys = Object.keys(fab_ALIADOS);
-  } else {
-    // Ejecutivo: filtrar por su nombre en el campo refiere
-    var userNombre = (_jdCurrentUser && _jdCurrentUser.nombre) || '';
-    var userWords  = userNombre.toLowerCase().split(/\s+/).filter(function(w){ return w.length > 2; });
-    var matched = Object.keys(fab_ALIADOS).filter(function(k) {
-      var r = (fab_ALIADOS[k].refiere || '').toLowerCase().trim();
-      if (!r) return false;
-      return userWords.some(function(w){ return r.indexOf(w) !== -1; });
-    });
-    var sinAsignar = Object.keys(fab_ALIADOS).filter(function(k) {
-      return !(fab_ALIADOS[k].refiere || '').trim();
-    });
-    keys = matched.length > 0
-      ? matched.concat(sinAsignar.filter(function(k){ return matched.indexOf(k) === -1; }))
-      : Object.keys(fab_ALIADOS);
-  }
+  // Filtrar: solo aliados cuyo campo "refiere" coincida con el ejecutivo logueado
+  var userNombre = (_jdCurrentUser && _jdCurrentUser.nombre) || '';
+  var userWords  = userNombre.toLowerCase().split(/\s+/).filter(function(w){ return w.length > 2; });
+
+  // Aliados asignados al ejecutivo por nombre
+  var matched = Object.keys(fab_ALIADOS).filter(function(k) {
+    var r = (fab_ALIADOS[k].refiere || '').toLowerCase().trim();
+    if (!r) return false;
+    return userWords.some(function(w){ return r.indexOf(w) !== -1; });
+  });
+  // Aliados sin ejecutivo asignado (refiere vacío) — incluirlos siempre junto a los del ejecutivo
+  var sinAsignar = Object.keys(fab_ALIADOS).filter(function(k) {
+    return !(fab_ALIADOS[k].refiere || '').trim();
+  });
+  // Si hay coincidencias: mostrar los del ejecutivo + sin asignar; si no: mostrar todos (fallback super_admin)
+  var keys = matched.length > 0
+    ? matched.concat(sinAsignar.filter(function(k){ return matched.indexOf(k) === -1; }))
+    : Object.keys(fab_ALIADOS);
 
   keys.sort(function(a, b) {
     var ea = fab_ALIADOS[a].estado === 'Activo' ? 0 : 1;
@@ -8346,21 +8303,6 @@ function cns_init() {
     o.textContent = fab_ALIADOS[k].estado === 'Retirado' ? k + ' (Retirado)' : k;
     s.appendChild(o);
   });
-
-  // Agregar estudios de jd_estudios que no están en fab_ALIADOS
-  var extras = _jdGetExtras();
-  if(extras.length) {
-    var sep = document.createElement('option');
-    sep.disabled = true;
-    sep.textContent = '── Solo en base de datos local ──';
-    s.appendChild(sep);
-    extras.forEach(function(ex) {
-      var o = document.createElement('option');
-      o.value = _JD_PREFIX + ex.label;
-      o.textContent = ex.label + (ex.estado==='Inactivo' ? ' (Inactivo)' : '') + ' *';
-      s.appendChild(o);
-    });
-  }
 
   // Auto-seleccionar el primer aliado activo disponible
   var first = null;
@@ -8389,19 +8331,6 @@ function cns_onAliado() {
     if (matrix)  matrix.innerHTML = '<div class="neutral-state"><div class="fab-ns-icon">📊</div><p>Seleccione un aliado para comenzar</p></div>';
     if (title)   title.textContent = 'Seleccione un aliado';
     if (sub)     sub.textContent   = 'Elija un aliado y mes para ver la facturación diaria';
-    return;
-  }
-
-  // Si el estudio está solo en jd_estudios (sin datos Cómo Vamos)
-  if(al.indexOf(_JD_PREFIX) === 0) {
-    var nombre = al.replace(_JD_PREFIX, '');
-    if(info)    info.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--muted)"><b style="color:var(--text)">'+nombre+'</b><br><br>Este estudio está registrado en la base de datos local pero aún no tiene datos de facturación en Cómo Vamos.</div>';
-    if(mesWrap) mesWrap.style.display = 'none';
-    if(kpis)   kpis.innerHTML = '';
-    if(pills)  pills.innerHTML = '';
-    if(title)  title.textContent = nombre;
-    if(sub)    sub.textContent = 'Sin datos de facturación en Cómo Vamos';
-    if(matrix) matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>Sin datos registrados en Cómo Vamos para este estudio</span></div>';
     return;
   }
 
@@ -8564,26 +8493,25 @@ function qnc_init() {
   s.innerHTML = '<option value="">— Seleccionar aliado —</option>';
   if(!fab_ALIADOS || Object.keys(fab_ALIADOS).length === 0) return;
 
-  var keys;
-  if(jdIsSuperAdmin()) {
-    // Super admin: ver TODOS los estudios sin excepción
-    keys = Object.keys(fab_ALIADOS);
-  } else {
-    // Ejecutivo: filtrar por su nombre en el campo refiere
-    var userNombre = (_jdCurrentUser && _jdCurrentUser.nombre) || '';
-    var userWords  = userNombre.toLowerCase().split(/\s+/).filter(function(w){ return w.length > 2; });
-    var matched = Object.keys(fab_ALIADOS).filter(function(k) {
-      var r = (fab_ALIADOS[k].refiere || '').toLowerCase().trim();
-      if(!r) return false;
-      return userWords.some(function(w){ return r.indexOf(w) !== -1; });
-    });
-    var sinAsignar = Object.keys(fab_ALIADOS).filter(function(k) {
-      return !(fab_ALIADOS[k].refiere || '').trim();
-    });
-    keys = matched.length > 0
-      ? matched.concat(sinAsignar.filter(function(k){ return matched.indexOf(k) === -1; }))
-      : Object.keys(fab_ALIADOS);
-  }
+  // Filtrar aliados del ejecutivo logueado
+  var userNombre = (_jdCurrentUser && _jdCurrentUser.nombre) || '';
+  var userWords  = userNombre.toLowerCase().split(/\s+/).filter(function(w){ return w.length > 2; });
+
+  // Aliados asignados al ejecutivo por nombre
+  var matched = Object.keys(fab_ALIADOS).filter(function(k) {
+    var r = (fab_ALIADOS[k].refiere || '').toLowerCase().trim();
+    if(!r) return false;
+    return userWords.some(function(w){ return r.indexOf(w) !== -1; });
+  });
+  // Aliados sin ejecutivo asignado (refiere vacío) — incluirlos siempre
+  var sinAsignar = Object.keys(fab_ALIADOS).filter(function(k) {
+    return !(fab_ALIADOS[k].refiere || '').trim();
+  });
+  // Si hay coincidencias por nombre: mostrar los del ejecutivo + los sin asignar
+  // Si no hay coincidencias (super_admin u otro rol): mostrar todos
+  var keys = matched.length > 0
+    ? matched.concat(sinAsignar.filter(function(k){ return matched.indexOf(k) === -1; }))
+    : Object.keys(fab_ALIADOS);
 
   keys.sort(function(a,b) {
     var ea = fab_ALIADOS[a].estado === 'Activo' ? 0 : 1;
@@ -8596,21 +8524,6 @@ function qnc_init() {
     o.textContent = fab_ALIADOS[k].estado === 'Retirado' ? k + ' (Retirado)' : k;
     s.appendChild(o);
   });
-
-  // Agregar estudios de jd_estudios que no están en fab_ALIADOS
-  var extrasQ = _jdGetExtras();
-  if(extrasQ.length) {
-    var sepQ = document.createElement('option');
-    sepQ.disabled = true;
-    sepQ.textContent = '── Solo en base de datos local ──';
-    s.appendChild(sepQ);
-    extrasQ.forEach(function(ex) {
-      var o = document.createElement('option');
-      o.value = _JD_PREFIX + ex.label;
-      o.textContent = ex.label + (ex.estado==='Inactivo' ? ' (Inactivo)' : '') + ' *';
-      s.appendChild(o);
-    });
-  }
 
   // Auto-seleccionar primer aliado activo
   var first = null;
@@ -8639,19 +8552,6 @@ function qnc_onAliado() {
     if(matrix) matrix.innerHTML = '<div class="neutral-state"><div class="fab-ns-icon">📅</div><p>Seleccione un aliado para comenzar</p></div>';
     if(title) title.textContent = 'Seleccione un aliado';
     if(sub) sub.textContent = 'Elija un aliado y quincena para ver la facturación diaria';
-    return;
-  }
-
-  // Si el estudio está solo en jd_estudios (sin datos Cómo Vamos)
-  if(al.indexOf(_JD_PREFIX) === 0) {
-    var nombreQ = al.replace(_JD_PREFIX, '');
-    if(info)     info.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--muted)"><b style="color:var(--text)">'+nombreQ+'</b><br><br>Este estudio está registrado en la base de datos local pero aún no tiene datos de facturación en Cómo Vamos.</div>';
-    if(quinWrap) quinWrap.style.display = 'none';
-    if(kpis)     kpis.innerHTML = '';
-    if(pills)    pills.innerHTML = '';
-    if(title)    title.textContent = nombreQ;
-    if(sub)      sub.textContent = 'Sin datos de facturación en Cómo Vamos';
-    if(matrix)   matrix.innerHTML = '<div class="no-data"><div class="icon">📭</div><span>Sin datos registrados en Cómo Vamos para este estudio</span></div>';
     return;
   }
 
@@ -8785,9 +8685,18 @@ var _CON_PALETTE = ['#C8A84B','#3B82F6','#EC4899','#10B981','#8B5CF6','#F59E0B',
 
 // Helper: obtener los aliados del ejecutivo actual
 function _con_getEjecAliados() {
-  // Consolidado siempre muestra TODOS los aliados del Grupo Empresarial
   if(!fab_ALIADOS) return [];
-  return Object.keys(fab_ALIADOS);
+  var userNombre = (_jdCurrentUser && _jdCurrentUser.nombre) || '';
+  var userWords  = userNombre.toLowerCase().split(/\s+/).filter(function(w){ return w.length > 2; });
+  var matched    = Object.keys(fab_ALIADOS).filter(function(k) {
+    var r = (fab_ALIADOS[k].refiere || '').toLowerCase().trim();
+    if(!r) return false;
+    return userWords.some(function(w){ return r.indexOf(w) !== -1; });
+  });
+  var sinAsignar = Object.keys(fab_ALIADOS).filter(function(k){ return !(fab_ALIADOS[k].refiere || '').trim(); });
+  return matched.length > 0
+    ? matched.concat(sinAsignar.filter(function(k){ return matched.indexOf(k) === -1; }))
+    : Object.keys(fab_ALIADOS);
 }
 
 // Helper: suma todos los valores de un aliado en un rango de días de un mes
@@ -8876,7 +8785,7 @@ function _con_renderMensual(allAliados, body, sub, kpis) {
   var maxVal = Math.max.apply(null, allVals.concat([1]));
 
   var grandTotal = activos.reduce(function(s,al){ return s + totByAliado[al]; }, 0);
-  if(sub) sub.textContent = activos.length + ' aliado(s) con producción · Total acumulado: ' + fab_fmtN(grandTotal);
+  if(sub) sub.textContent = activos.length + ' aliado(s) con producción · Total acumulado: ' + fab_fmtK(grandTotal);
 
   // KPIs sidebar
   if(kpis) {
@@ -8901,7 +8810,7 @@ function _con_renderMensual(allAliados, body, sub, kpis) {
       if(platTots[p] > 0) {
         kHtml += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px">';
         kHtml += '<span style="color:'+fab_PCOLORS[p]+';font-weight:600">'+fab_PNAMES[p]+'</span>';
-        kHtml += '<span style="color:#C8A84B;font-weight:700">'+fab_fmtN(platTots[p])+'</span></div>';
+        kHtml += '<span style="color:#C8A84B;font-weight:700">'+fab_fmtK(platTots[p])+'</span></div>';
       }
     });
     kHtml += '</div>';
@@ -8942,9 +8851,9 @@ function _con_renderMensual(allAliados, body, sub, kpis) {
       var v = dataM[al][m] || 0;
       var intensity = v / maxVal;
       var bg = v > 0 ? 'rgba(16,185,129,' + (0.06 + intensity * 0.45).toFixed(2) + ')' : 'transparent';
-      html += '<td style="text-align:right;background:'+bg+'">'+(v>0?fab_fmtN(v):'<span style="color:#374151">—</span>')+'</td>';
+      html += '<td style="text-align:right;background:'+bg+'">'+(v>0?fab_fmtK(v):'<span style="color:#374151">—</span>')+'</td>';
     });
-    html += '<td style="text-align:right;font-weight:800;color:#C8A84B">'+fab_fmtN(rowTotal)+'</td>';
+    html += '<td style="text-align:right;font-weight:800;color:#C8A84B">'+fab_fmtK(rowTotal)+'</td>';
     html += '</tr>';
   });
 
@@ -8953,9 +8862,9 @@ function _con_renderMensual(allAliados, body, sub, kpis) {
   html += '<td style="font-weight:800;color:#C8A84B;font-size:11px;text-transform:uppercase;letter-spacing:.5px">TOTAL</td>';
   mesesActivos.forEach(function(m) {
     var colTotal = activos.reduce(function(s,al){ return s + (dataM[al][m]||0); }, 0);
-    html += '<td style="text-align:right;font-weight:800;color:#C8A84B">'+fab_fmtN(colTotal)+'</td>';
+    html += '<td style="text-align:right;font-weight:800;color:#C8A84B">'+fab_fmtK(colTotal)+'</td>';
   });
-  html += '<td style="text-align:right;font-weight:900;color:#C8A84B;font-size:14px">'+fab_fmtN(grandTotal)+'</td>';
+  html += '<td style="text-align:right;font-weight:900;color:#C8A84B;font-size:14px">'+fab_fmtK(grandTotal)+'</td>';
   html += '</tr>';
 
   html += '</tbody></table></div>';
@@ -8993,7 +8902,7 @@ function _con_renderQuincenal(allAliados, body, sub, kpis) {
   }
 
   var grandTotal = activos.reduce(function(s,al){ return s + totByAliado[al]; }, 0);
-  if(sub) sub.textContent = activos.length + ' aliado(s) · Total: ' + fab_fmtN(grandTotal);
+  if(sub) sub.textContent = activos.length + ' aliado(s) · Total: ' + fab_fmtK(grandTotal);
 
   // Quincenas con datos
   var quinActivas = quincenas.filter(function(q) {
@@ -9024,9 +8933,9 @@ function _con_renderQuincenal(allAliados, body, sub, kpis) {
       var v = dataQ[al][q.id] || 0;
       var intensity = v / maxVal;
       var bg = v > 0 ? 'rgba(16,185,129,' + (0.06 + intensity * 0.45).toFixed(2) + ')' : 'transparent';
-      html += '<td style="text-align:right;background:'+bg+'">'+(v>0?fab_fmtN(v):'<span style="color:#374151">—</span>')+'</td>';
+      html += '<td style="text-align:right;background:'+bg+'">'+(v>0?fab_fmtK(v):'<span style="color:#374151">—</span>')+'</td>';
     });
-    html += '<td style="text-align:right;font-weight:800;color:#C8A84B">'+fab_fmtN(totByAliado[al])+'</td>';
+    html += '<td style="text-align:right;font-weight:800;color:#C8A84B">'+fab_fmtK(totByAliado[al])+'</td>';
     html += '</tr>';
   });
 
@@ -9035,9 +8944,9 @@ function _con_renderQuincenal(allAliados, body, sub, kpis) {
   html += '<td style="font-weight:800;color:#C8A84B;font-size:11px;text-transform:uppercase">TOTAL</td>';
   quinActivas.forEach(function(q) {
     var colT = activos.reduce(function(s,al){ return s + (dataQ[al][q.id]||0); }, 0);
-    html += '<td style="text-align:right;font-weight:800;color:#C8A84B">'+fab_fmtN(colT)+'</td>';
+    html += '<td style="text-align:right;font-weight:800;color:#C8A84B">'+fab_fmtK(colT)+'</td>';
   });
-  html += '<td style="text-align:right;font-weight:900;color:#C8A84B;font-size:14px">'+fab_fmtN(grandTotal)+'</td>';
+  html += '<td style="text-align:right;font-weight:900;color:#C8A84B;font-size:14px">'+fab_fmtK(grandTotal)+'</td>';
   html += '</tr>';
   html += '</tbody></table></div>';
   body.innerHTML = html;
@@ -9163,9 +9072,6 @@ function top20_render() {
     return;
   }
 
-  // Modelos permanentemente excluidos del TOP 20
-  var _TOP20_EXCLUIDOS = ['Connie Deep', 'Katherine Bond'];
-
   // Usar fab_TOP20[mes] — contiene TODOS los modelos del Grupo Empresarial
   var ranking = (fab_TOP20 && fab_TOP20[mes]) ? fab_TOP20[mes] : [];
 
@@ -9175,11 +9081,6 @@ function top20_render() {
     var fb = _top_buildRanking(mes, todosAliados);
     ranking = fb.map(function(r){ return { modelo: r.model, studio: r.studio, total: r.total }; });
   }
-
-  // Siempre omitir los modelos excluidos
-  ranking = ranking.filter(function(r) {
-    return _TOP20_EXCLUIDOS.indexOf(r.modelo) === -1;
-  });
 
   // Mes anterior para flechas de evolución
   var mesIdx   = fab_MESES.indexOf(mes);

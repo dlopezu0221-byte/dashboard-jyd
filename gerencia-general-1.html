@@ -10624,7 +10624,23 @@ function renderDashboard(){
 // ESTUDIOS
 // ============================================================
 function getEstudios(){ return load(K.estudios)||[]; }
-function saveEstudios(data){ save(K.estudios,data); }
+function saveEstudios(data){
+  save(K.estudios,data);
+  if(_supaDb)(async()=>{try{
+    const rows=(data||[]).map(e=>{
+      const {id,nombreAgencia,nombreReal,documento,estado,...rest}=e;
+      return {
+        id:id,
+        nombre:nombreAgencia||'',
+        propietario:nombreReal||'',
+        nit:documento||'',
+        activo:estado==='Activo',
+        datos_extra:rest
+      };
+    });
+    if(rows.length) await _supaDb.from('estudios').upsert(rows,{onConflict:'id'});
+  }catch(e){console.warn('[SUPA] saveEstudios error:',e);}})();
+}
 
 function filterEstudios(status, tabEl){
   estFilter.status = status;
@@ -10747,6 +10763,9 @@ function deleteEstudio(id){
   if(!confirm('¿Eliminar este estudio? Esta acción no se puede deshacer.')) return;
   const estudios = getEstudios().filter(e=>e.id!==id);
   saveEstudios(estudios);
+  if(_supaDb)(async()=>{try{
+    await _supaDb.from('estudios').delete().eq('id',id);
+  }catch(e){console.warn('[SUPA] deleteEstudio error:',e);}})();
   renderEstudios();
   toast('Estudio eliminado','warn');
 }

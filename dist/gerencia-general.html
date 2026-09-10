@@ -10518,33 +10518,57 @@ function _top_buildRanking(mes, keysAliados) {
   return ranking;
 }
 
+// ── TOP 20: constantes de mes ──────────────────────────────────────────
+var _TOP20_TODOS_MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+var _TOP20_MES_NUM = {'Enero':'01','Febrero':'02','Marzo':'03','Abril':'04','Mayo':'05','Junio':'06','Julio':'07','Agosto':'08','Septiembre':'09','Octubre':'10','Noviembre':'11','Diciembre':'12'};
+var _top20SupaCache = {}; // cache de rankings calculados desde Supabase
+
 function top20_init() {
   var s = document.getElementById('top20-sel-mes');
   if(!s) return;
-  s.innerHTML = '<option value="">— Seleccionar mes —</option>';
-  // Usar fab_MESES (claves en español) en orden inverso
-  fab_MESES.slice().reverse().forEach(function(m) {
-    var o = document.createElement('option');
-    o.value = m; o.textContent = m;
-    s.appendChild(o);
-  });
-  // Auto-seleccionar el mes más reciente con datos en fab_TOP20
-  var mesAuto = '';
-  fab_MESES.slice().reverse().forEach(function(m) {
-    if(mesAuto) return;
-    if(fab_TOP20 && fab_TOP20[m] && fab_TOP20[m].length) mesAuto = m;
-  });
-  // Fallback a fab_ALIADOS si fab_TOP20 no tiene datos
-  if(!mesAuto) {
-    fab_MESES.slice().reverse().forEach(function(m) {
-      if(mesAuto) return;
-      var tieneData = Object.values(fab_ALIADOS || {}).some(function(a) {
-        return a.data && a.data[m] && Object.keys(a.data[m].modelos || {}).length > 0;
-      });
-      if(tieneData) mesAuto = m;
+
+  function _poblarSelector(mesesExtra) {
+    var mesesSet = {};
+    (fab_MESES || []).forEach(function(m){ mesesSet[m] = true; });
+    (mesesExtra || []).forEach(function(m){ mesesSet[m] = true; });
+
+    s.innerHTML = '<option value="">— Seleccionar mes —</option>';
+    // Agregar en orden cronológico inverso (más reciente primero)
+    _TOP20_TODOS_MESES.slice().reverse().forEach(function(m) {
+      if(!mesesSet[m]) return;
+      var o = document.createElement('option');
+      o.value = m; o.textContent = m;
+      s.appendChild(o);
     });
+
+    // Auto-seleccionar mes actual si tiene datos, si no el más reciente
+    var mesActual = _TOP20_TODOS_MESES[new Date().getMonth()];
+    if(mesesSet[mesActual]) {
+      s.value = mesActual;
+    } else {
+      var mesAuto = '';
+      _TOP20_TODOS_MESES.slice().reverse().forEach(function(m){ if(!mesAuto && mesesSet[m]) mesAuto = m; });
+      if(mesAuto) s.value = mesAuto;
+    }
+    if(s.value) top20_render();
   }
-  if(mesAuto) { s.value = mesAuto; top20_render(); }
+
+  // Si hay Supabase, consultar qué meses tienen datos en facturacion_diaria
+  if(_supaDb) {
+    _supaDb.from('facturacion_diaria').select('fecha')
+      .neq('fecha', _RD_SENTINEL_FECHA).limit(5000)
+      .then(function(res) {
+        var supaMeses = {};
+        ((res && res.data) || []).forEach(function(r) {
+          if(!r.fecha || r.fecha === _RD_SENTINEL_FECHA) return;
+          var n = parseInt((r.fecha.split('-')[1]||'0'), 10);
+          if(n >= 1 && n <= 12) supaMeses[_TOP20_TODOS_MESES[n-1]] = true;
+        });
+        _poblarSelector(Object.keys(supaMeses));
+      }).catch(function(){ _poblarSelector([]); });
+  } else {
+    _poblarSelector([]);
+  }
 }
 
 function top20_render() {
@@ -10562,31 +10586,82 @@ function top20_render() {
     return;
   }
 
-  // Modelos permanentemente excluidos del TOP 20
-  var _TOP20_EXCLUIDOS = ['Connie Deep', 'Katherine Bond'];
+  // Si hay Supabase, calcular ranking dinámicamente desde facturacion_diaria
+  if(_supaDb) {
+    if(_top20SupaCache[mes]) {
+      _top20_doRender(mes, _top20SupaCache[mes]);
+    } else {
+      if(body) body.innerHTML = '<div class="neutral-state"><div class="fab-ns-icon">⟳</div><p>Cargando ranking…</p></div>';
+      _top20_querySupa(mes, function(ranking) {
+        _top20SupaCache[mes] = ranking;
+        _top20_doRender(mes, ranking);
+      });
+    }
+    return;
+  }
 
-  // Usar fab_TOP20[mes] — contiene TODOS los modelos del Grupo Empresarial
+  // Sin Supabase: usar datos estáticos fab_TOP20
   var ranking = (fab_TOP20 && fab_TOP20[mes]) ? fab_TOP20[mes] : [];
-
-  // Fallback: si fab_TOP20 no existe, construir desde fab_ALIADOS
   if(!ranking.length && typeof _top_buildRanking === 'function') {
     var todosAliados = Object.keys(fab_ALIADOS || {});
     var fb = _top_buildRanking(mes, todosAliados);
     ranking = fb.map(function(r){ return { modelo: r.model, studio: r.studio, total: r.total }; });
   }
+  _top20_doRender(mes, ranking);
+}
 
-  // Siempre omitir los modelos excluidos
-  ranking = ranking.filter(function(r) {
+function _top20_querySupa(mes, cb) {
+  var numMes = _TOP20_MES_NUM[mes];
+  if(!numMes) { cb([]); return; }
+  var anio = String(new Date().getFullYear());
+  var fechaDesde = anio + '-' + numMes + '-01';
+  var lastDay = new Date(parseInt(anio), parseInt(numMes), 0).getDate();
+  var fechaHasta = anio + '-' + numMes + '-' + String(lastDay).padStart(2,'0');
+
+  _supaDb.from('facturacion_diaria').select('modelo_nombre,estudio_nombre,valor')
+    .gte('fecha', fechaDesde).lte('fecha', fechaHasta)
+    .neq('fecha', _RD_SENTINEL_FECHA).neq('plataforma', _RD_SENTINEL_PLAT)
+    .then(function(res) {
+      var rows = (res && res.data) ? res.data : [];
+      var map = {};
+      rows.forEach(function(r) {
+        if(!r.modelo_nombre) return;
+        var key = r.modelo_nombre + '|' + (r.estudio_nombre || '');
+        if(!map[key]) map[key] = { modelo: r.modelo_nombre, studio: r.estudio_nombre || '', total: 0 };
+        map[key].total += Number(r.valor) || 0;
+      });
+      var ranking = Object.values(map).filter(function(r){ return r.total > 0; })
+        .sort(function(a,b){ return b.total - a.total; });
+      // Fallback a datos estáticos si Supabase no tiene datos para ese mes
+      if(!ranking.length && fab_TOP20 && fab_TOP20[mes]) ranking = fab_TOP20[mes];
+      cb(ranking);
+    }).catch(function() {
+      cb((fab_TOP20 && fab_TOP20[mes]) ? fab_TOP20[mes] : []);
+    });
+}
+
+function _top20_doRender(mes, rankingOrig) {
+  var title = document.getElementById('top20-title');
+  var sub   = document.getElementById('top20-sub');
+  var body  = document.getElementById('top20-body');
+  var kpis  = document.getElementById('top20-kpis');
+
+  // Modelos permanentemente excluidos del TOP 20
+  var _TOP20_EXCLUIDOS = ['Connie Deep', 'Katherine Bond'];
+
+  var ranking = (rankingOrig || []).filter(function(r) {
     return _TOP20_EXCLUIDOS.indexOf(r.modelo) === -1;
   });
 
   // Mes anterior para flechas de evolución
-  var mesIdx   = fab_MESES.indexOf(mes);
-  var mesPrev  = mesIdx > 0 ? fab_MESES[mesIdx - 1] : null;
+  var mesIdx   = _TOP20_TODOS_MESES.indexOf(mes);
+  var mesPrev  = mesIdx > 0 ? _TOP20_TODOS_MESES[mesIdx - 1] : null;
   var prevMap  = {};
   if(mesPrev) {
-    var prevRanking = (fab_TOP20 && fab_TOP20[mesPrev]) ? fab_TOP20[mesPrev] : [];
-    prevRanking.forEach(function(r, i){ prevMap[r.modelo+'|'+r.studio] = i + 1; });
+    // Usar caché de Supabase si existe, si no datos estáticos
+    var prevRanking = (_top20SupaCache[mesPrev]) ? _top20SupaCache[mesPrev]
+      : (fab_TOP20 && fab_TOP20[mesPrev]) ? fab_TOP20[mesPrev] : [];
+    prevRanking.forEach(function(r, i){ prevMap[(r.modelo||'')+'|'+(r.studio||'')] = i + 1; });
   }
 
   if(title) title.textContent = 'Ranking Grupo — ' + mes;
@@ -30300,6 +30375,9 @@ function rdGuardarDia() {
       } else {
         try{toast('✓ Día guardado correctamente (' + upserts.length + ' registros)','success');}catch(e){}
         rdCargarFecha(); // recargar para actualizar IDs
+        // Invalidar caché del Top 20 para el mes guardado → se recalculará al abrir
+        var _rdMesN = parseInt((fecha.split('-')[1]||'0'), 10);
+        if(_rdMesN >= 1 && _rdMesN <= 12) { delete _top20SupaCache[_TOP20_TODOS_MESES[_rdMesN - 1]]; }
       }
     }).catch(function(err) {
       console.error('[RD] Excepción:', err);

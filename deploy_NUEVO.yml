@@ -1,0 +1,70 @@
+name: Deploy to Cloudflare Workers
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - uses: actions/checkout@v4
+
+      # dist/ es la carpeta que publica el Worker (wrangler.toml -> [assets] directory = "dist").
+      # Se reconstruye AQUI, en el runner, a partir de los HTML de la raiz del repositorio.
+      # Antes esto lo hacia un robocopy dentro de PUBLICAR.bat que dejo de funcionar y
+      # publicaba en silencio la version anterior. Ya no depende del equipo local.
+      - name: Sincronizar dist con los HTML del repositorio
+        run: |
+          set -e
+          mkdir -p dist
+
+          # Todos los .html del repo, menos dist, .git, .github, __pycache__ y node_modules
+          find . -path ./dist -prune -o -path ./.git -prune -o -path ./.github -prune -o \
+                 -name "__pycache__" -prune -o -name "node_modules" -prune -o \
+                 -type f -name "*.html" -print | while read -r f; do
+            rel="${f#./}"
+            mkdir -p "dist/$(dirname "$rel")"
+            cp -f "$f" "dist/$rel"
+          done
+
+          # Datos del programa J&D Elite (historial y semanas)
+          if [ -d elite ]; then
+            find ./elite -type f \( -name "*.csv" -o -name "*.json" \) -print | while read -r f; do
+              rel="${f#./}"
+              mkdir -p "dist/$(dirname "$rel")"
+              cp -f "$f" "dist/$rel"
+            done
+          fi
+
+          echo "----- Tableros principales -----"
+          FALTA=0
+          for f in grupo579780/index.html \
+                   erika868527/index.html \
+                   fabio473013/index.html \
+                   estudios/fornax-studios345929/index.html \
+                   estudios/goldonline078939/index.html \
+                   estudios/cyv-studios837357/index.html \
+                   monitores/index.html \
+                   elite/index.html; do
+            if [ -f "dist/$f" ]; then
+              echo "  OK     $f  ($(stat -c%s "dist/$f") bytes)"
+            else
+              echo "  FALTA  $f"; FALTA=1
+            fi
+          done
+          [ "$FALTA" = "0" ] || { echo "Faltan tableros en dist/. Se cancela el despliegue."; exit 1; }
+
+          echo "----- Corte de datos que se va a publicar -----"
+          grep -o 'Actualizado: [^<]*' dist/grupo579780/index.html | head -1 || true
+          grep -o 'Datos al: [^<]*'    dist/grupo579780/index.html | head -1 || true
+          echo "  modelos: $(ls dist/modelos 2>/dev/null | wc -l)  ·  archivos: $(find dist -type f | wc -l)  ·  peso: $(du -sh dist | cut -f1)"
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: 03f0d97b406725760c8bcb74b9ef4bfa
+          command: deploy --name dashboard-jyd

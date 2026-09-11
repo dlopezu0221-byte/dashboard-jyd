@@ -7368,16 +7368,9 @@ body.exec-fullscreen #fab-logout-btn { display: flex; }
       </div>
     </div>
 
-    <div id="rd-save-bar" style="display:none;position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:12px 16px;z-index:100">
-      <!-- Filtro de estudio + desglose por plataforma -->
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-        <span style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.05em;white-space:nowrap">📍 ESTUDIO:</span>
-        <select id="rd-filtro-estudio" onchange="rdActualizarTotalDia()" style="padding:5px 10px;background:var(--input-bg,rgba(255,255,255,.05));border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;min-width:140px">
-          <option value="">Todos los estudios</option>
-        </select>
-      </div>
-      <div id="rd-total-dia" style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:10px;line-height:1.6"></div>
-      <div style="display:flex;justify-content:flex-end;gap:8px">
+    <div id="rd-save-bar" style="display:none;position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:12px 16px;display:none;justify-content:space-between;align-items:center;gap:12px;z-index:100">
+      <div id="rd-total-dia" style="font-size:14px;font-weight:700;color:var(--gold)"></div>
+      <div style="display:flex;gap:8px">
         <button class="btn btn-ghost btn-sm" onclick="rdLimpiarFormulario()">↩ Limpiar</button>
         <button class="btn btn-primary" onclick="rdGuardarDia()">💾 Guardar Día</button>
       </div>
@@ -34491,11 +34484,7 @@ function rdBuildModelMap() {
 function renderRegistroDiario() {
   // Inicializar fecha si está vacía
   var rdFecha = document.getElementById('rd-fecha');
-  if (rdFecha && !rdFecha.value) {
-    var _ayer = new Date();
-    _ayer.setDate(_ayer.getDate() - 1);
-    rdFecha.value = _ayer.getFullYear() + '-' + String(_ayer.getMonth()+1).padStart(2,'0') + '-' + String(_ayer.getDate()).padStart(2,'0');
-  }
+  if (rdFecha && !rdFecha.value) rdFecha.value = _rdHoy();
 
   // Inicializar calendarios DESDE/HASTA con el mes actual
   var rdHisDesde = document.getElementById('rd-his-desde');
@@ -34720,19 +34709,7 @@ function _rdRenderForm(fecha, existentes) {
 
   // Mostrar barra de guardado
   if (saveBar) {
-    saveBar.style.display = 'block';
-    // Poblar selector de estudio en la barra de guardado
-    var filtroSel = document.getElementById('rd-filtro-estudio');
-    if (filtroSel) {
-      var prev = filtroSel.value;
-      filtroSel.innerHTML = '<option value="">Todos los estudios</option>';
-      estudios.forEach(function(est) {
-        var opt = document.createElement('option');
-        opt.value = est; opt.textContent = est;
-        filtroSel.appendChild(opt);
-      });
-      if (prev && estudios.indexOf(prev) !== -1) filtroSel.value = prev;
-    }
+    saveBar.style.display = 'flex';
     rdActualizarTotalDia();
   }
 }
@@ -34750,59 +34727,15 @@ function rdActualizarTotal(modKey) {
   rdActualizarTotalDia();
 }
 
-// ── Recalcular total del día con desglose por plataforma ──────────────────
+// ── Recalcular total del día (suma de todos los inputs) ─────────────────
 function rdActualizarTotalDia() {
-  var filtroEst = (document.getElementById('rd-filtro-estudio')||{}).value || '';
-  var totPlat    = {}; // { plataforma: total_COP }
-  var totStrUSD  = 0;  // total Streamate en dólares (valor real ingresado)
-  _rdPlats.forEach(function(p){ totPlat[p] = 0; });
-
+  var tot = 0;
   document.querySelectorAll('#rd-form-area input[type="number"]').forEach(function(inp) {
-    var est  = inp.dataset.est  || '';
-    var plat = inp.dataset.plat || '';
-    if (!plat) return;
-    if (filtroEst && est !== filtroEst) return; // filtro activo
     var v = parseFloat(inp.value || 0);
-    if (!v) return;
-    if (plat === 'Streamate') {
-      totStrUSD += v;
-      totPlat[plat] = (totPlat[plat] || 0) + (v / 0.05);
-    } else {
-      totPlat[plat] = (totPlat[plat] || 0) + v;
-    }
+    tot += (inp.dataset.plat === 'Streamate' && v > 0) ? v / 0.05 : v;
   });
-
-  var totalGral = 0;
-  _rdPlats.forEach(function(p){ totalGral += (totPlat[p] || 0); });
-
   var el = document.getElementById('rd-total-dia');
-  if (!el) return;
-
-  // Construir HTML con desglose
-  var labelEst = filtroEst ? (' · <span style="color:#94a3b8;font-size:12px">' + filtroEst + '</span>') : ' · <span style="color:#94a3b8;font-size:12px">Todos los estudios</span>';
-  var html = '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px">';
-  html += '<span style="color:var(--gold);font-size:14px;font-weight:800">💰 TOTAL: $' + _rdFmt(totalGral) + '</span>' + labelEst;
-  html += '</div>';
-  html += '<div style="display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:5px">';
-  _rdPlats.forEach(function(p) {
-    var v = totPlat[p] || 0;
-    if (v <= 0) return;
-    var color = p === 'Flirt4free' ? '#f472b6' : p === 'Stripchat' ? '#fb923c' : p === 'Chaturbate' ? '#f59e0b' : p === 'CamSoda' ? '#34d399' : '#818cf8';
-    if (p === 'Streamate') {
-      // Mostrar dólares reales + créditos equivalentes
-      var usdFmt     = totStrUSD.toLocaleString('es-CO', {minimumFractionDigits:2, maximumFractionDigits:2});
-      var creditsFmt = _rdFmt(v);
-      html += '<span style="font-size:12px;color:' + color + ';font-weight:700">Streamate: '
-            + '<span style="color:var(--text)">' + usdFmt + ' USD</span>'
-            + '<span style="color:#64748b;font-size:11px"> · </span>'
-            + '<span style="color:var(--text)">' + creditsFmt + ' créditos</span>'
-            + '</span>';
-    } else {
-      html += '<span style="font-size:12px;color:' + color + ';font-weight:700">' + p + ': <span style="color:var(--text)">$' + _rdFmt(v) + '</span></span>';
-    }
-  });
-  html += '</div>';
-  el.innerHTML = html;
+  if (el) el.textContent = 'Total del día: ' + _rdFmt(tot);
 }
 
 // ── Guardar celda individual al perder foco (onblur) ───────────────────

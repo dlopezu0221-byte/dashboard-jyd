@@ -751,6 +751,7 @@ GRUPO_INDIVIDUAL_PARTNERS = {
     'Melissa Deusa':  'Fabio Robledo',
     'Ross Lauren':    'Fabio Robledo',
     'Teo Sweet':      'Fabio Robledo',
+    'Jason Blackwood':'Fabio Robledo',
 }
 
 def fix_grupo_individual_partners(aliados, cv_jul, last_day_jul, cv_ago, last_day_ago,
@@ -987,6 +988,7 @@ FABIO_MAP = {
     'Melissa Deusa':     ['Fabio Robledo'],
     'Ross Lauren':       ['Fabio Robledo'],
     'Teo Sweet':         ['Fabio Robledo'],
+    'Jason Blackwood':   ['Fabio Robledo'],
 }
 
 
@@ -1255,14 +1257,17 @@ def main():
         _eid = _estudio_id_map.get(dash_key, '')
         if _eid:
             _colillas = fetch_colillas_for_estudio(_eid)
-            _col_b64  = base64.b64encode(
-                json.dumps(_colillas, ensure_ascii=False).encode('utf-8')
-            ).decode('ascii')
-            html = re.sub(
-                r"var COLILLAS_DATA_B64='[^']*'",
-                f"var COLILLAS_DATA_B64='{_col_b64}'",
-                html, count=1
-            )
+            if _colillas:
+                _col_b64  = base64.b64encode(
+                    json.dumps(_colillas, ensure_ascii=False).encode('utf-8')
+                ).decode('ascii')
+                html = re.sub(
+                    r"var COLILLAS_DATA_B64='[^']*'",
+                    f"var COLILLAS_DATA_B64='{_col_b64}'",
+                    html, count=1
+                )
+            else:
+                print("  COLILLAS preservadas (sin acceso a Supabase)")
 
         html = patch_meses_dmes(html, meses_activos)
         html = inject_timestamp(html, ts_str, cutoff_str)

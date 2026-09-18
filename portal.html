@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Mi Portal — J&D</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+  <style>
+    :root {
+      --bg: #0f0f13;
+      --card: #1a1a22;
+      --card2: #22222e;
+      --card3: #2a2a38;
+      --border: rgba(255,255,255,.09);
+      --border2: rgba(255,255,255,.06);
+      --text: #f0f0f5;
+      --muted: #8888a8;
+      --muted2: #55556a;
+      --gold: #c8a84b;
+      --gold2: #e6c76d;
+      --accent: #6366f1;
+      --accent2: #818cf8;
+      --success: #22c55e;
+      --success-bg: rgba(34,197,94,.1);
+      --danger: #ef4444;
+      --danger-bg: rgba(239,68,68,.12);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245,158,11,.1);
+      --info: #38bdf8;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+    body { padding: calc(var(--safe-top)) 0 calc(var(--safe-bottom)) 0; }
+
+    /* ─── LAYOUT ─── */
+    .app { display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+    .sidebar-logo {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--border2);
+    }
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(200,168,75,.3), rgba(99,102,241,.2));
+      border: 1.5px solid rgba(200,168,75,.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .logo-text { font-size: 14px; font-weight: 800; color: var(--gold2); letter-spacing: -.2px; }
+    .logo-sub  { font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+
+    /* User info in sidebar */
+    .sidebar-user {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border2);
+    }
+    .user-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; color: white;
+      margin-bottom: 10px;
+    }
+    .user-name  { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.2; }
+    .user-rol   { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .user-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 20px;
+      font-size: 10.5px; font-weight: 600; margin-top: 6px;
+    }
+    .badge-modelo { background: rgba(99,102,241,.18); color: #a5b4fc; border: 1px solid rgba(99,102,241,.25); }
+    .badge-estudio { background: rgba(200,168,75,.15); color: var(--gold2); border: 1px solid rgba(200,168,75,.25); }
+
+    /* Nav items */
+    .sidebar-nav { padding: 12px 10px; flex: 1; }
+    .nav-label { font-size: 10px; color: var(--muted2); font-weight: 700; letter-spacing: .8px; text-transform: uppercase; padding: 12px 10px 6px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px;
+      cursor: pointer; font-size: 13.5px; font-weight: 500;
+      color: var(--muted); transition: all .15s;
+      margin-bottom: 2px;
+    }
+    .nav-item:hover { background: var(--card2); color: var(--text); }
+    .nav-item.active { background: rgba(99,102,241,.15); color: var(--accent2); font-weight: 600; }
+    .nav-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
+    .nav-badge {
+      margin-left: auto; background: var(--accent); color: white;
+      font-size: 10px; font-weight: 700; border-radius: 10px;
+      padding: 1px 6px; min-width: 18px; text-align: center;
+    }
+
+    /* Sidebar footer */
+    .sidebar-footer { padding: 16px; border-top: 1px solid var(--border2); }
+    .btn-logout {
+      width: 100%; display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 10px; cursor: pointer;
+      background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.18);
+      color: #fca5a5; font-family: inherit; font-size: 13px; font-weight: 600;
+      transition: all .2s;
+    }
+    .btn-logout:hover { background: rgba(239,68,68,.15); }
+
+    /* Main content */
+    .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+    .topbar {
+      padding: 20px 28px 0;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+    }
+    .topbar-title { font-size: 22px; font-weight: 800; letter-spacing: -.3px; }
+    .topbar-sub   { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+    .content { padding: 20px 28px 40px; }
+
+    /* Stats cards */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); gap: 14px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 18px 20px;
+      transition: border-color .2s;
+    }
+    .stat-card:hover { border-color: rgba(255,255,255,.18); }
+    .stat-icon { font-size: 22px; margin-bottom: 10px; }
+    .stat-val  { font-size: 22px; font-weight: 800; letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
+    .stat-lbl  { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+
+    /* Section headers */
+    .sec-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+    }
+    .sec-title  { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .sec-sub    { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .sec-count  { font-size: 11px; color: var(--muted); background: var(--card2); border-radius: 20px; padding: 3px 10px; }
+
+    /* Table / cards */
+    .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: var(--card2); }
+    thead th { padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
+    tbody tr { border-top: 1px solid var(--border2); transition: background .1s; }
+    tbody tr:hover { background: rgba(255,255,255,.025); }
+    tbody td { padding: 12px 16px; color: var(--text); vertical-align: middle; }
+    .td-muted { color: var(--muted); font-size: 12px; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 48px 24px;
+      color: var(--muted); font-size: 14px;
+    }
+    .empty-icon { font-size: 36px; margin-bottom: 10px; opacity: .5; }
+
+    /* Loading skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--card2) 25%, var(--card3) 50%, var(--card2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius: 8px;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* Chips / badges */
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 11.5px; font-weight: 600; white-space: nowrap;
+    }
+    .chip-green  { background: var(--success-bg); color: #86efac; border: 1px solid rgba(34,197,94,.25); }
+    .chip-gold   { background: rgba(200,168,75,.15); color: var(--gold2); border: 1px solid rgba(200,168,75,.25); }
+    .chip-red    { background: var(--danger-bg); color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
+    .chip-blue   { background: rgba(56,189,248,.1); color: #7dd3fc; border: 1px solid rgba(56,189,248,.25); }
+    .chip-gray   { background: rgba(255,255,255,.06); color: var(--muted); border: 1px solid var(--border); }
+
+    /* Currency */
+    .money { font-variant-numeric: tabular-nums; font-weight: 600; }
+    .money-pos { color: #86efac; }
+    .money-neg { color: #fca5a5; }
+
+    /* Mobile hamburger */
+    .ham-btn {
+      display: none; background: none; border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 10px; color: var(--text);
+      cursor: pointer; font-size: 18px;
+    }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 99; }
+
+    /* View sections */
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+
+    /* Colillas card (movile) */
+    .colilla-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 18px 20px; margin-bottom: 12px; transition: border-color .2s;
+    }
+    .colilla-card:hover { border-color: rgba(255,255,255,.18); }
+    .colilla-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .colilla-row + .colilla-row { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border2); }
+    .colilla-label { font-size: 12px; color: var(--muted); }
+    .colilla-val   { font-size: 14px; font-weight: 700; }
+
+    /* Horario card */
+    .horario-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px;
+      display: flex; align-items: flex-start; gap: 16px; margin-bottom: 12px;
+    }
+    .horario-dia  { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; }
+    .horario-hora { font-size: 20px; font-weight: 800; letter-spacing: -.3px; font-variant-numeric: tabular-nums; }
+    .horario-plat { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .horario-date-icon {
+      width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+      background: rgba(99,102,241,.15); border: 1px solid rgba(99,102,241,.25);
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+
+    /* Préstamos */
+    .loan-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 12px;
+    }
+    .progress-track { background: rgba(255,255,255,.06); border-radius: 10px; height: 8px; margin: 10px 0; overflow: hidden; }
+    .progress-fill  { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--accent), var(--gold)); transition: width .4s; }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed; left: 0; top: 0; bottom: 0; z-index: 100;
+        transform: translateX(-100%); transition: transform .25s;
+        width: 260px;
+      }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.show { display: block; }
+      .ham-btn { display: flex; align-items: center; }
+      .main { width: 100%; }
+      .topbar { padding: 16px 16px 0; }
+      .content { padding: 16px 16px 32px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 400px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-row">
+          <div class="logo-icon">🏢</div>
+          <div>
+            <div class="logo-text">Grupo J&D</div>
+            <div class="logo-sub">Mi Portal</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-user">
+        <div class="user-avatar" id="sidebar-avatar">?</div>
+        <div class="user-name" id="sidebar-name">Cargando...</div>
+        <div class="user-rol" id="sidebar-email"></div>
+        <div id="sidebar-badge"></div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-label">Inicio</div>
+        <div class="nav-item active" onclick="navTo('resumen')" id="nav-resumen">
+          <span class="nav-icon">📊</span> Resumen
+        </div>
+
+        <div class="nav-label" style="margin-top:8px">Finanzas</div>
+        <div class="nav-item" onclick="navTo('colillas')" id="nav-colillas">
+          <span class="nav-icon">📄</span> Colillas de Pago
+        </div>
+        <div class="nav-item" onclick="navTo('liquidaciones')" id="nav-liquidaciones">
+          <span class="nav-icon">💰</span> Liquidaciones
+        </div>
+        <div class="nav-item" onclick="navTo('prestamos')" id="nav-prestamos">
+          <span class="nav-icon">🏦</span> Préstamos
+        </div>
+        <div class="nav-item" onclick="navTo('ahorros')" id="nav-ahorros">
+          <span class="nav-icon">🐷</span> Ahorros
+        </div>
+
+        <div class="nav-label" style="margin-top:8px" id="nav-label-horario">Agenda</div>
+        <div class="nav-item" onclick="navTo('horarios')" id="nav-horarios">
+          <span class="nav-icon">📅</span> Horarios
+        </div>
+
+        <div class="nav-label" style="margin-top:8px">Perfil</div>
+        <div class="nav-item" onclick="navTo('perfil')" id="nav-perfil">
+          <span class="nav-icon">👤</span> Mi Perfil
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn-logout" onclick="doLogout()">
+          <span>🚪</span> Cerrar sesión
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main" id="main">
+      <!-- Top bar -->
+      <div class="topbar">
+        <div style="display:flex;align-items:center;gap:14px">
+          <button class="ham-btn" onclick="openSidebar()">☰</button>
+          <div>
+            <div class="topbar-title" id="view-title">Resumen</div>
+            <div class="topbar-sub" id="view-sub">Vista general de tu cuenta</div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--muted)" id="last-update"></div>
+      </div>
+
+      <!-- Content area -->
+      <div class="content">
+
+        <!-- ═══ RESUMEN ═══ -->
+        <div class="view-section active" id="sec-resumen">
+          <div class="stats-grid" id="stats-grid">
+            <div class="stat-card skeleton" style="height:90px"></div>
+            <div class="stat-card skeleton" style="height:90px"></div>
+            <div class="stat-card skeleton" style="height:90px"></div>
+            <div class="stat-card skeleton" style="height:90px"></div>
+          </div>
+          <div id="resumen-actividad"></div>
+        </div>
+
+        <!-- ═══ COLILLAS ═══ -->
+        <div class="view-section" id="sec-colillas">
+          <div class="sec-header">
+            <div>
+              <div class="sec-title">📄 Colillas de Pago</div>
+              <div class="sec-sub">Registro de ingresos por plataforma</div>
+            </div>
+            <div class="sec-count" id="count-colillas">–</div>
+          </div>
+          <div id="list-colillas"><div class="empty-state"><div class="skeleton" style="height:200px;border-radius:12px"></div></div></div>
+        </div>
+
+        <!-- ═══ LIQUIDACIONES ═══ -->
+        <div class="view-section" id="sec-liquidaciones">
+          <div class="sec-header">
+            <div>
+              <div class="sec-title">💰 Liquidaciones</div>
+              <div class="sec-sub">Resumen de distribución de ingresos</div>
+            </div>
+            <div class="sec-count" id="count-liq">–</div>
+          </div>
+          <div id="list-liq"><div class="empty-state"><div class="skeleton" style="height:200px;border-radius:12px"></div></div></div>
+        </div>
+
+        <!-- ═══ PRÉSTAMOS ═══ -->
+        <div class="view-section" id="sec-prestamos">
+          <div class="sec-header">
+            <div>
+              <div class="sec-title">🏦 Préstamos</div>
+              <div class="sec-sub">Estado de tus créditos activos</div>
+            </div>
+            <div class="sec-count" id="count-prest">–</div>
+          </div>
+          <div id="list-prest"><div class="empty-state"><div class="skeleton" style="height:200px;border-radius:12px"></div></div></div>
+        </div>
+
+        <!-- ═══ AHORROS ═══ -->
+        <div class="view-section" id="sec-ahorros">
+          <div class="sec-header">
+            <div>
+              <div class="sec-title">🐷 Ahorros</div>
+              <div class="sec-sub">Tu fondo de ahorro acumulado</div>
+            </div>
+            <div class="sec-count" id="count-ahorros">–</div>
+          </div>
+          <div id="list-ahorros"><div class="empty-state"><div class="skeleton" style="height:200px;border-radius:12px"></div></div></div>
+        </div>
+
+        <!-- ═══ HORARIOS ═══ -->
+        <div class="view-section" id="sec-horarios">
+          <div class="sec-header">
+            <div>
+              <div class="sec-title">📅 Horarios</div>
+              <div class="sec-sub">Tu programación de transmisiones</div>
+            </div>
+            <div class="sec-count" id="count-hor">–</div>
+          </div>
+          <div id="list-hor"><div class="empty-state"><div class="skeleton" style="height:200px;border-radius:12px"></div></div></div>
+        </div>
+
+        <!-- ═══ PERFIL ═══ -->
+        <div class="view-section" id="sec-perfil">
+          <div class="sec-header">
+            <div>
+              <div class="sec-title">👤 Mi Perfil</div>
+              <div class="sec-sub">Información de tu cuenta</div>
+            </div>
+          </div>
+          <div id="content-perfil">
+            <div class="skeleton" style="height:200px;border-radius:14px"></div>
+          </div>
+        </div>
+
+      </div><!-- /content -->
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/dist/umd/supabase.js"></script>
+  <script>
+  /* ══════════════════════════════════════════════════════
+     CONFIGURACIÓN
+  ══════════════════════════════════════════════════════ */
+  const SUPA_URL = 'https://mqafwoaghwhnvorerjha.supabase.co';
+  const SUPA_KEY = 'sb_publishable_aFR9VQR68If1Nc-ZO0cI6w_FgDLLsNP';
+  const db = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+  const ADMIN_ROLES = ['super_admin','admin','gerente','ejecutivo','monitor','usuario'];
+
+  function baseDir() {
+    return window.location.href.replace(/[^/\\]*(\?.*)?$/, '');
+  }
+
+  /* estado global */
+  var _user      = null;   // Supabase auth user
+  var _profile   = null;   // jd_usuarios row
+  var _refId     = null;   // ref_id (modelo_id o estudio_id)
+  var _refTipo   = null;   // 'modelo' | 'estudio'
+
+  /* datos cacheados */
+  var _cache = { mon:null, liq:null, prest:null, ahorros:null, hor:null };
+
+  /* ══════════════════════════════════════════════════════
+     HELPERS
+  ══════════════════════════════════════════════════════ */
+  function fmt(n) {
+    if (n == null || n === '') return '—';
+    return Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
+  }
+  function fmtCOP(n) {
+    if (n == null || n === '') return '—';
+    return '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
+  }
+  function fmtDate(d) {
+    if (!d) return '—';
+    try {
+      return new Date(d).toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' });
+    } catch(e) { return d; }
+  }
+  function initials(name) {
+    if (!name) return '?';
+    return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  }
+
+  /* ══════════════════════════════════════════════════════
+     AUTH & INIT
+  ══════════════════════════════════════════════════════ */
+  async function init() {
+    try {
+      var { data: { session } } = await db.auth.getSession();
+      if (!session || !session.user) {
+        window.location.href = baseDir() + 'login.html';
+        return;
+      }
+      _user = session.user;
+      await loadProfile();
+    } catch(e) {
+      console.error('Init error:', e);
+      window.location.href = '/login.html';
+    }
+  }
+
+  async function loadProfile() {
+    try {
+      var { data: profile, error } = await db
+        .from('jd_usuarios')
+        .select('*')
+        .eq('email', _user.email)
+        .single();
+
+      if (error || !profile) {
+        // Sin perfil → logout
+        await db.auth.signOut();
+        window.location.href = baseDir() + 'login.html';
+        return;
+      }
+      _profile = profile;
+
+      // Si es admin, redirigir a gerencia
+      if (ADMIN_ROLES.includes(profile.rol)) {
+        window.location.href = baseDir() + 'gerencia-general.html';
+        return;
+      }
+
+      // Si está inactivo
+      if (profile.estado === 'inactivo') {
+        await db.auth.signOut();
+        window.location.href = baseDir() + 'login.html';
+        return;
+      }
+
+      // Obtener ref_id y ref_tipo
+      var permisos = profile.permisos || {};
+      _refId   = permisos.ref_id   || null;
+      _refTipo = permisos.ref_tipo  || profile.rol || 'modelo';
+
+      // Normalizar tipo
+      if (_refTipo === 'modelo_independiente' || _refTipo === 'modelo_fornax') _refTipo = 'modelo';
+
+      // Render sidebar
+      renderSidebar(profile);
+
+      // Cargar datos
+      await Promise.all([
+        loadMonetizaciones(),
+        loadLiquidaciones(),
+        loadPrestamos(),
+        loadAhorros(),
+        loadHorarios()
+      ]);
+
+      renderResumen();
+      renderColillas();
+      renderLiquidaciones();
+      renderPrestamos();
+      renderAhorros();
+      renderHorarios();
+      renderPerfil();
+
+      // Actualizar last update
+      document.getElementById('last-update').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-CO', {hour:'2-digit',minute:'2-digit'});
+
+    } catch(e) {
+      console.error('loadProfile error:', e);
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     SIDEBAR
+  ══════════════════════════════════════════════════════ */
+  function renderSidebar(profile) {
+    var nombre = profile.nombre || profile.email || '–';
+    document.getElementById('sidebar-avatar').textContent = initials(nombre);
+    document.getElementById('sidebar-name').textContent = nombre;
+    document.getElementById('sidebar-email').textContent = profile.email || '';
+
+    var isEstudio = _refTipo === 'estudio';
+    var badge = document.getElementById('sidebar-badge');
+    badge.innerHTML = '<span class="user-badge '+(isEstudio?'badge-estudio':'badge-modelo')+'">'
+      + (isEstudio ? '🏠 Estudio Aliado' : '⭐ Modelo')
+      + '</span>';
+
+    // Ocultar horarios si es estudio
+    if (isEstudio) {
+      document.getElementById('nav-horarios').style.display = 'none';
+      document.getElementById('nav-label-horario').style.display = 'none';
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     DATOS — Carga desde Supabase
+  ══════════════════════════════════════════════════════ */
+  async function loadMonetizaciones() {
+    if (!_refId) return;
+    try {
+      var col = _refTipo === 'estudio' ? 'estudio_id' : 'modelo_id';
+      var { data } = await db.from('monetizaciones').select('*')
+        .eq(col, _refId)
+        .order('created_at', { ascending: false })
+        .limit(100);
+      _cache.mon = data || [];
+    } catch(e) { _cache.mon = []; }
+  }
+
+  async function loadLiquidaciones() {
+    if (!_refId) return;
+    try {
+      var col = _refTipo === 'estudio' ? 'estudio_id' : 'modelo_id';
+      var { data } = await db.from('liquidaciones').select('*')
+        .eq(col, _refId)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      _cache.liq = data || [];
+    } catch(e) { _cache.liq = []; }
+  }
+
+  async function loadPrestamos() {
+    if (!_refId) return;
+    try {
+      var col = _refTipo === 'estudio' ? 'estudio_id' : 'modelo_id';
+      var { data } = await db.from('prestamos').select('*')
+        .eq(col, _refId)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      _cache.prest = data || [];
+    } catch(e) { _cache.prest = []; }
+  }
+
+  async function loadAhorros() {
+    if (!_refId) return;
+    try {
+      var col = _refTipo === 'estudio' ? 'estudio_id' : 'modelo_id';
+      var { data } = await db.from('ahorros').select('*')
+        .eq(col, _refId)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      _cache.ahorros = data || [];
+    } catch(e) { _cache.ahorros = []; }
+  }
+
+  async function loadHorarios() {
+    if (!_refId || _refTipo === 'estudio') return;
+    try {
+      var { data } = await db.from('horarios').select('*')
+        .eq('modelo_id', _refId)
+        .order('fecha', { ascending: false })
+        .limit(50);
+      _cache.hor = data || [];
+    } catch(e) { _cache.hor = []; }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     RENDER — RESUMEN
+  ══════════════════════════════════════════════════════ */
+  function renderResumen() {
+    var mon    = _cache.mon || [];
+    var liq    = _cache.liq || [];
+    var prest  = _cache.prest || [];
+    var ahorros = _cache.ahorros || [];
+
+    var totalIngresos = mon.reduce(function(s,r){ return s + (Number(r.ingresos_brutos)||0); }, 0);
+    var totalLiq      = liq.reduce(function(s,r){ return s + (Number(r.total_distribuido)||0); }, 0);
+    var totalPrest    = prest.filter(function(p){ return p.estado==='activo'||p.estado==='pendiente'; })
+                         .reduce(function(s,r){ return s + (Number(r.monto)||0); }, 0);
+    var totalAhorros  = ahorros.reduce(function(s,r){ return s + (Number(r.saldo_cop)||Number(r.monto)||0); }, 0);
+
+    var stats = [
+      { icon:'💵', val: fmtCOP(totalIngresos), lbl:'Ingresos brutos', color:'var(--success)' },
+      { icon:'💰', val: fmtCOP(totalLiq),      lbl:'Total liquidado', color:'var(--gold2)' },
+      { icon:'🏦', val: fmtCOP(totalPrest),    lbl:'Préstamos activos', color:'var(--accent2)' },
+      { icon:'🐷', val: fmtCOP(totalAhorros),  lbl:'Saldo de ahorros', color:'var(--info)' },
+    ];
+
+    var grid = document.getElementById('stats-grid');
+    grid.innerHTML = stats.map(function(s){
+      return '<div class="stat-card">'
+        + '<div class="stat-icon">'+s.icon+'</div>'
+        + '<div class="stat-val" style="color:'+s.color+'">'+s.val+'</div>'
+        + '<div class="stat-lbl">'+s.lbl+'</div>'
+        + '</div>';
+    }).join('');
+
+    // Actividad reciente (últimas colillas)
+    var actWrap = document.getElementById('resumen-actividad');
+    if (mon.length === 0) {
+      actWrap.innerHTML = '';
+      return;
+    }
+    var recientes = mon.slice(0,5);
+    actWrap.innerHTML = '<div class="sec-header" style="margin-top:24px">'
+      + '<div class="sec-title">🕒 Actividad reciente</div>'
+      + '<div class="sec-count">Últimas '+recientes.length+' colillas</div>'
+      + '</div>'
+      + '<div class="table-wrap"><table>'
+      + '<thead><tr><th>Fecha</th><th>Plataforma</th><th>Ingresos</th><th>Estado</th></tr></thead>'
+      + '<tbody>'
+      + recientes.map(function(r){
+          return '<tr>'
+            + '<td class="td-muted">'+fmtDate(r.fecha||r.created_at)+'</td>'
+            + '<td>'+escHtml(r.pagina||r.plataforma||'–')+'</td>'
+            + '<td class="money money-pos">'+fmtCOP(r.ingresos_brutos)+'</td>'
+            + '<td>'+(r.estado?'<span class="chip chip-green">'+escHtml(r.estado)+'</span>':'–')+'</td>'
+            + '</tr>';
+        }).join('')
+      + '</tbody></table></div>';
+  }
+
+  /* ══════════════════════════════════════════════════════
+     RENDER — COLILLAS
+  ══════════════════════════════════════════════════════ */
+  function renderColillas() {
+    var data = _cache.mon || [];
+    document.getElementById('count-colillas').textContent = data.length + ' registro' + (data.length===1?'':'s');
+
+    var wrap = document.getElementById('list-colillas');
+    if (data.length === 0) {
+      wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">📄</div>No hay colillas registradas todavía.</div>';
+      return;
+    }
+
+    // En mobile: cards; en desktop: tabla
+    var isDesktop = window.innerWidth > 768;
+    if (isDesktop) {
+      wrap.innerHTML = '<div class="table-wrap"><table>'
+        + '<thead><tr><th>Fecha</th><th>Plataforma</th><th>Ingresos Brutos</th><th>Deducción %</th><th>Total Pesos</th><th>Estado</th></tr></thead>'
+        + '<tbody>'
+        + data.map(function(r){
+            return '<tr>'
+              + '<td class="td-muted">'+fmtDate(r.fecha||r.created_at)+'</td>'
+              + '<td>'+escHtml(r.pagina||r.plataforma||'–')+'</td>'
+              + '<td class="money money-pos">'+fmtCOP(r.ingresos_brutos)+'</td>'
+              + '<td class="td-muted">'+(r.porcentaje_deduccion != null ? r.porcentaje_deduccion+'%' : '–')+'</td>'
+              + '<td class="money">'+fmtCOP(r.total_pesos_mon)+'</td>'
+              + '<td>'+(r.estado?'<span class="chip chip-green">'+escHtml(r.estado)+'</span>':'–')+'</td>'
+              + '</tr>';
+          }).join('')
+        + '</tbody></table></div>';
+    } else {
+      wrap.innerHTML = data.map(function(r){
+        return '<div class="colilla-card">'
+          + '<div class="colilla-row">'
+          + '  <span class="colilla-label">'+fmtDate(r.fecha||r.created_at)+'</span>'
+          + '  <span class="chip chip-green">'+escHtml(r.estado||'–')+'</span>'
+          + '</div>'
+          + '<div class="colilla-row">'
+          + '  <span class="colilla-label">Plataforma</span>'
+          + '  <span class="colilla-val">'+escHtml(r.pagina||r.plataforma||'–')+'</span>'
+          + '</div>'
+          + '<div class="colilla-row">'
+          + '  <span class="colilla-label">Ingresos brutos</span>'
+          + '  <span class="colilla-val money-pos">'+fmtCOP(r.ingresos_brutos)+'</span>'
+          + '</div>'
+          + '<div class="colilla-row">'
+          + '  <span class="colilla-label">Total pesos</span>'
+          + '  <span class="colilla-val money">'+fmtCOP(r.total_pesos_mon)+'</span>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     RENDER — LIQUIDACIONES
+  ══════════════════════════════════════════════════════ */
+  function renderLiquidaciones() {
+    var data = _cache.liq || [];
+    document.getElementById('count-liq').textContent = data.length + ' registro' + (data.length===1?'':'s');
+
+    var wrap = document.getElementById('list-liq');
+    if (data.length === 0) {
+      wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">💰</div>No hay liquidaciones registradas.</div>';
+      return;
+    }
+    wrap.innerHTML = '<div class="table-wrap"><table>'
+      + '<thead><tr><th>Fecha</th><th>Créditos</th><th>Deducciones</th><th>Total Distribuido</th><th>Estado</th></tr></thead>'
+      + '<tbody>'
+      + data.map(function(r){
+          return '<tr>'
+            + '<td class="td-muted">'+fmtDate(r.fecha||r.periodo||r.created_at)+'</td>'
+            + '<td class="money money-pos">'+fmtCOP(r.total_creditos)+'</td>'
+            + '<td class="money money-neg">'+fmtCOP(r.total_deducciones)+'</td>'
+            + '<td class="money" style="font-weight:800;color:var(--gold2)">'+fmtCOP(r.total_distribuido)+'</td>'
+            + '<td>'+(r.estado?'<span class="chip chip-green">'+escHtml(r.estado)+'</span>':'–')+'</td>'
+            + '</tr>';
+        }).join('')
+      + '</tbody></table></div>';
+  }
+
+  /* ══════════════════════════════════════════════════════
+     RENDER — PRÉSTAMOS
+  ══════════════════════════════════════════════════════ */
+  function renderPrestamos() {
+    var data = _cache.prest || [];
+    document.getElementById('count-prest').textContent = data.length + ' registro' + (data.length===1?'':'s');
+
+    var wrap = document.getElementById('list-prest');
+    if (data.length === 0) {
+      wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">🏦</div>No tienes préstamos registrados.</div>';
+      return;
+    }
+    wrap.innerHTML = data.map(function(r){
+      var cuotasPag = Number(r.cuotas_pagadas||0);
+      var cuotasTot = Number(r.cuotas||1);
+      var pct = Math.min(100, Math.round(cuotasPag/cuotasTot*100));
+      return '<div class="loan-card">'
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">'
+        + '  <div>'
+        + '    <div style="font-weight:700;font-size:15px">'+escHtml(r.concepto||'Préstamo')+'</div>'
+        + '    <div style="font-size:12px;color:var(--muted);margin-top:3px">'+fmtDate(r.fecha||r.created_at)+'</div>'
+        + '  </div>'
+        + '  <span class="chip '+(r.estado==='activo'?'chip-gold':(r.estado==='pagado'?'chip-green':'chip-gray'))+'">'+escHtml(r.estado||'–')+'</span>'
+        + '</div>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">'
+        + '  <div><div style="font-size:11px;color:var(--muted)">Monto total</div><div class="money" style="font-size:18px;font-weight:800;color:var(--danger)">'+fmtCOP(r.monto)+'</div></div>'
+        + '  <div><div style="font-size:11px;color:var(--muted)">Valor cuota</div><div class="money" style="font-size:18px;font-weight:800">'+fmtCOP(r.valor_cuota)+'</div></div>'
+        + '</div>'
+        + '<div style="margin-top:14px">'
+        + '  <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px">'
+        + '    <span>Cuotas pagadas: '+cuotasPag+'/'+cuotasTot+'</span>'
+        + '    <span>'+pct+'%</span>'
+        + '  </div>'
+        + '  <div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  /* ══════════════════════════════════════════════════════
+     RENDER — AHORROS
+  ══════════════════════════════════════════════════════ */
+  function renderAhorros() {
+    var data = _cache.ahorros || [];
+    document.getElementById('count-ahorros').textContent = data.length + ' movimiento' + (data.length===1?'':'s');
+
+    // Saldo total
+    var saldoTotal = data.reduce(function(s,r){ return s + (Number(r.saldo_cop)||Number(r.monto)||0); }, 0);
+
+    var wrap = document.getElementById('list-ahorros');
+    if (data.length === 0) {
+      wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">🐷</div>No hay movimientos de ahorro registrados.</div>';
+      return;
+    }
+
+    var header = '<div style="background:linear-gradient(135deg,rgba(56,189,248,.12),rgba(56,189,248,.04));border:1px solid rgba(56,189,248,.2);border-radius:14px;padding:20px 24px;margin-bottom:20px">'
+      + '<div style="font-size:12px;color:var(--muted)">Saldo total acumulado</div>'
+      + '<div class="money" style="font-size:30px;font-weight:800;color:var(--info);margin-top:4px">'+fmtCOP(saldoTotal)+'</div>'
+      + '</div>';
+
+    wrap.innerHTML = header + '<div class="table-wrap"><table>'
+      + '<thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Saldo</th><th>Estado</th></tr></thead>'
+      + '<tbody>'
+      + data.map(function(r){
+          return '<tr>'
+            + '<td class="td-muted">'+fmtDate(r.fecha||r.created_at)+'</td>'
+            + '<td>'+escHtml(r.concepto||'Ahorro')+'</td>'
+            + '<td class="money money-pos">'+fmtCOP(r.monto)+'</td>'
+            + '<td class="money">'+fmtCOP(r.saldo_cop)+'</td>'
+            + '<td>'+(r.estado?'<span class="chip chip-green">'+escHtml(r.estado)+'</span>':'–')+'</td>'
+            + '</tr>';
+        }).join('')
+      + '</tbody></table></div>';
+  }
+
+  /* ══════════════════════════════════════════════════════
+     RENDER — HORARIOS
+  ══════════════════════════════════════════════════════ */
+  function renderHorarios() {
+    var data = _cache.hor || [];
+    document.getElementById('count-hor').textContent = data.length + ' registro' + (data.length===1?'':'s');
+
+    var wrap = document.getElementById('list-hor');
+    if (data.length === 0) {
+      wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div>No hay horarios registrados.</div>';
+      return;
+    }
+
+    // Desktop: tabla; Mobile: cards
+    var isDesktop = window.innerWidth > 768;
+    if (isDesktop) {
+      wrap.innerHTML = '<div class="table-wrap"><table>'
+        + '<thead><tr><th>Fecha</th><th>Hora inicio</th><th>Hora fin</th><th>Plataforma</th><th>Estado</th></tr></thead>'
+        + '<tbody>'
+        + data.map(function(r){
+            return '<tr>'
+              + '<td class="td-muted">'+fmtDate(r.fecha)+'</td>'
+              + '<td style="font-variant-numeric:tabular-nums">'+escHtml(r.hora_inicio||'–')+'</td>'
+              + '<td style="font-variant-numeric:tabular-nums">'+escHtml(r.hora_fin||'–')+'</td>'
+              + '<td>'+escHtml(r.pagina||r.plataforma||'–')+'</td>'
+              + '<td>'+(r.estado?'<span class="chip '+(r.estado==='activo'?'chip-green':'chip-gray')+'">'+escHtml(r.estado)+'</span>':'–')+'</td>'
+              + '</tr>';
+          }).join('')
+        + '</tbody></table></div>';
+    } else {
+      wrap.innerHTML = data.map(function(r){
+        return '<div class="horario-card">'
+          + '<div class="horario-date-icon">📅</div>'
+          + '<div style="flex:1">'
+          + '  <div class="horario-dia">'+fmtDate(r.fecha)+'</div>'
+          + '  <div class="horario-hora">'+escHtml(r.hora_inicio||'–')+' – '+escHtml(r.hora_fin||'–')+'</div>'
+          + '  <div class="horario-plat">'+escHtml(r.pagina||r.plataforma||'–')+'</div>'
+          + '</div>'
+          + (r.estado?'<span class="chip '+(r.estado==='activo'?'chip-green':'chip-gray')+'">'+escHtml(r.estado)+'</span>':'')
+          + '</div>';
+      }).join('');
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     RENDER — PERFIL
+  ══════════════════════════════════════════════════════ */
+  function renderPerfil() {
+    var p = _profile || {};
+    var permisos = p.permisos || {};
+    var isEstudio = _refTipo === 'estudio';
+
+    var wrap = document.getElementById('content-perfil');
+    wrap.innerHTML = '<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px 28px;max-width:520px">'
+      + '<div style="display:flex;align-items:center;gap:18px;margin-bottom:24px;flex-wrap:wrap">'
+      + '  <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--gold));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:white;flex-shrink:0">'+initials(p.nombre||p.email||'?')+'</div>'
+      + '  <div>'
+      + '    <div style="font-size:18px;font-weight:800">'+escHtml(p.nombre||'–')+'</div>'
+      + '    <div style="font-size:13px;color:var(--muted);margin-top:2px">'+escHtml(p.email||'–')+'</div>'
+      + '    <span class="user-badge '+(isEstudio?'badge-estudio':'badge-modelo')+'" style="margin-top:6px;display:inline-flex">'+(isEstudio?'🏠 Estudio Aliado':'⭐ Modelo')+'</span>'
+      + '  </div>'
+      + '</div>'
+      + '<div style="display:grid;gap:14px">'
+      + fila('Estado', p.estado ? '<span class="chip chip-green">'+escHtml(p.estado)+'</span>' : '–')
+      + fila('Rol', escHtml(p.rol||'–'))
+      + fila('Fecha de registro', fmtDate(p.fecha_creacion||p.created_at))
+      + fila('Último acceso', fmtDate(p.ultimo_acceso))
+      + '</div>'
+      + '<div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border2)">'
+      + '  <div style="font-size:12px;color:var(--muted);margin-bottom:10px">¿Necesitas cambiar tu contraseña?</div>'
+      + '  <button onclick="doForgotPwd()" style="background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);border-radius:10px;padding:10px 18px;color:var(--accent2);font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;transition:background .2s" onmouseover="this.style.background=\'rgba(99,102,241,.2)\'" onmouseout="this.style.background=\'rgba(99,102,241,.12)\'">🔑 Enviar enlace de cambio de contraseña</button>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function fila(lbl, val) {
+    return '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border2);flex-wrap:wrap">'
+      + '<span style="font-size:13px;color:var(--muted)">'+lbl+'</span>'
+      + '<span style="font-size:13.5px;font-weight:600">'+val+'</span>'
+      + '</div>';
+  }
+
+  async function doForgotPwd() {
+    if (!_user || !_user.email) return;
+    try {
+      var redirectTo = baseDir() + 'login.html';
+      await db.auth.resetPasswordForEmail(_user.email, { redirectTo });
+      alert('✅ Enviamos un enlace a ' + _user.email + ' para cambiar tu contraseña.');
+    } catch(e) {
+      alert('Error al enviar el correo. Intenta de nuevo.');
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     NAVEGACIÓN
+  ══════════════════════════════════════════════════════ */
+  var VIEW_TITLES = {
+    resumen:        ['Resumen', 'Vista general de tu cuenta'],
+    colillas:       ['Colillas de Pago', 'Registro de ingresos por plataforma'],
+    liquidaciones:  ['Liquidaciones', 'Distribución de ingresos'],
+    prestamos:      ['Préstamos', 'Estado de tus créditos'],
+    ahorros:        ['Ahorros', 'Fondo de ahorro acumulado'],
+    horarios:       ['Horarios', 'Tu programación de transmisiones'],
+    perfil:         ['Mi Perfil', 'Información de tu cuenta'],
+  };
+
+  function navTo(section) {
+    // Activar nav
+    document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
+    var navEl = document.getElementById('nav-'+section);
+    if (navEl) navEl.classList.add('active');
+
+    // Mostrar sección
+    document.querySelectorAll('.view-section').forEach(function(el){ el.classList.remove('active'); });
+    var sec = document.getElementById('sec-'+section);
+    if (sec) sec.classList.add('active');
+
+    // Títulos
+    var titles = VIEW_TITLES[section] || [section, ''];
+    document.getElementById('view-title').textContent = titles[0];
+    document.getElementById('view-sub').textContent   = titles[1];
+
+    // Cerrar sidebar en mobile
+    closeSidebar();
+  }
+
+  /* ══════════════════════════════════════════════════════
+     SIDEBAR MOBILE
+  ══════════════════════════════════════════════════════ */
+  function openSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('show');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('show');
+  }
+
+  /* ══════════════════════════════════════════════════════
+     LOGOUT
+  ══════════════════════════════════════════════════════ */
+  async function doLogout() {
+    await db.auth.signOut();
+    window.location.href = baseDir() + 'login.html';
+  }
+
+  /* ══════════════════════════════════════════════════════
+     SECURITY
+  ══════════════════════════════════════════════════════ */
+  function escHtml(s) {
+    if (s == null) return '–';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ══════════════════════════════════════════════════════
+     START
+  ══════════════════════════════════════════════════════ */
+  init();
+  </script>
+</body>
+</html>

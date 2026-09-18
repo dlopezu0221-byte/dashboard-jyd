@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Acceso — Grupo J&D</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+  <style>
+    :root {
+      --bg: #0f0f13;
+      --card: #1a1a22;
+      --card2: #22222e;
+      --border: rgba(255,255,255,.1);
+      --text: #f0f0f5;
+      --muted: #8888a8;
+      --gold: #c8a84b;
+      --gold2: #e6c76d;
+      --accent: #6366f1;
+      --accent2: #818cf8;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --radius: 14px;
+      --shadow: 0 24px 80px rgba(0,0,0,.55);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px 16px;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(99,102,241,.18) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 80% 110%, rgba(200,168,75,.1) 0%, transparent 70%),
+        var(--bg);
+    }
+
+    /* Card */
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 36px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--accent2), var(--gold2));
+      border-radius: 20px 20px 0 0;
+    }
+
+    /* Logo */
+    .logo-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+    .logo-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(200,168,75,.25), rgba(99,102,241,.2));
+      border: 1.5px solid rgba(200,168,75,.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+    }
+    .logo-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.5px;
+      background: linear-gradient(135deg, var(--gold2), var(--text));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .logo-sub {
+      font-size: 12.5px;
+      color: var(--muted);
+      font-weight: 400;
+      letter-spacing: .2px;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 18px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      margin-bottom: 7px;
+    }
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      background: var(--card2);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14.5px;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+    }
+    input::placeholder { color: #55556a; }
+
+    .pwd-wrap {
+      position: relative;
+    }
+    .pwd-wrap input { padding-right: 44px; }
+    .pwd-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 17px;
+      line-height: 1;
+      padding: 4px;
+      transition: color .2s;
+    }
+    .pwd-toggle:hover { color: var(--text); }
+
+    /* Buttons */
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, var(--gold), #a8873a);
+      border: none;
+      border-radius: 10px;
+      color: #1a1400;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 13px;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      margin-top: 8px;
+      letter-spacing: .2px;
+    }
+    .btn-primary:hover { opacity: .92; }
+    .btn-primary:active { transform: scale(.98); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    .btn-link {
+      background: none;
+      border: none;
+      color: var(--accent2);
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      transition: color .2s;
+    }
+    .btn-link:hover { color: var(--gold2); }
+
+    /* Footer links */
+    .form-footer {
+      display: flex;
+      justify-content: center;
+      margin-top: 18px;
+    }
+
+    /* Alert */
+    .alert {
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13.5px;
+      font-weight: 500;
+      margin-bottom: 18px;
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .alert.show { display: flex; }
+    .alert-error {
+      background: rgba(239,68,68,.12);
+      border: 1px solid rgba(239,68,68,.3);
+      color: #fca5a5;
+    }
+    .alert-success {
+      background: rgba(34,197,94,.1);
+      border: 1px solid rgba(34,197,94,.3);
+      color: #86efac;
+    }
+    .alert-icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+
+    /* Forgot password view */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* Loader overlay */
+    #loader {
+      position: fixed; inset: 0;
+      background: rgba(15,15,19,.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      flex-direction: column;
+      gap: 16px;
+    }
+    #loader.show { display: flex; }
+    .spinner {
+      width: 44px; height: 44px;
+      border: 3px solid rgba(200,168,75,.2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    .loader-text {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Back button */
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+      margin-bottom: 24px;
+      padding: 0;
+      transition: color .2s;
+    }
+    .back-btn:hover { color: var(--text); }
+
+    /* Copyright */
+    .copyright {
+      text-align: center;
+      font-size: 11.5px;
+      color: #44445a;
+      margin-top: 28px;
+    }
+
+    @media (max-width: 460px) {
+      .login-card { padding: 32px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loader">
+    <div class="spinner"></div>
+    <div class="loader-text" id="loader-text">Verificando sesión...</div>
+  </div>
+
+  <div class="login-card">
+    <!-- Logo -->
+    <div class="logo-wrap">
+      <div class="logo-icon">🏢</div>
+      <div class="logo-title">Grupo J&D</div>
+      <div class="logo-sub">Sistema de Gestión Empresarial</div>
+    </div>
+
+    <!-- VIEW: LOGIN -->
+    <div id="view-login" class="view active">
+      <div class="alert alert-error" id="login-alert">
+        <span class="alert-icon">⚠️</span>
+        <span id="login-alert-text"></span>
+      </div>
+
+      <form id="login-form" onsubmit="doLogin(event)">
+        <div class="form-group">
+          <label for="email">Correo electrónico</label>
+          <input type="email" id="email" placeholder="tu@email.com" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <div class="pwd-wrap">
+            <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+            <button type="button" class="pwd-toggle" onclick="togglePwd('password')" tabindex="-1">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" id="btn-login">Ingresar al sistema</button>
+      </form>
+
+      <div class="form-footer">
+        <button class="btn-link" onclick="showView('view-forgot')">Olvidé mi contraseña</button>
+      </div>
+    </div>
+
+    <!-- VIEW: FORGOT PASSWORD -->
+    <div id="view-forgot" class="view">
+      <button class="back-btn" onclick="showView('view-login')">← Volver al acceso</button>
+
+      <div class="alert alert-error" id="forgot-alert">
+        <span class="alert-icon">⚠️</span>
+        <span id="forgot-alert-text"></span>
+      </div>
+      <div class="alert alert-success" id="forgot-ok">
+        <span class="alert-icon">✅</span>
+        <span>Revisa tu correo — te enviamos un enlace para restablecer tu contraseña.</span>
+      </div>
+
+      <form id="forgot-form" onsubmit="doForgot(event)">
+        <div class="form-group">
+          <label for="forgot-email">Correo electrónico</label>
+          <input type="email" id="forgot-email" placeholder="tu@email.com" required>
+        </div>
+        <button type="submit" class="btn-primary" id="btn-forgot">Enviar enlace de recuperación</button>
+      </form>
+    </div>
+
+    <!-- VIEW: RESET PASSWORD (llegó desde enlace de email) -->
+    <div id="view-reset" class="view">
+      <div class="logo-wrap" style="margin-bottom:20px">
+        <div style="font-size:18px;font-weight:700;color:var(--text)">Nueva contraseña</div>
+        <div style="font-size:12.5px;color:var(--muted)">Elige una contraseña segura</div>
+      </div>
+
+      <div class="alert alert-error" id="reset-alert">
+        <span class="alert-icon">⚠️</span>
+        <span id="reset-alert-text"></span>
+      </div>
+      <div class="alert alert-success" id="reset-ok">
+        <span class="alert-icon">✅</span>
+        <span>Contraseña actualizada. Redirigiendo...</span>
+      </div>
+
+      <form id="reset-form" onsubmit="doReset(event)">
+        <div class="form-group">
+          <label for="new-pwd">Nueva contraseña</label>
+          <div class="pwd-wrap">
+            <input type="password" id="new-pwd" placeholder="Mínimo 8 caracteres" required minlength="8">
+            <button type="button" class="pwd-toggle" onclick="togglePwd('new-pwd')" tabindex="-1">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="confirm-pwd">Confirmar contraseña</label>
+          <div class="pwd-wrap">
+            <input type="password" id="confirm-pwd" placeholder="Repite la contraseña" required minlength="8">
+            <button type="button" class="pwd-toggle" onclick="togglePwd('confirm-pwd')" tabindex="-1">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" id="btn-reset">Guardar contraseña</button>
+      </form>
+    </div>
+
+    <div class="copyright">© 2024–2026 Grupo Empresarial J&D · Todos los derechos reservados</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/dist/umd/supabase.js"></script>
+  <script>
+    /* ══════════════════════════════════════
+       CONFIGURACIÓN
+    ══════════════════════════════════════ */
+    const SUPA_URL = 'https://mqafwoaghwhnvorerjha.supabase.co';
+    const SUPA_KEY = 'sb_publishable_aFR9VQR68If1Nc-ZO0cI6w_FgDLLsNP';
+    const db = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+    // Roles que van a gerencia-general, el resto va a portal
+    const ADMIN_ROLES = ['super_admin','admin','gerente','ejecutivo','monitor','usuario'];
+    const PORTAL_ROLES = ['estudio','modelo','modelo_independiente','modelo_fornax'];
+
+    /* ══════════════════════════════════════
+       HELPERS UI
+    ══════════════════════════════════════ */
+    function showLoader(text) {
+      document.getElementById('loader-text').textContent = text || 'Cargando...';
+      document.getElementById('loader').classList.add('show');
+    }
+    function hideLoader() {
+      document.getElementById('loader').classList.remove('show');
+    }
+    function showView(id) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+    function showAlert(alertId, textId, msg) {
+      document.getElementById(textId).textContent = msg;
+      document.getElementById(alertId).classList.add('show');
+    }
+    function hideAlert(alertId) {
+      document.getElementById(alertId).classList.remove('show');
+    }
+    function togglePwd(id) {
+      var f = document.getElementById(id);
+      f.type = f.type === 'password' ? 'text' : 'password';
+    }
+
+    /* ══════════════════════════════════════
+       ENRUTAMIENTO POR ROL
+    ══════════════════════════════════════ */
+    // Base URL del directorio actual (funciona tanto en local como en servidor)
+    function baseDir() {
+      return window.location.href.replace(/[^/\\]*(\?.*)?$/, '');
+    }
+
+    function routeByRole(rol) {
+      var base = baseDir();
+      if (!rol) {
+        window.location.href = base + 'portal.html';
+        return;
+      }
+      if (ADMIN_ROLES.includes(rol)) {
+        window.location.href = base + 'gerencia-general.html';
+      } else {
+        window.location.href = base + 'portal.html';
+      }
+    }
+
+    async function loadProfileAndRoute(authUser) {
+      try {
+        var { data: profile, error } = await db
+          .from('jd_usuarios')
+          .select('rol, estado')
+          .eq('email', authUser.email)
+          .single();
+
+        if (error || !profile) {
+          // Usuario autenticado pero sin perfil en jd_usuarios → portal
+          routeByRole(null);
+          return;
+        }
+        if (profile.estado === 'inactivo') {
+          await db.auth.signOut();
+          hideLoader();
+          showAlert('login-alert','login-alert-text','Tu cuenta está inactiva. Contacta al administrador.');
+          return;
+        }
+        routeByRole(profile.rol);
+      } catch(e) {
+        routeByRole(null);
+      }
+    }
+
+    /* ══════════════════════════════════════
+       VERIFICAR SESIÓN ACTIVA AL CARGAR
+    ══════════════════════════════════════ */
+    // Detectar si venimos de un enlace de reset password
+    var hashParams = {};
+    if (window.location.hash) {
+      window.location.hash.substring(1).split('&').forEach(function(p){
+        var kv = p.split('=');
+        hashParams[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1]||'');
+      });
+    }
+
+    (async function init() {
+      // Si hay token de reset en el hash, mostrar vista de reset
+      if (hashParams.type === 'recovery' || hashParams.access_token) {
+        hideLoader();
+        showView('view-reset');
+        return;
+      }
+
+      showLoader('Verificando sesión...');
+      try {
+        var { data: { session } } = await db.auth.getSession();
+        if (session && session.user) {
+          showLoader('Cargando perfil...');
+          await loadProfileAndRoute(session.user);
+        } else {
+          hideLoader();
+        }
+      } catch(e) {
+        hideLoader();
+      }
+    })();
+
+    // Escuchar cambios de sesión (ej: enlace de reset password desde email)
+    db.auth.onAuthStateChange(async function(event, session) {
+      if (event === 'PASSWORD_RECOVERY') {
+        hideLoader();
+        showView('view-reset');
+      }
+    });
+
+    /* ══════════════════════════════════════
+       LOGIN
+    ══════════════════════════════════════ */
+    async function doLogin(e) {
+      e.preventDefault();
+      hideAlert('login-alert');
+      var email = document.getElementById('email').value.trim();
+      var pwd   = document.getElementById('password').value;
+      var btn   = document.getElementById('btn-login');
+
+      btn.disabled = true;
+      btn.textContent = 'Ingresando...';
+      showLoader('Verificando credenciales...');
+
+      try {
+        var { data, error } = await db.auth.signInWithPassword({ email, password: pwd });
+        if (error) {
+          throw error;
+        }
+        showLoader('Cargando perfil...');
+        await loadProfileAndRoute(data.user);
+      } catch(err) {
+        hideLoader();
+        btn.disabled = false;
+        btn.textContent = 'Ingresar al sistema';
+        var msg = 'Correo o contraseña incorrectos.';
+        if (err && err.message) {
+          if (err.message.includes('Invalid login')) msg = 'Correo o contraseña incorrectos.';
+          else if (err.message.includes('Email not confirmed')) msg = 'Debes confirmar tu correo antes de ingresar.';
+          else if (err.message.includes('Too many requests')) msg = 'Demasiados intentos. Espera unos minutos.';
+          else msg = err.message;
+        }
+        showAlert('login-alert','login-alert-text', msg);
+      }
+    }
+
+    /* ══════════════════════════════════════
+       OLVIDÉ MI CONTRASEÑA
+    ══════════════════════════════════════ */
+    async function doForgot(e) {
+      e.preventDefault();
+      hideAlert('forgot-alert');
+      document.getElementById('forgot-ok').classList.remove('show');
+      var email = document.getElementById('forgot-email').value.trim();
+      var btn   = document.getElementById('btn-forgot');
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+
+      try {
+        var redirectTo = window.location.href.split('?')[0].split('#')[0];
+        var { error } = await db.auth.resetPasswordForEmail(email, { redirectTo });
+        if (error) throw error;
+        document.getElementById('forgot-ok').classList.add('show');
+        btn.textContent = 'Enlace enviado';
+      } catch(err) {
+        btn.disabled = false;
+        btn.textContent = 'Enviar enlace de recuperación';
+        showAlert('forgot-alert','forgot-alert-text', err.message || 'Error al enviar el correo.');
+      }
+    }
+
+    /* ══════════════════════════════════════
+       RESTABLECER CONTRASEÑA
+    ══════════════════════════════════════ */
+    async function doReset(e) {
+      e.preventDefault();
+      document.getElementById('reset-alert').classList.remove('show');
+      document.getElementById('reset-ok').classList.remove('show');
+      var p1  = document.getElementById('new-pwd').value;
+      var p2  = document.getElementById('confirm-pwd').value;
+      var btn = document.getElementById('btn-reset');
+
+      if (p1 !== p2) {
+        showAlert('reset-alert','reset-alert-text','Las contraseñas no coinciden.');
+        return;
+      }
+      if (p1.length < 8) {
+        showAlert('reset-alert','reset-alert-text','La contraseña debe tener al menos 8 caracteres.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Guardando...';
+      showLoader('Actualizando contraseña...');
+
+      try {
+        var { error } = await db.auth.updateUser({ password: p1 });
+        if (error) throw error;
+        hideLoader();
+        document.getElementById('reset-ok').classList.add('show');
+        setTimeout(async function() {
+          var { data: { session } } = await db.auth.getSession();
+          if (session) {
+            showLoader('Redirigiendo...');
+            await loadProfileAndRoute(session.user);
+          } else {
+            showView('view-login');
+          }
+        }, 2000);
+      } catch(err) {
+        hideLoader();
+        btn.disabled = false;
+        btn.textContent = 'Guardar contraseña';
+        showAlert('reset-alert','reset-alert-text', err.message || 'Error al actualizar la contraseña.');
+      }
+    }
+  </script>
+</body>
+</html>

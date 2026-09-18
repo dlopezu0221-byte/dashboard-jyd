@@ -752,6 +752,8 @@ GRUPO_INDIVIDUAL_PARTNERS = {
     'Ross Lauren':    'Fabio Robledo',
     'Teo Sweet':      'Fabio Robledo',
     'Jason Blackwood':'Fabio Robledo',
+    'Aaron Strong':   'Fabio Robledo',
+    'Jessy Blair':    'Fabio Robledo',
 }
 
 def fix_grupo_individual_partners(aliados, cv_jul, last_day_jul, cv_ago, last_day_ago,
@@ -949,6 +951,8 @@ GRUPO_MAP = {
     # Nota: aliados individuales ('Alice Steel', 'Eli Cortes', etc.) son corregidos
     # por fix_grupo_individual_partners() — NO agregar aquí con detect_new=True
     'piscis_studio':     ['Piscis Studio'],
+    # Estudio nuevo detectado el 18-sep-2026
+    'Astra Coworking':   ['Astra Coworking'],
 }
 ERIKA_MAP = {
     'CyV Studios':       ['CyV Studios'],
@@ -989,6 +993,8 @@ FABIO_MAP = {
     'Ross Lauren':       ['Fabio Robledo'],
     'Teo Sweet':         ['Fabio Robledo'],
     'Jason Blackwood':   ['Fabio Robledo'],
+    'Aaron Strong':      ['Fabio Robledo'],
+    'Jessy Blair':       ['Fabio Robledo'],
 }
 
 
@@ -1054,6 +1060,11 @@ def main():
             if partner not in aliados:
                 aliados[partner] = {'data': {}}
                 print(f"  ➕ Nuevo aliado individual inicializado en Grupo: '{partner}'")
+        # Inicializar aliados de ESTUDIO declarados en GRUPO_MAP que aún no existen en el HTML
+        for _ak, _studs in GRUPO_MAP.items():
+            if _studs and _ak not in aliados:
+                aliados[_ak] = {'data': {}}
+                print(f"  ➕ Nuevo aliado de estudio inicializado en Grupo: '{_ak}'")
         # Rebuild datos diarios
         aliados = rebuild_aliados_from_excel(aliados, cv_jul, GRUPO_MAP, MES,     last_day_jul)
         aliados = rebuild_aliados_from_excel(aliados, cv_ago, GRUPO_MAP, MES_AGO, last_day_ago)

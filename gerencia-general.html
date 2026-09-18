@@ -52403,6 +52403,17 @@ async function gfReservaLiquidar(id, liquidacionRef){
   }catch(e){ console.warn('[GF] reserva liquidar error',e); return false; }
 }
 
+async function gfEliminarReserva(id, nombre){
+  if(!confirm('¿Eliminar la transacción de "'+( nombre||id)+'" del Fondo de Reservas? Esta acción no se puede deshacer.')) return;
+  const db=gfDB(); if(!db){ toast('⚠️ Sin conexión','warn'); return; }
+  try{
+    const {error}=await db.from('jd_reservas').delete().eq('id',id);
+    if(error) throw error;
+    toast('🗑️ Transacción eliminada del Fondo de Reservas','success');
+    gfFondoRender();
+  }catch(e){ console.warn('[GF] reserva eliminar error',e); toast('❌ Error al eliminar: '+(e.message||e),'error'); }
+}
+
 // ══════════════════════════════════════════════════════════════════
 //  FONDO DE RESERVAS — Renderizado
 // ══════════════════════════════════════════════════════════════════
@@ -52456,6 +52467,7 @@ async function gfFondoRender(){
       <div style="display:flex;align-items:center;gap:10px">
         <div style="font-size:16px;font-weight:900;color:${color};font-variant-numeric:tabular-nums">${gfFmt(r.monto)}</div>
         ${isPend?`<button onclick="gfLiquidarReserva('${r.id}')" style="padding:7px 14px;background:#3b82f6;border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Liquidar →</button>`:''}
+        <button onclick="gfEliminarReserva('${r.id}','${(r.estudio_nombre||'').replace(/'/g,"\\'")}')" style="padding:7px 10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;color:#ef4444;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit" title="Eliminar transacción">🗑️</button>
       </div>
     </div>`;
   };

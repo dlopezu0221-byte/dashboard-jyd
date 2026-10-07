@@ -118,12 +118,14 @@ def fetch_colillas_for_estudio(estudio_id):
 MES     = 'Julio'
 MES_AGO = 'Agosto'
 MES_SEP = 'Septiembre'
+MES_OCT = 'Octubre'
 PLATS   = ['F4F', 'SC', 'CB', 'CAM', 'STR']
 
 # Meses ordenados con días
-ALL_MESES   = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre']
+ALL_MESES   = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre']
 DMES_VALS   = {'Enero':31,'Febrero':28,'Marzo':31,'Abril':30,
-               'Mayo':31,'Junio':30,'Julio':31,'Agosto':31,'Septiembre':30}
+               'Mayo':31,'Junio':30,'Julio':31,'Agosto':31,'Septiembre':30,
+               'Octubre':31}
 MES_NUM     = {1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',
                7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'}
 MES_ABREV   = {'Ene':'Enero','Feb':'Febrero','Mar':'Marzo','Abr':'Abril','May':'Mayo',
@@ -757,7 +759,8 @@ GRUPO_INDIVIDUAL_PARTNERS = {
 }
 
 def fix_grupo_individual_partners(aliados, cv_jul, last_day_jul, cv_ago, last_day_ago,
-                                   cv_sep=None, last_day_sep=0):
+                                   cv_sep=None, last_day_sep=0,
+                                   cv_oct=None, last_day_oct=0):
     """
     Reconstruye las claves individuales de Fabio en el GRUPO ALIADOS:
     cada clave (Alice Steel, Eli Cortes, ...) recibe SOLO su propio modelo
@@ -768,10 +771,12 @@ def fix_grupo_individual_partners(aliados, cv_jul, last_day_jul, cv_ago, last_da
             continue
         if 'data' not in aliados[partner]:
             aliados[partner]['data'] = {}
-        # Procesar Julio, Agosto y Septiembre (si hay datos)
+        # Procesar Julio, Agosto, Septiembre y Octubre (si hay datos)
         meses_cv = [('Julio', cv_jul, last_day_jul), ('Agosto', cv_ago, last_day_ago)]
         if cv_sep and last_day_sep > 0:
             meses_cv.append(('Septiembre', cv_sep, last_day_sep))
+        if cv_oct and last_day_oct > 0:
+            meses_cv.append(('Octubre', cv_oct, last_day_oct))
         for mes, cv, last_day in meses_cv:
             # Buscar clave exacta + variantes de prefijo (ej. "Kendal Wiston & Kultur Lens")
             matching_keys = [k for k in cv if k[1] == cv_studio and
@@ -1020,13 +1025,20 @@ def main():
     cv_jul, last_day_jul = read_cv_sheet(wb, 'JULIO')
     cv_ago, last_day_ago = read_cv_sheet(wb, 'AGOSTO')
     cv_sep, last_day_sep = read_cv_sheet(wb, 'SEPTIEMBRE')
+    cv_oct, last_day_oct = read_cv_sheet(wb, 'OCTUBRE')
     # Corte dinámico: usar el mes más reciente con datos
-    if last_day_sep > 0:
+    if last_day_oct > 0:
+        cutoff_str = f'{last_day_oct:02d}/10/2026'
+        MES_ULT    = MES_OCT
+    elif last_day_sep > 0:
         cutoff_str = f'{last_day_sep:02d}/09/2026'
+        MES_ULT    = MES_SEP
     else:
         cutoff_str = f'{last_day_ago:02d}/08/2026'
+        MES_ULT    = MES_AGO
 
-    print(f'\n📅 JULIO: último día={last_day_jul} | AGOSTO: último día={last_day_ago} | SEPTIEMBRE: último día={last_day_sep} (corte=automático)')
+    print(f'\n📅 JULIO: último día={last_day_jul} | AGOSTO: último día={last_day_ago} | '
+          f'SEPTIEMBRE: último día={last_day_sep} | OCTUBRE: último día={last_day_oct} (corte=automático)')
 
     if last_day_jul == 0:
         print("⚠  Sin datos en JULIO — verificar Excel."); return
@@ -1070,9 +1082,12 @@ def main():
         aliados = rebuild_aliados_from_excel(aliados, cv_ago, GRUPO_MAP, MES_AGO, last_day_ago)
         if last_day_sep > 0:
             aliados = rebuild_aliados_from_excel(aliados, cv_sep, GRUPO_MAP, MES_SEP, last_day_sep)
+        if last_day_oct > 0:
+            aliados = rebuild_aliados_from_excel(aliados, cv_oct, GRUPO_MAP, MES_OCT, last_day_oct)
         # Corregir aliados individuales de Fabio: 1 modelo por clave, sin contaminación cruzada
         aliados = fix_grupo_individual_partners(aliados, cv_jul, last_day_jul, cv_ago, last_day_ago,
-                                                cv_sep=cv_sep, last_day_sep=last_day_sep)
+                                                cv_sep=cv_sep, last_day_sep=last_day_sep,
+                                                cv_oct=cv_oct, last_day_oct=last_day_oct)
 
         # Rebuild GRUPO_PERIODOS desde el calendario completo
         gp, gp_q = get_var(html, 'GRUPO_PERIODOS')
@@ -1111,6 +1126,8 @@ def main():
         aliados_e = rebuild_aliados_from_excel(aliados_e, cv_ago, ERIKA_MAP, MES_AGO, last_day_ago, detect_new=False)
         if last_day_sep > 0:
             aliados_e = rebuild_aliados_from_excel(aliados_e, cv_sep, ERIKA_MAP, MES_SEP, last_day_sep, detect_new=False)
+        if last_day_oct > 0:
+            aliados_e = rebuild_aliados_from_excel(aliados_e, cv_oct, ERIKA_MAP, MES_OCT, last_day_oct, detect_new=False)
         # Paso 1b — purgar modelos extra de entradas individuales (Dulce Luna, Liam Terrier, etc.)
         #            Garantiza que cada entrada individual SOLO contiene su propio modelo,
         #            no todos los modelos del mismo estudio cv (ej: todos los de Fornax Studios)
@@ -1122,6 +1139,8 @@ def main():
         aliados_e = propagate_from_grupo(aliados_e, aliados, ERIKA_MAP, MES_AGO)
         if last_day_sep > 0:
             aliados_e = propagate_from_grupo(aliados_e, aliados, ERIKA_MAP, MES_SEP)
+        if last_day_oct > 0:
+            aliados_e = propagate_from_grupo(aliados_e, aliados, ERIKA_MAP, MES_OCT)
 
         ep, ep_q = get_var(html, 'EXEC_PERIODOS')
         gp, gp_q = get_var(html, 'GRUPO_PERIODOS')
@@ -1175,6 +1194,8 @@ def main():
         aliados_f = rebuild_aliados_from_excel(aliados_f, cv_ago, FABIO_MAP, MES_AGO, last_day_ago, detect_new=False)
         if last_day_sep > 0:
             aliados_f = rebuild_aliados_from_excel(aliados_f, cv_sep, FABIO_MAP, MES_SEP, last_day_sep, detect_new=False)
+        if last_day_oct > 0:
+            aliados_f = rebuild_aliados_from_excel(aliados_f, cv_oct, FABIO_MAP, MES_OCT, last_day_oct, detect_new=False)
         # Paso 1b — purgar modelos extra de entradas individuales (Alice Steel, Eli Cortes, etc.)
         aliados_f = fix_exec_individual_partners(aliados_f, FABIO_MAP)
         # Paso 2 — propagar estudios aliados DESDE GRUPO (fuente única de verdad)
@@ -1184,6 +1205,8 @@ def main():
         aliados_f = propagate_from_grupo(aliados_f, aliados, FABIO_MAP, MES_AGO)
         if last_day_sep > 0:
             aliados_f = propagate_from_grupo(aliados_f, aliados, FABIO_MAP, MES_SEP)
+        if last_day_oct > 0:
+            aliados_f = propagate_from_grupo(aliados_f, aliados, FABIO_MAP, MES_OCT)
 
         ep, ep_q = get_var(html, 'EXEC_PERIODOS')
         if ep is not None:
@@ -1230,6 +1253,8 @@ def main():
             estudio = rebuild_estudio_from_excel(estudio, cv_ago, cv_studio_name, last_day_ago, MES_AGO)
             if last_day_sep > 0:
                 estudio = rebuild_estudio_from_excel(estudio, cv_sep, cv_studio_name, last_day_sep, MES_SEP)
+            if last_day_oct > 0:
+                estudio = rebuild_estudio_from_excel(estudio, cv_oct, cv_studio_name, last_day_oct, MES_OCT)
             html = set_var(html, 'ESTUDIO', estudio, es_q)
 
         # PERIODOS (desde calendario)
@@ -1311,10 +1336,12 @@ def main():
         if solo_dash:
             print(f"        ℹ️  Solo en dashboard (sin prod en Excel): {sorted(solo_dash)[:5]}")
 
-    # cv combinado (julio + agosto)
+    # cv combinado (todos los meses leídos) — para detectar modelos nuevos de cualquier mes
     cv_combined_all = {}
     for k, v in cv_jul.items(): cv_combined_all[k] = v
     for k, v in cv_ago.items(): cv_combined_all[k] = v
+    for k, v in (cv_sep or {}).items(): cv_combined_all[k] = v
+    for k, v in (cv_oct or {}).items(): cv_combined_all[k] = v
 
     # GRUPO — por ALIADOS key
     with open(DASHBOARDS['grupo'], 'r', encoding='utf-8') as f: _gh = f.read()
@@ -1329,7 +1356,10 @@ def main():
     g_al = _gv(_gh, 'ALIADOS') or {}
     for ak, cv_studs in GRUPO_MAP.items():
         if not cv_studs: continue
-        dm = (g_al.get(ak, {}).get('data') or {}).get(MES_AGO, {}).get('modelos') or {}
+        _d = (g_al.get(ak, {}).get('data') or {})
+        dm = {}
+        for _m in ALL_MESES:
+            dm.update((_d.get(_m, {}) or {}).get('modelos') or {})
         _audit_studio(ak, cv_combined_all, set(cv_studs), dm)
 
     # Estudios individuales
@@ -1339,7 +1369,10 @@ def main():
         dash_key = {'Fornax Studios':'fornax','Gold Online':'gold','CyV Studios':'cyv'}[studio_label]
         with open(DASHBOARDS[dash_key], 'r', encoding='utf-8') as f: _sh = f.read()
         s_est = _gv(_sh, 'ESTUDIO') or {}
-        dm2 = (s_est.get('data') or {}).get(MES_AGO, {}).get('modelos') or {}
+        _d2 = (s_est.get('data') or {})
+        dm2 = {}
+        for _m in ALL_MESES:
+            dm2.update((_d2.get(_m, {}) or {}).get('modelos') or {})
         _audit_studio(studio_label, cv_combined_all, {cv_studio_name}, dm2)
 
     print(f'{"─" * 65}')
@@ -1369,7 +1402,8 @@ def main():
     # ── Resumen ───────────────────────────────────────────────────
     print(f'\n{"=" * 65}')
     print(f'  ✅ Rebuild completado — {ts_str}')
-    print(f'  📅 JULIO días 1–{last_day_jul} | AGOSTO días 1–{last_day_ago}')
+    print(f'  📅 JULIO días 1–{last_day_jul} | AGOSTO días 1–{last_day_ago} | '
+          f'SEPTIEMBRE días 1–{last_day_sep} | OCTUBRE días 1–{last_day_oct}')
     print(f'  📆 Periodos CPP desde CALENDARIO MAESTRO')
     print(f'  🗓  MESES activos: {" | ".join(meses_activos)}')
     print(f'  📊 Dashboard Monitores: monitores/index.html')

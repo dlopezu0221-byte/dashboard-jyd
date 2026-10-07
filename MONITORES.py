@@ -8,6 +8,7 @@ Salida: dashboard-jyd/monitores/index.html
 
 import json, os, re, base64
 from datetime import datetime, timedelta, date
+import re
 from openpyxl import load_workbook
 
 # ── RUTAS ──────────────────────────────────────────────────────────────────────
@@ -90,8 +91,26 @@ def read_bd_modelos(wb):
     return out
 
 # ── LEER QUINCENA ─────────────────────────────────────────────────────────────
+def _resolve_sheet(wb, sheet_name):
+    """Devuelve el nombre real de la hoja, tolerando variantes de ultimo dia
+    ('16 al 30' vs '16 al 31') y espacios finales, tal como estan en el Excel."""
+    if sheet_name in wb.sheetnames:
+        return sheet_name
+    base = sheet_name.strip()
+    for cand in wb.sheetnames:
+        if cand.strip() == base:
+            return cand
+    m = re.match(r'^(.*Periodo 16 al )(\d+)\s*$', base)
+    if m:
+        for alt in ('28','29','30','31'):
+            for cand in wb.sheetnames:
+                if cand.strip() == m.group(1) + alt:
+                    return cand
+    return None
+
 def read_quincena(wb, sheet_name, mes_label, qid):
-    if sheet_name not in wb.sheetnames:
+    sheet_name = _resolve_sheet(wb, sheet_name)
+    if sheet_name is None:
         return None
     ws   = wb[sheet_name]
     rows = list(ws.iter_rows(values_only=True))

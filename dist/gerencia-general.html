@@ -2930,6 +2930,19 @@ body.exec-fullscreen #page-ejecutivo { display: none !important; }
           </select>
         </div>
 
+        <!-- Reto Estrella -->
+        <div>
+          <label style="font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:5px">Reto Estrella (créditos por quincena)</label>
+          <input type="number" id="bdest-m-re" placeholder="Ej: 15000" min="0" step="500" style="width:100%;padding:9px 12px;background:var(--input-bg,rgba(255,255,255,.06));border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;box-sizing:border-box">
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">⭐ Meta de producción por quincena. El Reto Estrella nunca disminuye.</div>
+        </div>
+
+        <!-- Monitor -->
+        <div>
+          <label style="font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:5px">Monitor asignado</label>
+          <input type="text" id="bdest-m-monitor" placeholder="Nombre del monitor..." style="width:100%;padding:9px 12px;background:var(--input-bg,rgba(255,255,255,.06));border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;box-sizing:border-box">
+        </div>
+
         <div id="bdest-modal-error" style="display:none;color:#f87171;font-size:12px;padding:8px 12px;background:rgba(239,68,68,.1);border-radius:6px;border:1px solid rgba(239,68,68,.25)"></div>
       </div>
       <div class="mf">
@@ -10091,9 +10104,11 @@ textarea.cem-input{min-height:70px}
 .efac3-fbt .e3mod-name{font-size:13px;font-weight:600;color:var(--text)}
 /* Platform cells */
 .efac3-fbt .e3plat-cell{text-align:right;white-space:nowrap;font-size:12px;font-variant-numeric:tabular-nums}
+.efac3-fbt .e3plat-hm{text-align:center;border-radius:4px;padding:4px 7px!important;transition:filter .12s}
+.efac3-fbt .e3plat-hm:hover{filter:brightness(1.18)}
 .efac3-fbt .e3plat-val{font-weight:600}
 .efac3-fbt .e3plat-mini{width:100%;height:2px;border-radius:1px;margin-top:3px}
-.efac3-fbt .e3plat-zero{color:var(--border2);font-size:11px}
+.efac3-fbt .e3plat-zero{color:var(--border2);font-size:11px;opacity:.45}
 /* Hours cell */
 .efac3-fbt .e3h-cell{font-size:11px;color:var(--muted);text-align:right;white-space:nowrap}
 /* Total cell */
@@ -10561,35 +10576,24 @@ textarea.cem-input{min-height:70px}
   ══════════════════════════════════════ -->
   <div id="efac3-panel-dash" class="efac3-panel active">
 
-    <!-- Barra de filtros -->
+    <!-- Barra de filtros — selector unificado de período -->
     <div class="efac3d-fbar" id="efac3d-fbar">
-      <div class="efac3d-fld">
-        <label>Año</label>
-        <select class="efac3d-sel" id="efac3d-f-ano"></select>
-      </div>
-      <div class="efac3d-fld">
-        <label>Mes</label>
-        <select class="efac3d-sel" id="efac3d-f-mes">
-          <option value="0">Todos los meses</option>
-          <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
-          <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
-          <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
-          <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+      <div class="efac3d-fld" style="min-width:170px">
+        <label>Período</label>
+        <select class="efac3d-sel" id="efac3d-f-periodo" onchange="_e3dOnPeriodoChange()" style="font-weight:600">
+          <option value="q1">📅 Quincena 1</option>
+          <option value="q2">📅 Quincena 2</option>
+          <option value="mes" selected>🗓 Mes</option>
+          <option value="trimestre">📊 Trimestre en curso</option>
+          <option value="anio">📆 Año</option>
+          <option value="rango">🔎 Rango de tiempo</option>
         </select>
       </div>
-      <div class="efac3d-fld">
-        <label>Quincena</label>
-        <select class="efac3d-sel" id="efac3d-f-q">
-          <option value="0">Ambas</option>
-          <option value="1">1ª (días 1–15)</option>
-          <option value="2">2ª (día 16–fin)</option>
-        </select>
-      </div>
-      <div class="efac3d-fld">
+      <div class="efac3d-fld" id="efac3d-f-desde-wrap" style="display:none">
         <label>Desde</label>
         <input type="date" class="efac3d-inp" id="efac3d-f-desde">
       </div>
-      <div class="efac3d-fld">
+      <div class="efac3d-fld" id="efac3d-f-hasta-wrap" style="display:none">
         <label>Hasta</label>
         <input type="date" class="efac3d-inp" id="efac3d-f-hasta">
       </div>
@@ -10605,9 +10609,10 @@ textarea.cem-input{min-height:70px}
           <option value="">Todas</option>
         </select>
       </div>
-      <button class="efac3d-btn" onclick="_e3dAplicarFiltros()">Consultar</button>
+      <button class="efac3d-btn" onclick="_e3dAplicarFiltros()">▶ Consultar</button>
       <button class="efac3d-btn-ghost" onclick="_e3dResetFiltros()">✕ Limpiar</button>
       <div class="efac3d-period-badge" id="efac3d-period-badge">—</div>
+      <button onclick="_e3dExportarExcel()" style="display:flex;align-items:center;gap:6px;padding:6px 13px;background:transparent;border:1.5px solid #22c55e;color:#22c55e;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.04em;white-space:nowrap;align-self:flex-end" title="Descargar estadísticas en Excel">⬇ Exportar Excel</button>
     </div>
 
     <!-- Contenido scrolleable del dashboard -->
@@ -12037,12 +12042,15 @@ async function _e3CargarMes(){
     }
 
     /* Mapas nombre↔model_id desde modelos Supabase ya cargados */
-    var _nomToSupaId={}, _idToNomCanon={};
+    var _nomToSupaId={}, _idToNomCanon={}, _nomToAllIds={};
     _e3SupaMods.forEach(function(m){
       var nom=(m.nombreAgencia||m.nombre||'').trim();
       if(nom && m.id){
         _nomToSupaId[nom]=String(m.id);
         _idToNomCanon[String(m.id)]=nom; // inverso: id→nombre canónico para atribución fallback
+        /* Acumular TODOS los IDs del nombre (cubre modelos transferidos con dos registros) */
+        if(!_nomToAllIds[nom]) _nomToAllIds[nom]=[];
+        if(_nomToAllIds[nom].indexOf(String(m.id))===-1) _nomToAllIds[nom].push(String(m.id));
       }
     });
 
@@ -12075,8 +12083,14 @@ async function _e3CargarMes(){
       var offset2=0;
       if(window._e3HasModelId){
         /* ── Q2 por model_id (post-migración SQL) ── */
-        var _q2Ids = _q2ModsMes.map(function(n){ return _nomToSupaId[n]; }).filter(Boolean);
-        var _q2SinId = _q2ModsMes.filter(function(n){ return !_nomToSupaId[n]; });
+        /* Usar _nomToAllIds para incluir todos los IDs históricos (modelos transferidos) */
+        var _q2Ids = [];
+        _q2ModsMes.forEach(function(n){
+          var _aIds = _nomToAllIds[n];
+          if(_aIds && _aIds.length){ _aIds.forEach(function(id){ if(_q2Ids.indexOf(id)===-1) _q2Ids.push(id); }); }
+          else { var _sId=_nomToSupaId[n]; if(_sId && _q2Ids.indexOf(_sId)===-1) _q2Ids.push(_sId); }
+        });
+        var _q2SinId = _q2ModsMes.filter(function(n){ return !_nomToSupaId[n] && (!_nomToAllIds[n]||!_nomToAllIds[n].length); });
         /* Modelos con ID conocido → query por model_id */
         if(_q2Ids.length){
           var _q2IdPrevLen=allRows.length;
@@ -12162,7 +12176,14 @@ async function _e3CargarMes(){
     } else {
       console.log('[efac3 Q3] ilike fornax INICIADO — ini:', ini, 'fin:', fin);
       /* IDs de los modelos Fornax (post-migración) */
-      var _execFnxIds = window._e3HasModelId ? _execFnxArr.map(function(n){ return _nomToSupaId[n]; }).filter(Boolean) : [];
+      var _execFnxIds = [];
+      if(window._e3HasModelId){
+        _execFnxArr.forEach(function(n){
+          var _aIds=_nomToAllIds[n];
+          if(_aIds&&_aIds.length){ _aIds.forEach(function(id){ if(_execFnxIds.indexOf(id)===-1) _execFnxIds.push(id); }); }
+          else { var _sId=_nomToSupaId[n]; if(_sId&&_execFnxIds.indexOf(_sId)===-1) _execFnxIds.push(_sId); }
+        });
+      }
       while(true){
         wrap.innerHTML='<div class="efac3-msg">⏳ Cargando '+_e3NomMes(_e3Mes)+' '+_e3Ano+
           '… (Q3 fornax: '+(allRows.length)+' registros)</div>';
@@ -12173,11 +12194,16 @@ async function _e3CargarMes(){
           .gt('valor',0)
           .order('fecha',{ascending:true})
           .range(offset3,offset3+PAGE-1);
-        /* Restricción por ejecutivo: post-migración usa model_id, pre-migración usa modelo_nombre */
-        if(window._e3HasModelId && _execFnxIds.length){
-          _q3Base=_q3Base.in('model_id',_execFnxIds);
-        } else if(_execFnxArr && _execFnxArr.length){
-          _q3Base=_q3Base.in('modelo_nombre',_execFnxArr);
+        /* Restricción por ejecutivo: solo para monitores.
+           Ejecutivos/superadmin: el ilike sobre estudio_nombre es filtro suficiente
+           para capturar modelos históricos de Fornax aunque hayan sido transferidos
+           a otro estudio (ej: Lucia Brown en períodos pre-septiembre 2026). */
+        if(_esMon3){
+          if(window._e3HasModelId && _execFnxIds.length){
+            _q3Base=_q3Base.in('model_id',_execFnxIds);
+          } else if(_execFnxArr && _execFnxArr.length){
+            _q3Base=_q3Base.in('modelo_nombre',_execFnxArr);
+          }
         }
         var r3=await _q3Base;
         if(r3.error){ console.error('[efac3 Q3] error:', r3.error); throw r3.error; }
@@ -12282,9 +12308,20 @@ async function _e3CargarMes(){
         entity=mod; // monitor: encoding variante estudio_nombre — SOLO modelos oficiales (no fantasmas)
       } else if(window._e3HasModelId && r.model_id && _idToNomCanon[String(r.model_id)]){
         /* Fallback model_id: registro cuyo modelo_nombre tiene encoding diferente al catálogo
-           (sin tilde, alias). Resolvemos el nombre canónico y verificamos modSet. */
+           (sin tilde, alias). Resolvemos el nombre canónico y verificamos modelosSet. */
         var _cn=_idToNomCanon[String(r.model_id)];
-        if(modelosSet.has(_cn)){ entity=_cn; } else { return; }
+        if(modelosSet.has(_cn)){
+          entity=_cn;
+        } else if(!_esMon3 && typeof est==='string' && est.toLowerCase().includes('fornax')){
+          /* model_id resuelto pero modelo no en modelosSet (transferido).
+             Registros históricos con estudio_nombre fornax → atribuir al nombre canónico.
+             Solo superadmin/ejecutivo. Ej: Lucia Brown desde sep-2026. */
+          entity=_cn;
+        } else { return; }
+      } else if(!_esMon3 && mod && typeof est==='string' && est.toLowerCase().includes('fornax')){
+        /* Modelo histórico de Fornax sin model_id resuelto — no en modelosSet.
+           Solo superadmin/ejecutivo. */
+        entity=mod;
       } else {
         return;                       // fuera del ámbito del ejecutivo
       }
@@ -12751,19 +12788,31 @@ function _e3RenderMatriz(){
   _fnxMods.forEach(function(m){ _allTotsList.push(_modTot(m)); });
   var maxTotal=Math.max.apply(null,_allTotsList.filter(function(v){return v>0;}))||1;
 
+  /* ── Máximos por plataforma — para intensidad del heatmap térmico ── */
+  var _hmPlatMax={};
+  PLATS.forEach(function(pd){ _hmPlatMax[pd.key]=0; });
+  function _hmCollect(getPlatFn){
+    PLATS.forEach(function(pd){
+      var v=getPlatFn(pd)||0;
+      if(v>_hmPlatMax[pd.key]) _hmPlatMax[pd.key]=v;
+    });
+  }
+  _e3Ests.forEach(function(ent){ _hmCollect(function(pd){ return _platTot(ent,pd); }); });
+  _fnxMods.forEach(function(mod){ _hmCollect(function(pd){ return _modPlatTot(mod,pd); }); });
+
   /* ── Número de columnas para colspan ── */
   var NC = 3 + PLATS.length + 3; // # + Nombre + Horas + plats + Total + Dist + Acción
 
-  /* ── Helpers visuales ── */
+  /* ── Helpers visuales — Heatmap Térmico ── */
   function _platCells(totPorPlat, entTotal){
     var html='';
     PLATS.forEach(function(pd){
       var v=totPorPlat[pd.key]||0;
       if(!v){ html+='<td class="e3plat-cell"><span class="e3plat-zero">—</span></td>'; return; }
-      var pct=entTotal?(v/entTotal*100).toFixed(0):0;
-      html+='<td class="e3plat-cell">'
+      var hex=pd.color.replace('#','');
+      var r=parseInt(hex.substring(0,2),16),g=parseInt(hex.substring(2,4),16),b=parseInt(hex.substring(4,6),16);
+      html+='<td class="e3plat-cell e3plat-hm" style="background:rgba('+r+','+g+','+b+',0.22)">'
         +'<span class="e3plat-val" style="color:'+pd.color+'">'+_e3fmt(v,true)+'</span>'
-        +'<div class="e3plat-mini" style="background:'+pd.color+';width:'+pct+'%;max-width:100%"></div>'
         +'</td>';
     });
     return html;
@@ -12808,7 +12857,7 @@ function _e3RenderMatriz(){
     +'style="margin-left:4px;background:none;border:none;cursor:pointer;font-size:10px;color:var(--info);opacity:.7;padding:0">🔄</button>'
     +'</th>';
   PLATS.forEach(function(pd){
-    html+='<th class="num plat-h" style="color:'+pd.color+';border-bottom:2px solid '+pd.color+'">'+_abbr(pd)+'</th>';
+    html+='<th class="num plat-h" style="color:'+pd.color+';border-bottom:2px solid '+pd.color+'">'+pd.label+'</th>';
   });
   html+='<th class="num" style="min-width:100px">Total cr.</th>'
     +'<th class="num" style="min-width:80px">Distribución</th>'
@@ -13579,6 +13628,39 @@ function efac3fbMode(m){
     if(res){ res.style.display='none'; res.innerHTML=''; }
   }
   if(m==='per') efac3fbInit();
+  if(m==='rango') _e3RangoAutoUltimoDia();
+}
+
+/* Al activar Rango Fechas: detectar el último día con datos y consultar automáticamente */
+async function _e3RangoAutoUltimoDia(){
+  var desde=document.getElementById('efac3-desde');
+  var hasta=document.getElementById('efac3-hasta');
+  if(!desde||!hasta) return;
+  // Si ya tiene un valor distinto al de hoy, no sobreescribir
+  var today=new Date().toISOString().split('T')[0];
+  if(hasta.value && hasta.value!==today) { efac3ConsultarRango(); return; }
+  try {
+    var estudios=_e3AllEstudios||[];
+    var modelos=(_e3ModelosAsig||[]).map(function(m){return m.nombre||m;});
+    var qr=null;
+    if(estudios.length>0){
+      qr=await _supaDb.from('facturacion_diaria')
+        .select('fecha').in('estudio_nombre',estudios)
+        .gt('valor',0).order('fecha',{ascending:false}).limit(1);
+    } else if(modelos.length>0){
+      qr=await _supaDb.from('facturacion_diaria')
+        .select('fecha').in('modelo_nombre',modelos)
+        .gt('valor',0).order('fecha',{ascending:false}).limit(1);
+    }
+    var ultimaFecha=qr&&qr.data&&qr.data.length>0?qr.data[0].fecha:today;
+    desde.value=ultimaFecha;
+    hasta.value=ultimaFecha;
+  } catch(e) {
+    var now=new Date(); now.setDate(now.getDate()-1);
+    var ayer=now.toISOString().split('T')[0];
+    desde.value=ayer; hasta.value=ayer;
+  }
+  efac3ConsultarRango();
 }
 
 /* Renderizar resumen del mes activo usando datos ya filtrados por rol en _e3Data/_e3Ests.
@@ -13889,10 +13971,13 @@ async function efac3fbBuscar(){
         }
       }
     }
-    /* Q3 — ilike('%fornax%') + restricción por modelo (idéntico a _e3dCargar ~línea 13964)
-       Captura registros con variantes de encoding en estudio_nombre no detectadas por Q1.
-       Solo se ejecuta cuando hay modelos Fornax asignados (Monitor o Admin con Fornax). */
+    /* Q3 — ilike('%fornax%') sin restricción para superadmin/ejecutivo.
+       Solo monitores restringen por modelo para ver únicamente sus asignados.
+       Ejecutivos/superadmin: el ilike garantiza captura de modelos históricos Fornax
+       aunque hayan sido transferidos (ej: Lucia Brown antes de septiembre 2026). */
     var _fbFnxArr=(typeof _e3ModelosAsig!=='undefined'&&_e3ModelosAsig.length)?_e3ModelosAsig.slice():_fbModsBase.slice();
+    var _fbEsMon3=(typeof _jdCurrentUser!=='undefined'&&
+                  (_jdCurrentUser.rol==='monitor'||_jdCurrentUser.rol==='Monitor'));
     var _fbFnxIds=window._e3HasModelId&&_fbFnxArr.length
                   ?_fbFnxArr.map(function(n){ return _fbNomToId[n]; }).filter(Boolean)
                   :[];
@@ -13904,10 +13989,12 @@ async function efac3fbBuscar(){
           .ilike('estudio_nombre','%fornax%')
           .gte('fecha',desde).lte('fecha',hasta)
           .gt('valor',0).range(_fb_o3q,_fb_o3q+PAGE-1);
-        if(window._e3HasModelId&&_fbFnxIds.length){
-          _fb_q3=_fb_q3.in('model_id',_fbFnxIds);
-        } else if(_fbFnxArr.length){
-          _fb_q3=_fb_q3.in('modelo_nombre',_fbFnxArr);
+        if(_fbEsMon3){
+          if(window._e3HasModelId&&_fbFnxIds.length){
+            _fb_q3=_fb_q3.in('model_id',_fbFnxIds);
+          } else if(_fbFnxArr.length){
+            _fb_q3=_fb_q3.in('modelo_nombre',_fbFnxArr);
+          }
         }
         var _fb_r3q=await _fb_q3;
         if(_fb_r3q.error) break; /* Q3 es complementario — silenciar errores */
@@ -14228,8 +14315,20 @@ async function efac3fbRenderResultado(rows,desde,hasta,horasExternas,yaConvertid
   var sorted=Object.values(byMod).sort(function(a,b){ return b.total-a.total; });
   var maxTotal=sorted[0]?sorted[0].total:1;
 
-  /* Solo mostrar plataformas que tienen datos */
-  var activePlats=_E3FB_PLATS.filter(function(p){ return !!platsUsed[p.key]; });
+  /* Mostrar plataformas con datos en el período O activas en la BD de plataformas */
+  var _dbActivas=(typeof _platGetActivas==='function')?_platGetActivas():[];
+  /* Mapa bidireccional: abbr/label normalizado → key de _E3FB_PLATS (evita mismatch LJM vs lj) */
+  var _fbPlatNormMap={};
+  _E3FB_PLATS.forEach(function(p){
+    _fbPlatNormMap[p.key]=p.key;
+    if(p.abbr)  _fbPlatNormMap[p.abbr.toLowerCase()]=p.key;
+    if(p.label) _fbPlatNormMap[p.label.toLowerCase().replace(/[^a-z0-9]/g,'')]=p.key;
+  });
+  var _dbActKeys=new Set(_dbActivas.map(function(p){
+    var raw=(p.codigo||p.nombre||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+    return _fbPlatNormMap[raw]||_efac3fbNormPlat(p.codigo||p.nombre||'')||null;
+  }).filter(Boolean));
+  var activePlats=_E3FB_PLATS.filter(function(p){ return !!platsUsed[p.key]||_dbActKeys.has(p.key); });
   var NC=4+activePlats.length; /* # + Modelo + Horas + plats + Total + Dist + Detalle */
 
   /* Guardar para exportación Excel */
@@ -14246,6 +14345,21 @@ async function efac3fbRenderResultado(rows,desde,hasta,horasExternas,yaConvertid
   var platTotals={};
   _E3FB_PLATS.forEach(function(p){ platTotals[p.key]=0; });
   sorted.forEach(function(m){ _E3FB_PLATS.forEach(function(p){ platTotals[p.key]+=m[p.key]||0; }); });
+
+  /* Máximos por columna de plataforma — para intensidad del heatmap térmico */
+  var _fbHmMax={};
+  _E3FB_PLATS.forEach(function(p){ _fbHmMax[p.key]=0; });
+  sorted.forEach(function(m){ _E3FB_PLATS.forEach(function(p){ var v=m[p.key]||0; if(v>_fbHmMax[p.key]) _fbHmMax[p.key]=v; }); });
+
+  /* Helper para celda heatmap */
+  function _hmCell(p, v){
+    if(!v) return '<td class="e3plat-cell"><span class="e3plat-zero">—</span></td>';
+    var hex=p.color.replace('#','');
+    var r=parseInt(hex.substring(0,2),16),g=parseInt(hex.substring(2,4),16),b=parseInt(hex.substring(4,6),16);
+    return '<td class="e3plat-cell e3plat-hm" style="background:rgba('+r+','+g+','+b+',0.22)">'
+      +'<span class="e3plat-val" style="color:'+p.color+'">'+_e3fmt(v,true)+'</span>'
+      +'</td>';
+  }
 
   /* Ranking global solo de modelos individuales (no estudios) */
   var _estList=(typeof _e3EstudiosAsig!=='undefined'&&_e3EstudiosAsig)||[];
@@ -14265,15 +14379,7 @@ async function efac3fbRenderResultado(rows,desde,hasta,horasExternas,yaConvertid
       var w=m.total?(m[p.key]/m.total*100).toFixed(1):0;
       return w>0?'<div class="e3dist-seg" style="width:'+w+'%;background:'+p.color+'"></div>':'';
     }).join('');
-    var platCells=activePlats.map(function(p){
-      var v=m[p.key]||0;
-      if(!v) return '<td class="e3plat-cell"><span class="e3plat-zero">—</span></td>';
-      var pct=m.total?(v/m.total*100).toFixed(0):0;
-      return '<td class="e3plat-cell">'
-        +'<span class="e3plat-val" style="color:'+p.color+'">'+_e3fmt(v,true)+'</span>'
-        +'<div class="e3plat-mini" style="background:'+p.color+';width:'+pct+'%;max-width:100%"></div>'
-        +'</td>';
-    }).join('');
+    var platCells=activePlats.map(function(p){ return _hmCell(p, m[p.key]||0); }).join('');
     var h=horasMap[m.nombre];
     var hStr=h!=null?Math.floor(h)+'h '+(Math.round((h%1)*60))+'m':'—';
     var mSafe=m.nombre.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
@@ -14322,7 +14428,7 @@ async function efac3fbRenderResultado(rows,desde,hasta,horasExternas,yaConvertid
     +'<th>Estudio / Modelo</th>'
     +'<th class="num">⏱ Horas</th>';
   activePlats.forEach(function(p){
-    thead+='<th class="num plat-h '+p.cls+'">'+p.abbr+'</th>';
+    thead+='<th class="num plat-h '+p.cls+'">'+p.label+'</th>';
   });
   thead+='<th class="num" style="min-width:100px">Total cr.</th>'
     +'<th class="num" style="min-width:90px">Distribución</th>'
@@ -14378,15 +14484,7 @@ async function efac3fbRenderResultado(rows,desde,hasta,horasExternas,yaConvertid
         var w=stTotal?(stP[p.key]/stTotal*100).toFixed(1):0;
         return w>0?'<div class="e3dist-seg" style="width:'+w+'%;background:'+p.color+'"></div>':'';
       }).join('');
-      var stPlatCells=activePlats.map(function(p){
-        var v=stP[p.key]||0;
-        if(!v) return '<td class="e3plat-cell"><span class="e3plat-zero">—</span></td>';
-        var pct=stTotal?(v/stTotal*100).toFixed(0):0;
-        return '<td class="e3plat-cell">'
-          +'<span class="e3plat-val" style="color:'+p.color+'">'+_e3fmt(v,true)+'</span>'
-          +'<div class="e3plat-mini" style="background:'+p.color+';width:'+pct+'%;max-width:100%"></div>'
-          +'</td>';
-      }).join('');
+      var stPlatCells=activePlats.map(function(p){ return _hmCell(p, stP[p.key]||0); }).join('');
       var togIco=hasKids?'<span class="e3-study-toggle" id="'+sid+'_ic">▾</span> ':'<span style="opacity:.3">·</span> ';
       var onclk=hasKids?' onclick="_efac3fbToggleGrp(\''+sid+'\')" style="cursor:pointer"':'';
       tbody+='<tr class="e3s-study-row efb-studio" id="'+sid+'"'+onclk+'>'
@@ -14573,16 +14671,51 @@ function _e3dPoblarEntidades(){
   });
 }
 
-/* ── Leer filtros del DOM y calcular rango de fechas ── */
+/* ── Mostrar/ocultar campos de rango según selector de período ── */
+function _e3dOnPeriodoChange(){
+  var sel=document.getElementById('efac3d-f-periodo');
+  var esRango=sel&&sel.value==='rango';
+  var dw=document.getElementById('efac3d-f-desde-wrap');
+  var hw=document.getElementById('efac3d-f-hasta-wrap');
+  if(dw) dw.style.display=esRango?'':'none';
+  if(hw) hw.style.display=esRango?'':'none';
+}
+
+/* ── Leer filtros del DOM → traducir período a {ano, mes, q, desde, hasta} ── */
 function _e3dLeerFiltros(){
   var f=_e3d.f;
-  f.ano=parseInt(document.getElementById('efac3d-f-ano').value)||0;
-  f.mes=parseInt(document.getElementById('efac3d-f-mes').value)||0;
-  f.q=parseInt(document.getElementById('efac3d-f-q').value)||0;
-  f.desde=(document.getElementById('efac3d-f-desde').value||'').trim();
-  f.hasta=(document.getElementById('efac3d-f-hasta').value||'').trim();
-  f.ent=(document.getElementById('efac3d-f-ent').value||'').trim();
-  f.plat=(document.getElementById('efac3d-f-plat').value||'').trim();
+  var now=new Date();
+  var curAno=now.getFullYear();
+  var curMes=now.getMonth()+1;
+  var periodo=(document.getElementById('efac3d-f-periodo')?.value||'mes');
+
+  /* Resetear todos los campos */
+  f.ano=curAno; f.mes=0; f.q=0; f.desde=''; f.hasta='';
+
+  if(periodo==='q1'){
+    f.ano=curAno; f.mes=curMes; f.q=1;
+  } else if(periodo==='q2'){
+    f.ano=curAno; f.mes=curMes; f.q=2;
+  } else if(periodo==='mes'){
+    f.ano=curAno; f.mes=curMes; f.q=0;
+  } else if(periodo==='trimestre'){
+    /* Trimestre actual: Q1=ene-mar, Q2=abr-jun, Q3=jul-sep, Q4=oct-dic */
+    var qt=Math.floor((curMes-1)/3);
+    var qStartMes=qt*3+1, qEndMes=qt*3+3;
+    var qEndDay=new Date(curAno,qEndMes,0).getDate();
+    f.ano=0; f.mes=0; f.q=0;
+    f.desde=curAno+'-'+String(qStartMes).padStart(2,'0')+'-01';
+    f.hasta=curAno+'-'+String(qEndMes).padStart(2,'0')+'-'+String(qEndDay).padStart(2,'0');
+  } else if(periodo==='anio'){
+    f.ano=curAno; f.mes=0; f.q=0;
+  } else if(periodo==='rango'){
+    f.ano=0; f.mes=0; f.q=0;
+    f.desde=(document.getElementById('efac3d-f-desde')?.value||'').trim();
+    f.hasta=(document.getElementById('efac3d-f-hasta')?.value||'').trim();
+  }
+
+  f.ent=(document.getElementById('efac3d-f-ent')?.value||'').trim();
+  f.plat=(document.getElementById('efac3d-f-plat')?.value||'').trim();
   return f;
 }
 
@@ -14678,13 +14811,27 @@ async function _e3dCargar(){
     _q2NormAliasDsh.forEach(function(n){ _q2ModsDsh.push(n); });
     /* Pre-calcular mapas nombre↔id ANTES de Q2 — usados en Q2, Q3 y en atribución */
     var _dshNomToSupaId={}, _dshIdToName={};
+    /* _dshNomToAllIds: mapa nombre → ARRAY de todos sus IDs (un modelo puede tener
+       dos registros en la tabla modelos si fue transferido entre estudios).
+       Ej: Lucia Brown tiene fnx-mugm0bcr-swkhoa (Fornax) + mtxfi9neu9i (GEJ&D).
+       Q2 solo obtendrá el último ID sobreescrito en _dshNomToSupaId, perdiendo el histórico.
+       Este mapa permite incluir TODOS los IDs en la búsqueda de Q2. */
+    var _dshNomToAllIds={};
     _e3SupaMods.forEach(function(mm){
       var nn=(mm.nombreAgencia||mm.nombre||'').trim();
       if(nn&&mm.id){
         _dshNomToSupaId[nn]=String(mm.id);
         _dshIdToName[String(mm.id)]=nn; // inverso: id→nombre canónico (para atribución fallback)
+        /* Acumular TODOS los IDs del nombre */
+        if(!_dshNomToAllIds[nn]) _dshNomToAllIds[nn]=[];
+        if(_dshNomToAllIds[nn].indexOf(String(mm.id))===-1) _dshNomToAllIds[nn].push(String(mm.id));
       }
     });
+    /* Log de modelos con múltiples IDs (útil para detectar duplicados/transferidos) */
+    (function(){
+      var _multi=Object.keys(_dshNomToAllIds).filter(function(n){ return _dshNomToAllIds[n].length>1; });
+      if(_multi.length) console.warn('[_e3dCargar] Modelos con múltiples IDs (transferidos):',JSON.stringify(_multi.map(function(n){ return {nombre:n,ids:_dshNomToAllIds[n]}; })));
+    })();
     /* Mapa: forma normalizada sin tilde → nombre canónico
        Ej: "Ana Maria Guzman" → "Ana María Guzmán"
        Permite atribuir registros cuyo modelo_nombre fue guardado sin acentos. */
@@ -14700,8 +14847,22 @@ async function _e3dCargar(){
            Captura registros cuyo model_id coincide aunque modelo_nombre difiera
            (variantes de encoding, cambios de nombre). La atribución usa _dshIdToName
            para resolver el nombre canónico cuando modelo_nombre no está en modSet. */
-        var _q2DshIds = _q2ModsDsh.map(function(n){ return _dshNomToSupaId[n]; }).filter(Boolean);
-        var _q2DshSinId = _q2ModsDsh.filter(function(n){ return !_dshNomToSupaId[n]; });
+        /* Usar _dshNomToAllIds para incluir TODOS los IDs históricos del modelo.
+           Un modelo transferido (ej. Lucia Brown) puede tener dos model_ids:
+           el de su era Fornax (fnx-...) y el nuevo (GEJ&D). Con el mapa simple
+           _dshNomToSupaId solo se guarda el último → los registros con el ID
+           anterior no se buscan. _dshNomToAllIds resuelve esto. */
+        var _q2DshIds = [];
+        _q2ModsDsh.forEach(function(n){
+          var _allIds = _dshNomToAllIds[n];
+          if(_allIds && _allIds.length){
+            _allIds.forEach(function(id){ if(_q2DshIds.indexOf(id)===-1) _q2DshIds.push(id); });
+          } else {
+            var _sId = _dshNomToSupaId[n];
+            if(_sId && _q2DshIds.indexOf(_sId)===-1) _q2DshIds.push(_sId);
+          }
+        });
+        var _q2DshSinId = _q2ModsDsh.filter(function(n){ return !_dshNomToSupaId[n] && (!_dshNomToAllIds[n]||!_dshNomToAllIds[n].length); });
         if(_q2DshIds.length){
           var _q2DshIdPrevLen=allRows.length; /* [FIX v6f] para fallback crítico */
           while(true){
@@ -14777,11 +14938,16 @@ async function _e3dCargar(){
           .ilike('estudio_nombre','%fornax%')
           .gte('fecha',rango.ini).lte('fecha',rango.fin)
           .gt('valor',0).range(o3,o3+PAGE-1);
-        /* Restricción por ejecutivo: post-migración usa model_id, pre-migración usa modelo_nombre */
-        if(window._e3HasModelId && _dshFnxIds.length){
-          _q3dBase=_q3dBase.in('model_id',_dshFnxIds);
-        } else if(_dshExecFnxArr.length){
-          _q3dBase=_q3dBase.in('modelo_nombre',_dshExecFnxArr);
+        /* Restricción por ejecutivo: solo para monitores.
+           Ejecutivos/superadmin: el ilike sobre estudio_nombre es filtro suficiente
+           para capturar modelos históricos de Fornax aunque hayan sido transferidos
+           a otro estudio (ej: Lucia Brown en períodos pre-septiembre 2026). */
+        if(_esMon3d){
+          if(window._e3HasModelId && _dshFnxIds.length){
+            _q3dBase=_q3dBase.in('model_id',_dshFnxIds);
+          } else if(_dshExecFnxArr.length){
+            _q3dBase=_q3dBase.in('modelo_nombre',_dshExecFnxArr);
+          }
         }
         var r3d=await _q3dBase;
         if(r3d.error) throw r3d.error;
@@ -14863,7 +15029,21 @@ async function _e3dCargar(){
         /* Fallback model_id: registro cuyo modelo_nombre tiene encoding diferente al catálogo.
            Resolvemos nombre canónico vía _dshIdToName y verificamos modSet (no fantasmas). */
         var _canNom=_dshIdToName[String(r.model_id)];
-        ent=modSet.has(_canNom)?_canNom:null;
+        if(modSet.has(_canNom)){
+          ent=_canNom;
+        } else if(!_esMon3d && typeof est==='string' && est.toLowerCase().includes('fornax')){
+          /* model_id resuelto pero modelo no en modSet actual (fue transferido).
+             Sus registros históricos tienen estudio_nombre con 'fornax' → atribuir
+             por nombre canónico resuelto. Solo superadmin/ejecutivo, nunca monitores.
+             Ej: Lucia Brown — transferida a Grupo Empresarial J&D desde sep-2026. */
+          ent=_canNom;
+        } else {
+          ent=null;
+        }
+      } else if(!_esMon3d && mod && typeof est==='string' && est.toLowerCase().includes('fornax')){
+        /* Modelo histórico de Fornax sin model_id resuelto — capturado por Q3 ilike.
+           No está en modSet actual porque fue transferido. Solo superadmin/ejecutivo. */
+        ent=mod;
       } else {
         ent=null;
       }
@@ -14898,6 +15078,35 @@ async function _e3dCargar(){
                   isFornax:_isMod&&(_e3ModelosFornax.has(ent)||_e3ModelosFornax.has(mod||'')),
                   modNom:((mod&&modSet.has(mod))||_esModEjec)?mod:null });
     });
+    /* ══ DIAGNÓSTICO LUCIA BROWN ══
+       Muestra exactamente qué pasa con los registros de Luciana/Lucia Brown */
+    (function(){
+      try{
+        var _lAllNombres = allRows.map(function(r){ return (r.modelo_nombre||'').trim(); });
+        var _lAsigNombres = _e3ModelosAsig.filter(function(n){ return n.toLowerCase().indexOf('lucia')!==-1; });
+        var _lAllRows = allRows.filter(function(r){ return (r.modelo_nombre||'').toLowerCase().indexOf('lucia')!==-1; });
+        var _lFinalRows = rows.filter(function(r){ return (r.entidad||'').toLowerCase().indexOf('lucia')!==-1 || (r.modNom||'').toLowerCase().indexOf('lucia')!==-1; });
+        var _lTotal = _lFinalRows.reduce(function(s,r){ return s+r.valor; },0);
+        var _lAllTotal = _lAllRows.reduce(function(s,r){ return s+(+(r.valor||0)); },0);
+        console.warn('═══════════════════════════════════════════');
+        console.warn('[LUCIA-DIAG] Modelos con "lucia" en _e3ModelosAsig:', JSON.stringify(_lAsigNombres));
+        console.warn('[LUCIA-DIAG] Registros con "lucia" en allRows:', _lAllRows.length, '→ total créditos BD:', _lAllTotal);
+        console.warn('[LUCIA-DIAG] Registros con "lucia" en rows (final, ya atribuidos):', _lFinalRows.length, '→ suma:', _lTotal);
+        console.warn('[LUCIA-DIAG] modSet tiene "Lucia Brown"?', modSet.has('Lucia Brown'));
+        console.warn('[LUCIA-DIAG] Total modelos en _e3ModelosAsig:', _e3ModelosAsig.length);
+        if(_lAllRows.length > 0){
+          var sample = _lAllRows.slice(0,3);
+          sample.forEach(function(r,i){ console.warn('[LUCIA-DIAG] Muestra allRow '+i+':', {modelo_nombre:r.modelo_nombre, estudio_nombre:r.estudio_nombre, fecha:r.fecha, valor:r.valor, model_id:r.model_id}); });
+        }
+        if(_lAllRows.length === 0){
+          console.warn('[LUCIA-DIAG] ⚠️ Sin registros "lucia" en allRows — no fue buscada o BD no la tiene con estudio_nombre=Fornax');
+          var _lFromModSet = Array.from(modSet).filter(function(n){ return n.toLowerCase().indexOf('lucia')!==-1; });
+          console.warn('[LUCIA-DIAG] modSet contiene con lucia:', JSON.stringify(_lFromModSet));
+        }
+        console.warn('═══════════════════════════════════════════');
+      }catch(_ex){ console.warn('[LUCIA-DIAG] error:', _ex); }
+    })();
+
     /* GUARDIA FORNAX v2 — Monitor: alinear FACTURACIÓN TOTAL con Registro Diario.
        Prioridad: usar _rdStudioModelos['Fornax Studios'] (misma fuente que Registro Diario).
        Si aún no cargó, usar _e3ModelosFornaxBase como respaldo.
@@ -14991,6 +15200,14 @@ async function _e3dCargar(){
     _e3d.prevRows=prevRows;
     _e3d.loaded=true;
     _e3d.rangoActual=rango; // guardar para uso en exportación Excel
+
+    /* ── META COMERCIAL: fetch solo para perfil Monitor ── */
+    var _esMonViewCargar=(_jdCurrentUser&&(_jdCurrentUser.rol==='monitor'||_jdCurrentUser.rol==='Monitor'));
+    if(_esMonViewCargar && typeof _m3dGetMetaComercial==='function'){
+      try{ _e3d.metaInfo = await _m3dGetMetaComercial(f, rango); }
+      catch(_me){ console.warn('[e3d meta]',_me); _e3d.metaInfo = null; }
+    } else { _e3d.metaInfo = null; }
+
     _e3dRender(rango, rangoPrev, f);
   }catch(err){
     scroll.innerHTML='<div class="efac3d-loading-msg">❌ Error: '+(err&&err.message||String(err))+'</div>';
@@ -15083,13 +15300,9 @@ async function _e3dCargarHistorico(){
 /* ── Aplicar filtros ── */
 async function _e3dAplicarFiltros(){ _e3d.loaded=false; await _e3dCargar(); }
 function _e3dResetFiltros(){
-  var now=new Date();
-  var selAno=document.getElementById('efac3d-f-ano');
-  if(selAno) selAno.value=now.getFullYear();
-  var selMes=document.getElementById('efac3d-f-mes');
-  if(selMes) selMes.value=now.getMonth()+1;
-  var selQ=document.getElementById('efac3d-f-q');
-  if(selQ) selQ.value=0;
+  var sel=document.getElementById('efac3d-f-periodo');
+  if(sel) sel.value='mes';
+  _e3dOnPeriodoChange();
   var desde=document.getElementById('efac3d-f-desde');
   if(desde) desde.value='';
   var hasta=document.getElementById('efac3d-f-hasta');
@@ -15189,10 +15402,13 @@ function _e3dRender(rango, rangoPrev, f){
 
   var html='';
 
-  /* ── Barra de acciones (Excel) ── */
-  html+='<div style="display:flex;justify-content:flex-end;margin-bottom:10px">';
-  html+='<button onclick="_e3dExportarExcel()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:transparent;border:1.5px solid #22c55e;color:#22c55e;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.04em" title="Descargar estadísticas en Excel">⬇ Exportar Excel</button>';
-  html+='</div>';
+  /* ── Determinar rol (Monitor) ── */
+  var _esMonitorView=(_jdCurrentUser&&(_jdCurrentUser.rol==='monitor'||_jdCurrentUser.rol==='Monitor'));
+
+  /* ── META COMERCIAL (solo perfil Monitor) — encima de Indicadores Clave ── */
+  if(_esMonitorView && typeof _m3dRenderMetaCard==='function'){
+    html += _m3dRenderMetaCard(c.totalFact, _e3d.metaInfo || null);
+  }
 
   /* ── Sección 1: KPIs ── */
   html+='<div class="efac3d-sec"><div class="efac3d-sec-hdr"><div class="efac3d-sec-tit">📊 Indicadores clave · <span style="color:var(--gold)">'+rango.label+'</span></div></div>';
@@ -15208,10 +15424,6 @@ function _e3dRender(rango, rangoPrev, f){
   html+=_kpi('c-blue','Promedio diario',_e3fmt(c.promDiario,true),
     'Facturación ÷ días con datos en el período',
     c.diasConDatos+' días con datos','neu');
-
-  /* KPI 3 — Estudios con facturación */
-  html+=_kpi('c-purple','Estudios activos',c.estConDatos,
-    'Estudios con al menos un registro de facturación en el período',null,'neu');
 
   /* KPI 4 — Modelos con facturación */
   html+=_kpi('c-pink','Modelos activos',c.modConDatos,
@@ -15243,7 +15455,6 @@ function _e3dRender(rango, rangoPrev, f){
   /* ── Sección 2: Mejor estudio / mejor modelo ──
      REGLA: el perfil Monitor NO muestra la tarjeta "Mejor estudio".
      Solo se renderiza para roles distintos de monitor. */
-  var _esMonitorView=(_jdCurrentUser&&(_jdCurrentUser.rol==='monitor'||_jdCurrentUser.rol==='Monitor'));
   html+='<div class="efac3d-sec"><div class="efac3d-sec-hdr"><div class="efac3d-sec-tit">🏆 Mejor rendimiento · '+rango.label+'</div></div>';
   html+='<div class="efac3d-best-row">';
   /* Mejor estudio — EXCLUIDO para perfil Monitor */
@@ -15282,38 +15493,83 @@ function _e3dRender(rango, rangoPrev, f){
   }
   html+='</div></div>';
 
-  /* ── Sección 3: Ranking de entidades ── */
+  /* ── Sección 3: Ranking de entidades — Heatmap Térmico ── */
   var entList=Object.keys(c.byEnt).filter(function(e){ return c.byEnt[e].total>0; });
   entList.sort(function(a,b){ return c.byEnt[b].total-c.byEnt[a].total; });
   if(entList.length){
-    var topVal=c.byEnt[entList[0]].total;
+    var _HM_PLATS=['F4F','STC','CHB','STM','CSD'];
+    var _HM_RGB={'F4F':'78,142,248','STC':'239,85,85','CHB':'245,166,35','STM':'159,166,184','CSD':'63,207,170'};
+    var _HM_HEX={'F4F':'#4e8ef8','STC':'#ef5555','CHB':'#f5a623','STM':'#9fa6b8','CSD':'#3fcfaa'};
+    var _HM_LABEL={'F4F':'Flirt4Free','STC':'Stripchat','CHB':'Chaturbate','STM':'Streamate','CSD':'CamSoda'};
+    /* Máximos por columna para intensidad del heatmap */
+    var _hmMax={};
+    _HM_PLATS.forEach(function(p){ _hmMax[p]=0; });
+    entList.forEach(function(e){
+      var bp=c.byEnt[e].byPlat||{};
+      _HM_PLATS.forEach(function(p){ if((bp[p]||0)>_hmMax[p]) _hmMax[p]=bp[p]||0; });
+    });
+    /* Estilos del heatmap inyectados inline */
+    html+='<style>'
+      +'.efac3d-hm-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}'
+      +'.efac3d-hm-table{width:100%;border-collapse:collapse;font-size:11px}'
+      +'.efac3d-hm-table th{background:var(--card-bg,rgba(255,255,255,.04));color:var(--muted);font-weight:700;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;padding:6px 8px;text-align:center;border-bottom:1.5px solid var(--border,rgba(255,255,255,.1));white-space:nowrap}'
+      +'.efac3d-hm-table th.hm-left{text-align:left}'
+      +'.efac3d-hm-table td{padding:5px 7px;text-align:center;border-bottom:1px solid var(--border,rgba(255,255,255,.05));vertical-align:middle}'
+      +'.efac3d-hm-table tr:last-child td{border-bottom:none}'
+      +'.efac3d-hm-table tr:hover td{filter:brightness(1.12)}'
+      +'.efac3d-hm-pos{width:28px;font-weight:700;font-size:12px;text-align:center!important;line-height:1}'
+      +'.efac3d-hm-name{text-align:left!important;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+      +'.efac3d-hm-cell{font-size:10.5px;font-weight:600;min-width:62px;white-space:nowrap}'
+      +'.efac3d-hm-cell.zero{color:var(--muted)!important;opacity:.4;font-size:13px;background:none!important}'
+      +'.efac3d-hm-total{font-weight:700;font-size:11px;white-space:nowrap;color:var(--fg)}'
+      +'.efac3d-hm-dist-bar{display:flex;height:9px;width:82px;border-radius:4px;overflow:hidden;gap:1px;min-width:82px}'
+      +'.efac3d-hm-dist-seg{height:100%;flex-shrink:0}'
+      +'</style>';
+
     html+='<div class="efac3d-sec"><div class="efac3d-sec-hdr"><div class="efac3d-sec-tit">📋 Ranking de facturación</div></div>';
-    html+='<div class="efac3d-rank-list">';
+    html+='<div class="efac3d-hm-wrap"><table class="efac3d-hm-table"><thead><tr>';
+    html+='<th>#</th><th class="hm-left">Modelo / Estudio</th>';
+    _HM_PLATS.forEach(function(p){ html+='<th style="color:'+_HM_HEX[p]+'">'+_HM_LABEL[p]+'</th>'; });
+    html+='<th>Total Cr.</th><th>Distribución</th>';
+    html+='</tr></thead><tbody>';
+
     entList.slice(0,15).forEach(function(e,i){
       var info=c.byEnt[e];
-      var pct=c.totalFact>0?(info.total/c.totalFact*100):0;
-      var barW=topVal>0?Math.round(info.total/topVal*100):0;
-      var platTip=_e3dPlatTip(info.byPlat||{});
-      var rowTitle=platTip?'Facturación por plataforma:\n'+platTip:'';
-      html+='<div class="efac3d-rank-row" title="'+_esc(rowTitle)+'" style="cursor:default">';
-      html+='<div class="efac3d-rank-pos">'+(i+1)+'</div>';
-      html+='<div style="flex:1;display:flex;flex-direction:column;gap:3px;min-width:0">';
-      html+='<div style="display:flex;align-items:center;gap:6px">';
-      html+='<span class="efac3d-rank-name" title="'+_esc(e)+'">'+_esc(e)+'</span>';
-      /* Badge por afiliación: Fornax / GE / Estudio — sin depender del campo tipo */
-      var _badgeCls=info.isFornax?'fnx':(info.isModelo?'mod':'est');
-      var _badgeLbl=info.isModelo
-        ? (info.isFornax ? 'Fornax' : 'GE')
-        : 'Estudio';
-      html+='<span class="efac3d-rank-badge '+_badgeCls+'">'+_badgeLbl+'</span>';
-      html+='</div>';
-      html+='<div class="efac3d-rank-bar" style="width:'+barW+'%"></div>';
-      html+='</div>';
-      html+='<div style="text-align:right;font-size:10px;color:var(--muted);min-width:35px">'+pct.toFixed(1)+'%</div>';
-      html+='<div class="efac3d-rank-val">'+_e3fmt(info.total,true)+'</div>';
-      html+='</div>';
+      var rank=i+1;
+      var _accentBorder=rank===1?'#f5c542':rank===2?'#c0c7cf':rank===3?'#c87533':'transparent';
+      var _rankNumColor=rank===1?'#f5c542':rank===2?'#c0c7cf':rank===3?'#c87533':'var(--muted)';
+      var bp=info.byPlat||{};
+
+      html+='<tr style="border-left:3px solid '+_accentBorder+'">';
+      /* Posición */
+      html+='<td class="efac3d-hm-pos" style="color:'+_rankNumColor+'">'+rank+'</td>';
+      /* Nombre + badge */
+      var _bc=info.isFornax?'fnx':(info.isModelo?'mod':'est');
+      var _bl=info.isModelo?(info.isFornax?'Fornax':'GE'):'Estudio';
+      html+='<td class="efac3d-hm-name"><span title="'+_esc(e)+'">'+_esc(e)+'</span> <span class="efac3d-rank-badge '+_bc+'">'+_bl+'</span></td>';
+      /* Columnas por plataforma con intensidad heatmap */
+      _HM_PLATS.forEach(function(p){
+        var v=bp[p]||0;
+        if(!v){ html+='<td class="efac3d-hm-cell zero">—</td>'; return; }
+          html+='<td class="efac3d-hm-cell" style="background:rgba('+_HM_RGB[p]+',0.22)">'+_e3fmt(v,true)+'</td>';
+      });
+      /* Total */
+      html+='<td class="efac3d-hm-total">'+_e3fmt(info.total,true)+'</td>';
+      /* Barra de distribución proporcional */
+      var _distBar='<div class="efac3d-hm-dist-bar">';
+      _HM_PLATS.forEach(function(p){
+        var v=bp[p]||0;
+        if(v>0&&info.total>0){
+          var pct=(v/info.total*100).toFixed(1);
+          _distBar+='<div class="efac3d-hm-dist-seg" style="width:'+pct+'%;background:'+_HM_HEX[p]+'"></div>';
+        }
+      });
+      _distBar+='</div>';
+      html+='<td>'+_distBar+'</td>';
+      html+='</tr>';
     });
-    html+='</div></div>';
+
+    html+='</tbody></table></div></div>';
   }
 
   /* ── Sección 4: Análisis por plataforma ── */
@@ -16997,7 +17253,8 @@ async function _rptRenderRachas(){
   panel.innerHTML='<div style="padding:32px;text-align:center;color:var(--muted);font-size:14px">⏳ Calculando rachas de quincena…</div>';
 
   try{
-    /* 1. Modelos Fornax con RE > 0 */
+    /* 1. Todos los modelos Fornax con RE > 0 (para el tracker de rachas activas) */
+    /* SPEC: identificar por model_id, NUNCA por nombre */
     var resMods=await _supaDb.from('modelos').select('id,nombre,reto_estrella,estado')
       .eq('estudio_id','mt8elsuqllk').gt('reto_estrella',0);
     if(resMods.error) throw resMods.error;
@@ -17009,19 +17266,27 @@ async function _rptRenderRachas(){
       return;
     }
 
-    /* 2. Facturación últimos 6 meses */
+    /* 2. Facturación desde julio 2026 (inicio oficial Bono de Racha) */
     var now=new Date();
+    /* Fecha mínima de racha: 2026-07-01 (nunca antes) */
+    var FECHA_MIN_RACHA='2026-07-01';
     var d6=new Date(now); d6.setMonth(d6.getMonth()-6);
-    var fechaDesde=d6.toISOString().split('T')[0];
-    var modNames=mods.map(function(m){ return m.nombre; });
+    /* Usar la más reciente entre "hace 6 meses" y "julio 2026" */
+    var fechaDesde=d6.toISOString().split('T')[0]<FECHA_MIN_RACHA?FECHA_MIN_RACHA:d6.toISOString().split('T')[0];
+
+    /* Construir mapa de resolución: model_id → mod y nombre_norm → model_id */
+    function _rptNorm(s){ return (s||'').toLowerCase().trim().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' '); }
+    var _rptIdMap={};
+    var _rptNomMap={};
+    mods.forEach(function(m){ _rptIdMap[m.id]=m; _rptNomMap[_rptNorm(m.nombre)]=m.id; });
+    var modelIds=mods.map(function(m){ return m.id; }).slice(0,300);
 
     var allFac=[]; var off=0; var PAGE=1000;
-    /* Supabase .in() soporta hasta ~300 valores; truncamos si es necesario */
-    var namesSlice=modNames.slice(0,300);
+    /* Consulta primaria: por modelo_id (spec: NUNCA por nombre) */
     while(true){
       var rFac=await _supaDb.from('facturacion_diaria')
-        .select('fecha,modelo_nombre,valor')
-        .in('modelo_nombre',namesSlice)
+        .select('fecha,modelo_id,modelo_nombre,valor')
+        .ilike('estudio_nombre','%fornax%')
         .gte('fecha',fechaDesde)
         .gt('valor',0)
         .range(off,off+PAGE-1);
@@ -17031,53 +17296,67 @@ async function _rptRenderRachas(){
       off+=PAGE;
     }
 
-    /* 3. Agrupar por modelo_nombre + quincena (YYYY-MM-Q1/Q2) */
-    var byModQ={};
+    /* 3. Agrupar por modelo_id (resuelto) + quincena (YYYY-MM-Q1/Q2) */
+    /* SPEC: resolución por model_id; fallback por nombre normalizado (con advertencia) */
+    var byModQ={};  /* keyed by model_id */
     allFac.forEach(function(row){
-      var nom=row.modelo_nombre;
+      var mid=row.modelo_id;
+      if(!mid || !_rptIdMap[mid]){
+        /* Intentar resolver por nombre normalizado */
+        var nNorm=_rptNorm(row.modelo_nombre);
+        mid=_rptNomMap[nNorm]||_rptNomMap[nNorm.replace(/ /g,'')]||null;
+        if(!mid) return; /* no se pudo resolver → omitir */
+      }
+      /* Solo incluir si el modelo pertenece a nuestra lista */
+      if(!_rptIdMap[mid]) return;
       var parts=(row.fecha||'').split('-');
       if(parts.length<3) return;
       var yr=parts[0], mo=parts[1], dy=parseInt(parts[2],10);
       var q=dy<=15?'Q1':'Q2';
       var qid=yr+'-'+mo+'-'+q;
-      if(!byModQ[nom]) byModQ[nom]={};
-      byModQ[nom][qid]=(byModQ[nom][qid]||0)+Number(row.valor||0);
+      if(!byModQ[mid]) byModQ[mid]={};
+      byModQ[mid][qid]=(byModQ[mid][qid]||0)+Number(row.valor||0);
     });
 
     /* 4. Lista de quincenas en orden descendente (más reciente primero) */
+    /* Solo quincenas desde julio 2026 */
     var quincenas=[];
     var cy=now.getFullYear(), cm=now.getMonth()+1, cd=now.getDate();
     var qn=cd<=15?'Q1':'Q2';
     var ym=cm, yy=cy;
     for(var qi=0;qi<14;qi++){
       var ms=ym<10?'0'+ym:''+ym;
-      quincenas.push(yy+'-'+ms+'-'+qn);
+      var qid2=yy+'-'+ms+'-'+qn;
+      /* Solo incluir si es >= julio 2026 */
+      if(qid2>=FECHA_MIN_RACHA.substring(0,7).replace('-','').substring(0,4)+'-'+FECHA_MIN_RACHA.substring(5,7)+'-Q1'){
+        quincenas.push(qid2);
+      }
       if(qn==='Q1'){ qn='Q2'; ym--; if(ym<1){ym=12;yy--;} }
       else { qn='Q1'; }
     }
 
-    /* 5. Calcular racha por modelo */
+    /* 5. Calcular racha por modelo (por model_id) */
     var results=mods.map(function(m){
-      var nom=m.nombre;
       var re=Number(m.reto_estrella)||0;
-      var modQ=byModQ[nom]||{};
+      var modQ=byModQ[m.id]||{};
       var racha=0;
-      /* Quincena actual (index 0) puede estar incompleta → no la contamos en racha,
-         sí la mostramos en historial */
+      /* Quincena actual (index 0) puede estar incompleta → no la contamos en racha */
       for(var i=1;i<quincenas.length;i++){
         var cr=modQ[quincenas[i]]||0;
-        if(cr>=re) racha++;
+        if(re>0&&cr>=re) racha++;
         else break;
       }
+      /* SPEC: racha 6 completa ciclo → reinicia en 1 */
+      if(racha>6) racha=((racha-1)%6)+1;
       /* Historial: últimas 7 quincenas completas (índices 1-7) */
       var hist=[];
       for(var j=1;j<=7&&j<quincenas.length;j++){
         var cj=modQ[quincenas[j]]||0;
-        hist.push({qid:quincenas[j],cr:cj,ok:cj>=re});
+        hist.push({qid:quincenas[j],cr:cj,ok:re>0&&cj>=re});
       }
       /* Producción quincena actual (parcial) */
       var crActual=modQ[quincenas[0]]||0;
-      return {nombre:nom, re:re, racha:racha, hist:hist, crActual:crActual, qActual:quincenas[0]};
+      return {id:m.id, nombre:m.nombre, re:re, racha:racha, hist:hist, crActual:crActual, qActual:quincenas[0]};
     });
 
     /* Ordenar: racha desc, luego nombre */
@@ -17151,7 +17430,7 @@ async function _rptRenderRachas(){
     });
 
     h+='</tbody></table></div>';
-    h+='<div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:right">Datos: facturación_diaria · últimas 6 meses · Fornax Studios</div>';
+    h+='<div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:right">Datos: facturacion_diaria · resolución por model_id · desde jul 2026 · Fornax Studios · R6→reinicia ciclo</div>';
 
     panel.innerHTML=h;
 
@@ -36503,15 +36782,19 @@ var _reFiltroAnio = 2026;
 var _reFiltroState= 'all';   // 'all' | 'cumple' | 'nocumple'
 var _reFiltroRacha= 'all';   // 'all' | 'activa' | 'sin'
 var _reBuscar     = '';
-var _reAnioOpts   = [2026, 2027];
+var _reAnioOpts      = [2026, 2027];
+var _reFiltroTrimestre = 0;      // 0=vigente automático · 1–4=fijo
+var _reVerHistorico    = false;  // true=año completo RE histórico
 
 /* ── Tabla Bono de Racha oficial ── posición 1-indexed ─────────── */
-// Q1=base(0) · Q2=USD 8 · Q3=12 · Q4=18 · Q5=22 · Q6+=25
+// R1=$0 · R2=$8 · R3=$12 · R4=$18 · R5=$22 · R6=$25 → reinicia ciclo en R1
+// REGLA: racha 6 completa el ciclo; siguiente quincena inicia racha 1 nuevo ciclo
 function _reBono(pos) {
   var tabla = [0, 0, 8, 12, 18, 22, 25];
   if (pos <= 0) return 0;
-  if (pos >= 6) return 25;
-  return tabla[pos] || 0;
+  // Normalizar dentro del ciclo 1-6 para soportar pos > 6 si se pasa
+  var p = ((pos - 1) % 6) + 1;
+  return tabla[p] || 0;
 }
 
 /* ── Helpers de período ─────────────────────────────────────────── */
@@ -36519,21 +36802,24 @@ function _rePeriodosAnio(anio) {
   var meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
                'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   var resultado = [];
-  // RE arranca en julio 2026; años posteriores desde enero
-  var startMes = (anio === 2026) ? 6 : 0;
-  for (var m = startMes; m < 12; m++) {
+  // SPEC: mostrar TODAS las quincenas desde enero (producción visible desde el inicio del año).
+  // rachaEligible = true SOLO desde julio 2026 Q1 en adelante (inicio oficial Bono de Racha).
+  // Para 2027+ todos los meses son elegibles para racha.
+  for (var m = 0; m < 12; m++) {
     var mm  = String(m + 1).padStart(2, '0');
     var ult = new Date(anio, m + 1, 0).getDate();
+    // Julio 2026 = mes índice 6 → elegible para racha desde ese punto
+    var reElig = (anio > 2026) || (anio === 2026 && m >= 6);
     resultado.push({
       id: anio + '-' + mm + '-Q1', label: meses[m] + ' Q1',
       desde: anio + '-' + mm + '-01', hasta: anio + '-' + mm + '-15',
-      mes: m + 1, anio: anio, q: 1
+      mes: m + 1, anio: anio, q: 1, rachaEligible: reElig
     });
     resultado.push({
       id: anio + '-' + mm + '-Q2', label: meses[m] + ' Q2',
       desde: anio + '-' + mm + '-16',
       hasta: anio + '-' + mm + '-' + String(ult).padStart(2, '0'),
-      mes: m + 1, anio: anio, q: 2
+      mes: m + 1, anio: anio, q: 2, rachaEligible: reElig
     });
   }
   return resultado;
@@ -36545,6 +36831,21 @@ function _rePeriodoActualId() {
   var m   = String(hoy.getMonth() + 1).padStart(2, '0');
   var q   = (hoy.getDate() <= 15) ? 'Q1' : 'Q2';
   return y + '-' + m + '-' + q;
+}
+
+/* ── Helpers de trimestre ──────────────────────────────────────── */
+/* Trimestre vigente según fecha actual (1–4) */
+function _reTrimestreDeHoy() { return Math.ceil((new Date().getMonth() + 1) / 3); }
+/* Etiqueta amigable del trimestre */
+function _reTrimLabel(n) {
+  var l = { 1:'T1 · Ene–Mar', 2:'T2 · Abr–Jun', 3:'T3 · Jul–Sep', 4:'T4 · Oct–Dic' };
+  return l[n] || ('T' + n);
+}
+/* Devuelve las quincenas del trimestre numTrim (1–4) dentro de la lista 'todos' */
+function _reQsTrimestre(todos, numTrim) {
+  var pri = (numTrim - 1) * 3 + 1;   // mes inicial: 1, 4, 7, 10
+  var fin = pri + 2;                   // mes final:   3, 6, 9, 12
+  return todos.filter(function(q) { return q.mes >= pri && q.mes <= fin; });
 }
 
 /* ── Formato colombiano ─────────────────────────────────────────── */
@@ -36703,25 +37004,33 @@ async function _reCargar() {
   if (_reCargando) return;
   _reCargando = true;
   try {
-    // 1. Modelos Fornax ACTIVOS con RE > 0, excluir Avrilpool
-    //    Solo modelos activos (estado 'activa' o 'activo', sin importar mayúsculas)
+    // 1. TODOS los modelos Fornax (activos e inactivos, con y sin RE).
+    //    SPEC: incluir modelos históricos; NUNCA filtrar por estado ni por RE > 0.
+    //    El estado se usa SOLO para ordenar (activos primero), no para excluir.
     var resM = await _supaDb.from('modelos')
-      .select('id,nombre,reto_estrella,estado')
-      .eq('estudio_id', 'mt8elsuqllk')
-      .gt('reto_estrella', 0);
+      .select('id,nombre,reto_estrella,estado,monitor')
+      .eq('estudio_id', 'mt8elsuqllk');
     _reModelos = ((resM.data) || []).filter(function(m) {
-      var nom    = (m.nombre || '').toLowerCase().trim();
-      var estado = (m.estado || '').toLowerCase().trim();
-      if (nom === 'avrilpool') return false;
-      // Solo activos: 'activa', 'activo', 'active', o sin estado (legacy)
-      if (estado && estado !== 'activa' && estado !== 'activo' && estado !== 'active') return false;
-      return true;
+      var nom = (m.nombre || '').toLowerCase().trim();
+      if (nom === 'avrilpool') return false; // perfil de colaboración — no modelo individual
+      return true; // incluir todos: activos, inactivos, sin RE, con RE
+    }).sort(function(a, b) {
+      // Orden: activos con RE > 0 primero · luego activos sin RE · luego inactivos
+      var ACTIVOS = ['activa','activo','active'];
+      var aAct = ACTIVOS.indexOf((a.estado||'').toLowerCase().trim()) >= 0;
+      var bAct = ACTIVOS.indexOf((b.estado||'').toLowerCase().trim()) >= 0;
+      var aRe  = Number(a.reto_estrella) > 0;
+      var bRe  = Number(b.reto_estrella) > 0;
+      if (aAct !== bAct) return aAct ? -1 : 1;
+      if (aRe  !== bRe)  return aRe  ? -1 : 1;
+      return (a.nombre||'').localeCompare(b.nombre||'', 'es');
     });
 
-    // 2. Quincenas del año seleccionado hasta la actual
+    // 2. Quincenas del año seleccionado — TODAS (incluso futuras para vista trimestre)
+    //    Los períodos futuros tendrán producción=0 y se marcarán con futuro=true en el cálculo
     var periodosAnio  = _rePeriodosAnio(_reFiltroAnio);
     var periodoActual = _rePeriodoActualId();
-    _reQuincenas = periodosAnio.filter(function(q) { return q.id <= periodoActual; });
+    _reQuincenas = periodosAnio; // año completo; futuro se filtra en racha y render
 
     // 3. Inicializar acumuladores
     _reProduccion = {};
@@ -36773,7 +37082,13 @@ async function _reCargar() {
         var mes = row.fecha.substring(0, 7);
         var qId = mes + (dia <= 15 ? '-Q1' : '-Q2');
         if (_reProduccion[mid][qId] !== undefined) {
-          _reProduccion[mid][qId] += (row.valor || 0);
+          // Streamate almacena en USD → convertir a créditos (USD ÷ 0,05 = créditos)
+          var _plat = (row.plataforma || '').toLowerCase().trim();
+          var _esStreamate = _plat.indexOf('streamate') !== -1 || _plat === 'sm';
+          var _valCr = _esStreamate
+            ? (row.valor || 0) / 0.05
+            : (row.valor || 0);
+          _reProduccion[mid][qId] += _valCr;
         }
       }
 
@@ -36791,7 +37106,7 @@ async function _reCargar() {
       var _rePg = 1000, _reOff = 0, _reMore = true, _reTotalRows = 0;
       while (_reMore) {
         var _reR = await _supaDb.from('facturacion_diaria')
-          .select('fecha,modelo_id,modelo_nombre,valor')
+          .select('fecha,modelo_id,modelo_nombre,valor,plataforma')
           .gte('fecha', desde).lte('fecha', hasta)
           .ilike('estudio_nombre', '%fornax%')
           .range(_reOff, _reOff + _rePg - 1);
@@ -36829,33 +37144,65 @@ async function _reCargar() {
     } catch(_e) { /* tabla puede no existir aún */ }
 
     // 6. Calcular rachas en orden cronológico por modelo
+    // REGLAS (especificación oficial):
+    //   • Racha cuenta SOLO desde 2026-07-Q1 (rachaEligible = true)
+    //   • Cumplimiento consecutivo incrementa racha (re > 0 && prod >= re)
+    //   • Una falla resetea racha a 0 en la SIGUIENTE quincena (racha actual queda en 0)
+    //   • Racha 6 completa el ciclo → siguiente quincena inicia racha 1 del nuevo ciclo
+    //   • Cambio de RE NO rompe la racha (se usa el RE del perfil actual en cálculo en tiempo real)
+    //   • Dato histórico de rachas_modelos tiene prioridad sobre cálculo en tiempo real
     _reRachas = {};
     _reModelos.forEach(function(mod) {
-      var racha    = 0;
+      var racha     = 0;
       var historial = [];
       _reQuincenas.forEach(function(q) {
-        var prod     = (_reProduccion[mod.id] || {})[q.id] || 0;
-        var re       = mod.reto_estrella || 0;
-        var histRow  = (rachasHist[mod.id] || {})[q.id];
-        var cumplio;
-        if (histRow) {
-          // Usar dato histórico oficial si existe
-          cumplio = !!histRow.cumplio_re;
-          racha   = histRow.racha_actual || 0;
-        } else {
-          // Calcular en tiempo real
-          cumplio = (re > 0 && prod >= re);
-          if (cumplio) { racha++; } else { racha = 0; }
+        var prod    = (_reProduccion[mod.id] || {})[q.id] || 0;
+        var re      = mod.reto_estrella || 0;
+        var histRow = (rachasHist[mod.id] || {})[q.id];
+        var cumplio, rachaResult, bonoResult;
+
+        // Período futuro: no evaluar RE, registrar como vacío (no avanzar racha)
+        if (q.id > periodoActual) {
+          historial.push({ periodo: q.id, label: q.label, prod: 0, re: re,
+            cumplio: null, racha: racha, bono: 0,
+            rachaEligible: q.rachaEligible, futuro: true });
+          return;
         }
-        var bono = cumplio ? _reBono(racha) : 0;
+
+        if (!q.rachaEligible) {
+          // Período anterior a julio 2026: mostrar producción pero sin racha ni bono
+          cumplio     = (re > 0 && prod >= re);
+          rachaResult = 0;
+          bonoResult  = 0;
+          // No avanzar el contador de racha para períodos pre-elegibles
+        } else if (histRow) {
+          // Dato histórico oficial de rachas_modelos (mayor prioridad)
+          cumplio     = !!histRow.cumplio_re;
+          rachaResult = histRow.racha_actual || 0;
+          racha       = rachaResult; // sincronizar contador para continuar correctamente
+          bonoResult  = histRow.bono_racha_usd || 0;
+        } else {
+          // Cálculo en tiempo real
+          cumplio = (re > 0 && prod >= re);
+          if (cumplio) {
+            racha++;
+            if (racha > 6) { racha = 1; } // ciclo 6 completo → reinicia en racha 1 nuevo ciclo
+          } else {
+            racha = 0;
+          }
+          rachaResult = racha;
+          bonoResult  = cumplio ? _reBono(racha) : 0;
+        }
+
         historial.push({
-          periodo: q.id,
-          label:   q.label,
-          prod:    prod,
-          re:      re,
-          cumplio: cumplio,
-          racha:   racha,
-          bono:    bono
+          periodo:       q.id,
+          label:         q.label,
+          prod:          prod,
+          re:            re,
+          cumplio:       cumplio,
+          racha:         rachaResult,
+          bono:          bonoResult,
+          rachaEligible: q.rachaEligible
         });
       });
       _reRachas[mod.id] = historial;
@@ -36876,12 +37223,20 @@ function _reRender() {
   var periodoActual = _rePeriodoActualId();
 
   // Filtrar modelos según criterios activos
+  // Helper: última entrada no-futura del historial
+  function _reLastReal(hist) {
+    for (var _i = hist.length - 1; _i >= 0; _i--) {
+      if (!hist[_i].futuro) return hist[_i];
+    }
+    return null;
+  }
+
   var modsFilt = _reModelos.filter(function(m) {
     if (_reBuscar) {
       if ((m.nombre || '').toLowerCase().indexOf(_reBuscar.toLowerCase()) < 0) return false;
     }
     var hist = _reRachas[m.id] || [];
-    var last = hist.length ? hist[hist.length - 1] : null;
+    var last = _reLastReal(hist);
     if (_reFiltroState !== 'all' && last) {
       if (_reFiltroState === 'cumple'   && !last.cumplio) return false;
       if (_reFiltroState === 'nocumple' && last.cumplio)  return false;
@@ -36895,172 +37250,761 @@ function _reRender() {
   });
 
   // KPIs globales (sobre todos los modelos, no filtrados)
-  var totalMods = _reModelos.length;
+  // Solo contar modelos con RE > 0 para los KPIs de cumplimiento
+  var modsConRE = _reModelos.filter(function(m) { return Number(m.reto_estrella) > 0; });
+  var totalMods = modsConRE.length;
   var cumplieron = 0, rachasActivas = 0, bonoTotal = 0;
-  _reModelos.forEach(function(m) {
+  modsConRE.forEach(function(m) {
     var hist = _reRachas[m.id] || [];
-    var last = hist.length ? hist[hist.length - 1] : null;
+    // Buscar última quincena elegible (rachaEligible) con producción real (no futura)
+    var lastElig = null;
+    for (var i = hist.length - 1; i >= 0; i--) {
+      if (!hist[i].futuro && hist[i].rachaEligible !== false) { lastElig = hist[i]; break; }
+    }
+    var last = _reLastReal(hist);
     if (last && last.cumplio) {
       cumplieron++;
-      if (last.racha >= 2) { rachasActivas++; bonoTotal += (last.bono || 0); }
+    }
+    if (lastElig && lastElig.cumplio && lastElig.racha >= 2) {
+      rachasActivas++;
+      bonoTotal += (lastElig.bono || 0);
     }
   });
   var pctCumple = totalMods ? Math.round(cumplieron / totalMods * 100) : 0;
 
-  // Quincenas visibles: últimas 8 (con scroll horizontal)
-  var qVis = _reQuincenas.slice(-8);
+  // Vista principal: 6 quincenas del trimestre vigente/seleccionado (Bono de Racha)
+  // Modo histórico: año completo RE (toggle _reVerHistorico)
+  var qVis;
+  if (_reVerHistorico) {
+    // Histórico: todas las quincenas pasadas + actual del año cargado (no futuras)
+    qVis = _reQuincenas.filter(function(q) { return q.id <= periodoActual; });
+  } else {
+    // Vista trimestre: las 6 quincenas del trimestre seleccionado (incluyendo futuras del trimestre)
+    var _tNum = _reFiltroTrimestre || _reTrimestreDeHoy();
+    qVis = _reQsTrimestre(_reQuincenas, _tNum);
+  }
+
+  // ── Helper: obtener la quincena anterior a la primera del rango visible ──────
+  // Busca en _reQuincenas del año. Si la primera quincena del trimestre es Q1 de enero
+  // y el año es > inicio del bono, se necesitaría cross-year (pendiente con tabla rachas_modelos).
+  var _idxPrimerQVis = (qVis.length > 0)
+    ? _reQuincenas.findIndex(function(q) { return q.id === qVis[0].id; })
+    : -1;
+  var _qAnterioresID = (_idxPrimerQVis > 0) ? _reQuincenas[_idxPrimerQVis - 1].id : null;
+
+  // Helper: racha que trae un modelo al entrar al trimestre visible
+  function _reGetHeredada(modId) {
+    if (!_qAnterioresID) return null;
+    var h2 = _reRachas[modId] || [];
+    return h2.filter(function(x) { return x.periodo === _qAnterioresID; })[0] || null;
+  }
 
   var h = '';
 
-  // ── Banner ──────────────────────────────────────────────────────
-  h += '<div style="background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(99,102,241,.04));border:1px solid rgba(124,58,237,.2);border-radius:12px;padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;gap:14px">';
-  h += '<div style="font-size:22px">🎬</div>';
-  h += '<div style="flex:1">';
-  h += '<div style="font-size:13px;font-weight:800;color:#a78bfa;letter-spacing:.3px">RETO ESTRELLA — FORNAX STUDIOS</div>';
-  h += '<div style="font-size:11.5px;color:#64748b;margin-top:2px">Seguimiento quincenal · Fuente RE: <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;font-size:10px">modelos.reto_estrella</code> · Producción: <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;font-size:10px">facturacion_diaria</code></div>';
-  h += '</div>';
-  h += '</div>';
+  var _tNumActual   = _reFiltroTrimestre || _reTrimestreDeHoy();
+  var _tLabelActual = _reTrimLabel(_tNumActual) + ' ' + _reFiltroAnio;
 
-  // ── KPI tiles ───────────────────────────────────────────────────
-  h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px">';
-  var kpis = [
-    { ico:'👩‍💻', lbl:'Modelos activos con RE',      val: totalMods,                                    color:'#a78bfa' },
-    { ico:'✅',   lbl:'Cumplen RE (quincena actual)', val: cumplieron + ' / ' + totalMods + ' (' + pctCumple + '%)', color: pctCumple >= 70 ? '#22c55e' : pctCumple >= 40 ? '#f59e0b' : '#ef4444' },
-    { ico:'🔥',   lbl:'Con racha activa (≥2)',        val: rachasActivas,                                color:'#f97316' },
-    { ico:'💰',   lbl:'Bono racha est. total',        val: 'USD ' + bonoTotal,                           color:'#22c55e' }
-  ];
-  kpis.forEach(function(k) {
-    h += '<div style="background:#1a1d27;border:1px solid #2e3040;border-radius:10px;padding:14px 16px">';
-    h += '<div style="font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">' + k.ico + ' ' + k.lbl + '</div>';
-    h += '<div style="font-size:18px;font-weight:800;color:' + k.color + ';line-height:1.2">' + k.val + '</div>';
+  // ── Quincenas a mostrar: trimestre activo O año completo ────────────────
+  // _reVerHistorico = true  → muestra las 24 quincenas (año completo)
+  // _reVerHistorico = false → muestra solo el trimestre seleccionado (6 quincenas)
+  var _allQ = _reVerHistorico
+    ? _reQuincenas
+    : _reQsTrimestre(_reQuincenas, _tNumActual);
+
+  // Agrupar por mes: [{mes, anio, label, qs:[Q1,Q2]}]
+  var _mGrp = [], _mKey = null;
+  _allQ.forEach(function(q) {
+    var mk = (q.anio||_reFiltroAnio) + '-' + String(q.mes||1).padStart(2,'0');
+    if (mk !== _mKey) {
+      _mGrp.push({ mes: q.mes, anio: q.anio, label: (q.label||'').replace(' Q1','').replace(' Q2',''), qs: [] });
+      _mKey = mk;
+    }
+    _mGrp[_mGrp.length-1].qs.push(q);
+  });
+
+  // ── Modelos para la matriz ───────────────────────────────────────────────
+  var _ACTIVOS_RE = ['activa','activo','active'];
+  if (typeof window._reMostrarInactivos === 'undefined') window._reMostrarInactivos = false;
+  var _modsM = _reModelos.filter(function(m) {
+    if (_reBuscar && (m.nombre||'').toLowerCase().indexOf(_reBuscar.toLowerCase()) < 0) return false;
+    if (!window._reMostrarInactivos) {
+      if (_ACTIVOS_RE.indexOf((m.estado||'').toLowerCase().trim()) < 0) return false;
+    }
+    return true;
+  });
+  _modsM.sort(function(a,b) {
+    var rea = Number(a.reto_estrella)||0, reb = Number(b.reto_estrella)||0;
+    if (rea && !reb) return -1; if (!rea && reb) return 1;
+    return (a.nombre||'').localeCompare(b.nombre||'');
+  });
+
+  // ── KPIs ─────────────────────────────────────────────────────────────────
+  var _kMods   = _modsM.length;
+  var _kConRE  = _modsM.filter(function(m){return Number(m.reto_estrella)>0;}).length;
+  var _kCumple = 0, _kEnRacha = 0, _kBonoT = 0;
+  _modsM.forEach(function(m) {
+    var hist = _reRachas[m.id]||[];
+    var lR = null; for (var _i=hist.length-1;_i>=0;_i--){if(!hist[_i].futuro){lR=hist[_i];break;}}
+    var lE = null; for (var _j=hist.length-1;_j>=0;_j--){if(!hist[_j].futuro&&hist[_j].rachaEligible!==false){lE=hist[_j];break;}}
+    if (lR&&lR.cumplio) _kCumple++;
+    if (lE&&lE.cumplio&&lE.racha>0){_kEnRacha++;_kBonoT+=(lE.bono||0);}
+  });
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  function _mRC(r){return r>=6?'#f59e0b':r>=4?'#f97316':r>=2?'#22c55e':'#94a3b8';}
+  function _mRBg(r){return r>=6?'rgba(245,158,11,.14)':r>=4?'rgba(249,115,22,.13)':r>=2?'rgba(34,197,94,.11)':'rgba(148,163,184,.09)';}
+  function _mRBd(r){return r>=6?'rgba(245,158,11,.4)':r>=4?'rgba(249,115,22,.35)':r>=2?'rgba(34,197,94,.28)':'rgba(148,163,184,.22)';}
+  function _mPct(v){var s=v.toFixed(1).replace('.',',');return(s.endsWith(',0')?Math.round(v)+',0':s)+'%';}
+
+  // ── BANNER ───────────────────────────────────────────────────────────────
+  h += '<div style="background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(99,102,241,.04));border:1px solid rgba(124,58,237,.2);border-radius:12px;padding:13px 18px;margin-bottom:13px;display:flex;align-items:center;gap:14px">';
+  h += '<div style="font-size:20px">🎯</div><div style="flex:1">';
+  h += '<div style="font-size:14px;font-weight:900;color:#a78bfa;letter-spacing:.3px">MATRIZ HISTÓRICA · RETO ESTRELLA · BONO DE RACHA · FORNAX STUDIOS</div>';
+  h += '<div style="font-size:11px;color:#64748b;margin-top:2px">Cumplimiento quincenal por modelo · Todas las plataformas · Racha continua (no se reinicia por trimestre)</div>';
+  h += '</div></div>';
+
+  // ── KPI TILES ────────────────────────────────────────────────────────────
+  h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px">';
+  [{ico:'👥',lbl:'Modelos activos',val:_kMods+' / <span style="color:#94a3b8">'+_kConRE+' con RE</span>',col:'#a78bfa'},
+   {ico:'✅',lbl:'Cumplieron (Q actual)',val:_kCumple,col:'#22c55e'},
+   {ico:'🔥',lbl:'En racha activa',val:_kEnRacha,col:'#f97316'},
+   {ico:'💰',lbl:'Bono generado',val:'USD '+_kBonoT,col:'#f59e0b'}
+  ].forEach(function(k){
+    h += '<div style="background:#1a1d27;border:1px solid #2e3040;border-radius:10px;padding:10px 13px">';
+    h += '<div style="font-size:9.5px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">'+k.ico+' '+k.lbl+'</div>';
+    h += '<div style="font-size:19px;font-weight:900;color:'+k.col+';line-height:1.1">'+k.val+'</div>';
     h += '</div>';
   });
   h += '</div>';
 
-  // ── Filtros ──────────────────────────────────────────────────────
-  h += '<div style="background:#1a1d27;border:1px solid #2e3040;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">';
+  // ── CONTROLES ────────────────────────────────────────────────────────────
+  h += '<div style="background:#1a1d27;border:1px solid #2e3040;border-radius:10px;padding:9px 13px;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
+
   // Año
-  h += '<div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Año</span>';
-  h += '<select onchange="_reCambiarAnio(this.value)" style="background:#252830;border:1px solid #3e4050;border-radius:6px;padding:5px 10px;color:#e8e8e8;font-size:12px;outline:none;cursor:pointer">';
-  _reAnioOpts.forEach(function(y) {
-    h += '<option value="' + y + '"' + (y === _reFiltroAnio ? ' selected' : '') + '>' + y + '</option>';
+  h += '<span style="font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Año</span>';
+  h += '<select onchange="_reCambiarAnio(this.value)" style="background:#252830;border:1px solid #3e4050;border-radius:6px;padding:4px 8px;color:#e8e8e8;font-size:12px;outline:none;cursor:pointer">';
+  [2025,2026,2027].forEach(function(y){h+='<option value="'+y+'"'+(y===_reFiltroAnio?' selected':'')+'>'+y+'</option>';});
+  h += '</select>';
+
+  // Separador
+  h += '<span style="color:#2e3040;font-size:16px">│</span>';
+
+  // Selector de trimestre (T1–T4 + botón año completo)
+  h += '<span style="font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Trimestre</span>';
+  [1,2,3,4].forEach(function(n){
+    var isActive = !_reVerHistorico && n===_tNumActual;
+    var isAuto   = !_reFiltroTrimestre && n===_reTrimestreDeHoy() && !_reVerHistorico;
+    h += '<button onclick="_reFiltroTrimestre='+n+';_reVerHistorico=false;_reRender();" style="background:'+(isActive?'rgba(124,58,237,.25)':'#252830')+';border:1px solid '+(isActive?'rgba(124,58,237,.6)':'#3e4050')+';color:'+(isActive?'#c4b5fd':'#64748b')+';padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11.5px;font-weight:'+(isActive?'900':'600')+';white-space:nowrap">T'+n+(isAuto?' ●':'')+' </button>';
   });
-  h += '</select></div>';
-  // Estado
-  h += '<div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Estado RE</span>';
-  h += '<select onchange="_reCambiarFiltroState(this.value)" style="background:#252830;border:1px solid #3e4050;border-radius:6px;padding:5px 10px;color:#e8e8e8;font-size:12px;outline:none;cursor:pointer">';
-  [['all','Todos'],['cumple','Cumplió RE'],['nocumple','No cumplió']].forEach(function(o) {
-    h += '<option value="' + o[0] + '"' + (o[0] === _reFiltroState ? ' selected' : '') + '>' + o[1] + '</option>';
-  });
-  h += '</select></div>';
-  // Racha
-  h += '<div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Racha</span>';
-  h += '<select onchange="_reCambiarFiltroRacha(this.value)" style="background:#252830;border:1px solid #3e4050;border-radius:6px;padding:5px 10px;color:#e8e8e8;font-size:12px;outline:none;cursor:pointer">';
-  [['all','Todas'],['activa','Racha activa'],['sin','Sin racha']].forEach(function(o) {
-    h += '<option value="' + o[0] + '"' + (o[0] === _reFiltroRacha ? ' selected' : '') + '>' + o[1] + '</option>';
-  });
-  h += '</select></div>';
-  // Buscar
-  h += '<input type="text" placeholder="🔍 Buscar modelo..." value="' + (_reBuscar || '') + '" oninput="_reCambiarBuscar(this.value)" style="background:#252830;border:1px solid #3e4050;border-radius:6px;padding:5px 12px;color:#e8e8e8;font-size:12px;outline:none;flex:1;min-width:140px">';
-  // Refresh
-  h += '<button onclick="_reRefresh()" style="background:#252830;border:1px solid rgba(124,58,237,.4);color:#a78bfa;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap">⟳ Actualizar</button>';
+
+  // Separador
+  h += '<span style="color:#2e3040;font-size:16px">│</span>';
+
+  // Toggle año completo
+  var _isYr = !!_reVerHistorico;
+  h += '<button onclick="_reVerHistorico=!_reVerHistorico;_reRender();" style="background:'+(_isYr?'rgba(99,102,241,.2)':'#252830')+';border:1px solid '+(_isYr?'rgba(99,102,241,.5)':'#3e4050')+';color:'+(_isYr?'#818cf8':'#64748b')+';padding:4px 11px;border-radius:6px;cursor:pointer;font-size:11.5px;font-weight:'+(_isYr?'900':'600')+';white-space:nowrap">'+(_isYr?'📅 Año completo ✓':'📅 Año completo')+'</button>';
+
+  // Separador
+  h += '<span style="color:#2e3040;font-size:16px">│</span>';
+
+  // Búsqueda
+  h += '<input id="_re-buscar-inp" type="text" placeholder="🔍 Buscar modelo..." value="'+(_reBuscar||'')+'" oninput="_reCambiarBuscar(this.value)" style="background:#252830;border:1px solid #3e4050;border-radius:6px;padding:4px 10px;color:#e8e8e8;font-size:12px;outline:none;flex:1;min-width:120px">';
+
+  // Toggle activos/inactivos
+  var _isMI = !!window._reMostrarInactivos;
+  h += '<button onclick="window._reMostrarInactivos=!window._reMostrarInactivos;_reRender();" style="background:'+(_isMI?'rgba(124,58,237,.18)':'#252830')+';border:1px solid '+(_isMI?'rgba(124,58,237,.5)':'#3e4050')+';color:'+(_isMI?'#a78bfa':'#64748b')+';padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11.5px;font-weight:700;white-space:nowrap">'+(_isMI?'👁 Todos':'👁 Activos')+'</button>';
+
+  // Auditoría + Refresh
+  h += '<button onclick="_reAuditarMatriz()" style="background:#252830;border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11.5px;font-weight:700;white-space:nowrap">🔍 Auditoría</button>';
+  h += '<button onclick="_reRefresh()" style="background:#252830;border:1px solid rgba(124,58,237,.4);color:#a78bfa;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11.5px;font-weight:700;white-space:nowrap">⟳</button>';
   h += '</div>';
 
-  // ── Tabla / grid principal ────────────────────────────────────────
-  if (modsFilt.length === 0) {
-    h += '<div style="text-align:center;padding:52px;color:#64748b"><div style="font-size:36px;margin-bottom:12px">🎯</div><div style="font-size:14px">Sin modelos que coincidan con los filtros</div></div>';
+  // Panel de auditoría
+  h += '<div id="re-audit-panel" style="display:none;background:#111827;border:1px solid rgba(34,197,94,.3);border-radius:10px;margin-bottom:12px"></div>';
+
+  // ── CHIP DE PERÍODO ACTUAL ───────────────────────────────────────────────
+  h += '<div style="font-size:10px;color:#64748b;margin-bottom:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">';
+  h += '<span>Período actual: <code style="background:rgba(255,255,255,.06);padding:1px 5px;border-radius:3px;color:#a78bfa">'+periodoActual+'</code></span>';
+  h += '<span>Viendo: <strong style="color:#c4b5fd">'+(_reVerHistorico?'Año completo '+_reFiltroAnio:_tLabelActual)+'</strong></span>';
+  h += '<span>Bono de racha desde <strong style="color:#94a3b8">jul 2026</strong></span>';
+  h += '</div>';
+
+  // ── SCOREBOARD MATRICIAL ──────────────────────────────────────────────────
+  if (_modsM.length === 0) {
+    h += '<div style="background:#1a1d27;border:1px solid #2e3040;border-radius:10px;padding:36px;text-align:center;color:#64748b">No hay modelos con los filtros actuales.</div>';
   } else {
-    h += '<div style="overflow-x:auto;border-radius:12px;border:1px solid #2e3040">';
-    h += '<table style="width:100%;border-collapse:collapse;min-width:580px">';
-    // Head
-    h += '<thead><tr style="background:#131625;border-bottom:2px solid #2e3040">';
-    h += '<th style="padding:11px 16px;text-align:left;font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px;position:sticky;left:0;background:#131625;z-index:2;min-width:140px">Modelo</th>';
-    h += '<th style="padding:11px 12px;text-align:right;font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">RE (cr.)</th>';
-    h += '<th style="padding:11px 12px;text-align:center;font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Racha</th>';
-    h += '<th style="padding:11px 12px;text-align:center;font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Bono</th>';
-    qVis.forEach(function(q) {
-      var esAct = (q.id === periodoActual);
-      h += '<th style="padding:9px 10px;text-align:center;font-size:10px;color:' + (esAct ? '#a78bfa' : '#64748b') + ';font-weight:' + (esAct ? '800' : '700') + ';text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;min-width:82px">' +
-           q.label + (esAct ? '<br><span style="font-size:9px;color:#7c3aed;letter-spacing:0">▲ actual</span>' : '') + '</th>';
+
+    // ── Calcular % del período actual por modelo ───────────────────────────
+    function _sbPct(m) {
+      var hist = _reRachas[m.id]||[];
+      var en = null;
+      for (var _i=0;_i<hist.length;_i++){if(hist[_i].periodo===periodoActual){en=hist[_i];break;}}
+      if (!en) return 0;
+      var re = Number(m.reto_estrella)||0;
+      if (!re) return 0;
+      return Math.min((en.prod||0)/re*100, 150);
+    }
+
+    // ── Ordenar: cumplieron desc %, luego resto desc % ─────────────────────
+    _modsM.sort(function(a,b){
+      var pA=_sbPct(a), pB=_sbPct(b);
+      var cA=pA>=100?1:0, cB=pB>=100?1:0;
+      if(cA!==cB) return cB-cA;
+      return pB-pA;
     });
-    h += '<th style="padding:11px 12px;text-align:center;font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Det.</th>';
-    h += '</tr></thead>';
-    // Body
-    h += '<tbody>';
-    modsFilt.forEach(function(m, idx) {
-      var hist  = _reRachas[m.id] || [];
-      var last  = hist.length ? hist[hist.length - 1] : null;
-      var racha = last ? last.racha : 0;
-      var bono  = (last && last.cumplio) ? _reBono(racha) : 0;
-      var bg    = idx % 2 === 0 ? '#111320' : '#0f1020';
-      var rachaIco = racha >= 6 ? '👑' : racha >= 4 ? '🔥' : racha >= 2 ? '⚡' : '';
-      h += '<tr style="background:' + bg + ';border-bottom:1px solid #1e2035;transition:background .15s" onmouseover="this.style.background=\'#1c1e30\'" onmouseout="this.style.background=\'' + bg + '\'">';
-      // Nombre
-      h += '<td style="padding:11px 16px;font-size:13px;font-weight:700;color:#e8e8e8;position:sticky;left:0;background:' + bg + ';z-index:1;white-space:nowrap">';
-      h += (rachaIco ? '<span style="margin-right:5px">' + rachaIco + '</span>' : '') + m.nombre;
-      h += '</td>';
-      // RE
-      h += '<td style="padding:11px 12px;text-align:right;font-size:12px;color:#a78bfa;font-weight:700;white-space:nowrap">' + _reFmtCr(m.reto_estrella) + '</td>';
-      // Racha
-      var rC = racha >= 6 ? '#f59e0b' : racha >= 4 ? '#f97316' : racha >= 2 ? '#22c55e' : '#64748b';
-      h += '<td style="padding:11px 12px;text-align:center;font-size:14px;font-weight:800;color:' + rC + '">' + (racha > 0 ? racha : '—') + (racha >= 1 ? '🔥' : '') + '</td>';
-      // Bono
-      var bC = bono > 0 ? '#22c55e' : '#64748b';
-      h += '<td style="padding:11px 12px;text-align:center;font-size:12px;font-weight:700;color:' + bC + '">' + (bono > 0 ? 'USD ' + bono : '—') + '</td>';
-      // Celdas quincena
-      qVis.forEach(function(q) {
-        var entry   = hist.filter(function(x) { return x.periodo === q.id; })[0];
-        var esAct   = (q.id === periodoActual);
-        var bgCell  = esAct ? 'rgba(124,58,237,.07)' : 'transparent';
-        var bordLR  = esAct ? 'border-left:1px solid rgba(124,58,237,.2);border-right:1px solid rgba(124,58,237,.2)' : '';
-        if (!entry) {
-          h += '<td style="padding:9px 10px;text-align:center;color:#2e3040;background:' + bgCell + ';' + bordLR + '">·</td>';
+
+    // ── SVG ring helper ────────────────────────────────────────────────────
+    function _sbRing(pct, colRing) {
+      var r=22, circ=2*Math.PI*r;
+      var filled = Math.min(pct/100,1)*circ;
+      var offset = circ - filled;
+      var pctLabel = pct>=100 ? Math.round(pct)+'%' : (pct>0 ? Math.round(pct)+'%' : '—');
+      return '<svg width="54" height="54" viewBox="0 0 54 54" style="display:block">'
+        +'<circle cx="27" cy="27" r="'+r+'" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="5"/>'
+        +'<circle cx="27" cy="27" r="'+r+'" fill="none" stroke="'+colRing+'" stroke-width="5"'
+        +' stroke-dasharray="'+circ.toFixed(1)+'" stroke-dashoffset="'+offset.toFixed(1)+'"'
+        +' stroke-linecap="round" transform="rotate(-90 27 27)"/>'
+        +'<text x="27" y="31" text-anchor="middle" font-size="10" font-weight="800"'
+        +' fill="'+colRing+'" font-family="inherit">'+pctLabel+'</text>'
+        +'</svg>';
+    }
+
+    // ── Chips de quincenas ─────────────────────────────────────────────────
+    function _sbChips(m) {
+      var hist = _reRachas[m.id]||[];
+      var out = '';
+      _allQ.forEach(function(q){
+        var en = null;
+        for(var _i=0;_i<hist.length;_i++){if(hist[_i].periodo===q.id){en=hist[_i];break;}}
+        var isAct = q.id===periodoActual;
+        var qlabel = (q.label||q.id);
+        var style, txt;
+        if (isAct) {
+          var pPc=(en&&en.prod)?en.prod:0;
+          var reV=Number(m.reto_estrella)||0;
+          var pE=reV>0&&pPc>0?Math.round(pPc/reV*100):0;
+          style='background:rgba(124,58,237,.15);border:1px solid rgba(167,139,250,.4);color:#c4b5fd';
+          txt='⏳ '+qlabel+(pE>0?' · '+pE+'%':'');
+        } else if (!en||en.futuro) {
+          style='background:transparent;border:1px dashed #252840;color:#2e3148';
+          txt=qlabel;
+        } else if (en.cumplio===true) {
+          style='background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#22c55e';
+          var bonus=en.bono&&en.bono>0?' +$'+en.bono:'';
+          txt='✓ '+qlabel+(en.racha>=6?' 🏆':en.racha>0?' 🔥'+en.racha+'/6':'')+bonus;
+        } else if (en.cumplio===false) {
+          style='background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#ef4444';
+          txt='✗ '+qlabel;
         } else {
-          var pct   = entry.re > 0 ? Math.round(entry.prod / entry.re * 100) : 0;
-          var ico   = entry.cumplio ? '✅' : (entry.prod > 0 ? '⚠️' : '❌');
-          var txtC  = entry.cumplio ? '#22c55e' : (entry.prod > 0 ? '#f59e0b' : '#ef4444');
-          h += '<td style="padding:9px 10px;text-align:center;background:' + bgCell + ';' + bordLR + ';cursor:default" title="' + q.label + ': ' + _reFmtCr(entry.prod) + ' / RE: ' + _reFmtCr(entry.re) + '">';
-          h += '<div style="font-size:15px;line-height:1">' + ico + '</div>';
-          h += '<div style="font-size:10px;color:' + txtC + ';font-weight:800;margin-top:2px">' + pct + '%</div>';
-          h += '<div style="font-size:9px;color:#64748b;margin-top:1px">' + _reFmtCrShort(entry.prod) + '</div>';
-          h += '</td>';
+          style='background:rgba(255,255,255,.04);border:1px solid #2e3148;color:#475569';
+          txt=qlabel;
+        }
+        out+='<span style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:9px;font-weight:800;white-space:nowrap;cursor:pointer;'+style+'" ondblclick="_reOpenREModal(\''+m.id+'\',\''+q.id+'\')" title="⚙ Doble clic · editar RE">'+txt+'</span>';
+      });
+      return out;
+    }
+
+
+    // ── MODAL: EDITAR RETO ESTRELLA POR PERÍODO ──────────────────────────
+    window._reOpenREModal = function(modelId, periodo) {
+      // Buscar modelo
+      var m = null;
+      for (var _i=0; _i<_reModelos.length; _i++) {
+        if (_reModelos[_i].id === modelId) { m = _reModelos[_i]; break; }
+      }
+      if (!m) return;
+
+      // Historia del modelo
+      var hist = _reRachas[modelId] || [];
+      var en   = null;
+      for (var _i=0; _i<hist.length; _i++) {
+        if (hist[_i].periodo === periodo) { en = hist[_i]; break; }
+      }
+      var prod     = en ? (en.prod || 0) : 0;
+      var currentRE = Number(m.reto_estrella) || 0;
+      var qLabel   = en ? (en.label || periodo) : periodo;
+
+      // Racha previa (última quincena elegible antes de este período)
+      var prevRacha = 0;
+      for (var _pi=hist.length-1; _pi>=0; _pi--) {
+        var _ph = hist[_pi];
+        if (_ph.periodo === periodo) continue;
+        if (!_ph.futuro && _ph.rachaEligible !== false) {
+          if (_ph.cumplio) prevRacha = (_ph.racha >= 6 ? 0 : _ph.racha);
+          else prevRacha = 0;
+          break;
+        }
+      }
+
+      // Remover modal previo
+      var existing = document.getElementById('_re-re-modal');
+      if (existing) existing.remove();
+
+      // Crear overlay
+      var ov = document.createElement('div');
+      ov.id = '_re-re-modal';
+      ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:99999;display:flex;align-items:center;justify-content:center;font-family:inherit';
+      ov.addEventListener('click', function(e) { if (e.target === ov) ov.remove(); });
+
+      ov.innerHTML =
+        '<div style="background:#13151f;border:1px solid #2a2d42;border-radius:16px;padding:26px 24px;width:360px;box-shadow:0 28px 90px rgba(0,0,0,.65)">'
+        // Header
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">'
+        +   '<div>'
+        +     '<div style="font-size:13px;font-weight:900;color:#e2e2e2">' + m.nombre + '</div>'
+        +     '<div style="font-size:10px;color:#64748b;margin-top:2px">' + qLabel + ' · Reto Estrella histórico</div>'
+        +   '</div>'
+        +   '<button onclick="document.getElementById(\'_re-re-modal\').remove()" '
+        +     'style="background:transparent;border:none;color:#475569;font-size:18px;cursor:pointer;padding:0 2px;line-height:1">✕</button>'
+        + '</div>'
+        // Producción
+        + '<div style="background:#0c0e18;border-radius:10px;padding:12px 14px;margin-bottom:14px">'
+        +   '<div style="font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">Producción del período</div>'
+        +   '<div style="font-size:21px;font-weight:900;color:#e2e2e2">' + prod.toLocaleString('es-CO') + ' cr.</div>'
+        + '</div>'
+        // Input RE
+        + '<label style="display:block;font-size:9px;font-weight:700;color:#a78bfa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Reto Estrella para este período</label>'
+        + '<input id="_re-modal-re-inp" type="number" value="' + currentRE + '" min="0" step="1000" '
+        +   'style="width:100%;background:#0c0e18;border:1px solid #2a2d42;border-radius:8px;padding:11px 14px;'
+        +   'color:#e2e2e2;font-size:16px;font-weight:900;box-sizing:border-box;outline:none;font-family:inherit" '
+        +   'oninput="_reModalREUpdate(Number(this.value),Number(document.getElementById(\'_re-modal-pr-inp\').value||0),' + prod + ')" />'
+        // Racha anterior (editable para casos con cadena rota)
+        + '<div style="display:flex;align-items:center;gap:8px;margin-top:8px">'
+        +   '<label style="font-size:9px;font-weight:700;color:#64748b;white-space:nowrap;text-transform:uppercase;letter-spacing:.4px">Racha anterior al período:</label>'
+        +   '<input id="_re-modal-pr-inp" type="number" value="' + prevRacha + '" min="0" max="6" step="1" '
+        +     'style="width:70px;background:#0c0e18;border:1px solid #2a2d42;border-radius:6px;padding:5px 8px;'
+        +     'color:#a78bfa;font-size:13px;font-weight:800;box-sizing:border-box;outline:none;font-family:inherit;text-align:center" '
+        +     'oninput="_reModalREUpdate(Number(document.getElementById(\'_re-modal-re-inp\').value||0),Number(this.value),' + prod + ')" />'
+        +   '<span style="font-size:8px;color:#334155">Auto-detectada · editar si es incorrecta</span>'
+        + '</div>'
+        // Resultado dinámico
+        + '<div id="_re-modal-re-res" style="margin-top:10px;min-height:38px"></div>'
+        // SQL fallback (oculto por defecto)
+        + '<div id="_re-modal-re-sql" style="display:none;margin-top:10px">'
+        +   '<div style="font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'
+        +     '⚠ RLS activo · pega este SQL en Supabase → SQL Editor'
+        +   '</div>'
+        +   '<pre id="_re-modal-re-sqlcode" style="background:#0c0e18;border:1px solid #2a2d42;border-radius:8px;'
+        +     'padding:11px;font-size:8.5px;color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0;font-family:monospace"></pre>'
+        +   '<button onclick="_reModalCopySQL()" '
+        +     'style="margin-top:7px;width:100%;background:#1e2138;border:1px solid #2e3040;border-radius:8px;'
+        +     'padding:8px;color:#94a3b8;font-size:10px;font-weight:700;cursor:pointer">📋 Copiar SQL</button>'
+        +   '<button onclick="document.getElementById(\'_re-re-modal\').remove();if(typeof _reCargar===\'function\'){_reCargando=false;_reCargar();}" '
+        +     'style="margin-top:5px;width:100%;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4);border-radius:8px;'
+        +     'padding:9px;color:#4ade80;font-size:10px;font-weight:800;cursor:pointer">✅ Ya pegué el SQL en Supabase → Recargar datos</button>'
+        + '</div>'
+        // Botones
+        + '<div style="display:flex;gap:10px;margin-top:14px">'
+        +   '<button onclick="document.getElementById(\'_re-re-modal\').remove()" '
+        +     'style="flex:1;background:#1a1d27;border:1px solid #2a2d42;border-radius:8px;padding:10px;'
+        +     'color:#64748b;font-size:11px;font-weight:700;cursor:pointer">Cancelar</button>'
+        +   '<button id="_re-modal-re-btn" '
+        +     'onclick="_reModalRESave(\'' + modelId + '\',\'' + periodo + '\',' + prod + ',0)" '
+        +     'style="flex:2;background:#7c3aed;border:none;border-radius:8px;padding:10px;'
+        +     'color:#fff;font-size:11px;font-weight:800;cursor:pointer">Guardar</button>'
+        + '</div>'
+        + '</div>';
+
+      document.body.appendChild(ov);
+      window._reModalREUpdate(prod, prevRacha);
+      var inp = document.getElementById('_re-modal-re-inp');
+      if (inp) { inp.select(); inp.focus(); }
+    };
+
+    window._reModalREUpdate = function(reVal, prevRachaVal, prod) {
+      var inp = document.getElementById('_re-modal-re-inp');
+      var res = document.getElementById('_re-modal-re-res');
+      if (!inp || !res) return;
+      var re = (reVal !== undefined) ? Number(reVal) : (Number(inp.value) || 0);
+      var prevRacha = (prevRachaVal !== undefined) ? Number(prevRachaVal) : 0;
+      var prInp = document.getElementById('_re-modal-pr-inp');
+      if (prInp && prevRachaVal === undefined) prevRacha = Number(prInp.value) || 0;
+      if (!re) { res.innerHTML = ''; return; }
+      var cumplio = prod >= re;
+      var pct     = Math.round(prod / re * 100);
+      var nuevaRacha = cumplio ? (prevRacha >= 6 ? 1 : prevRacha + 1) : 1;
+      var BONOS = [0, 0, 8, 12, 18, 22, 25];
+      var bono  = (cumplio && nuevaRacha >= 2) ? BONOS[Math.min(nuevaRacha, 6)] : 0;
+      if (cumplio) {
+        res.style.cssText = 'background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#22c55e;'
+          + 'padding:10px 14px;border-radius:8px;display:flex;flex-direction:column;gap:3px';
+        res.innerHTML = '<span style="font-size:12px;font-weight:800">✓ CUMPLIÓ · ' + pct + '%</span>'
+          + '<span style="font-size:9px;font-weight:700;color:#86efac">Racha ' + nuevaRacha + '/6'
+          + (bono ? ' · +USD ' + bono : '') + '</span>';
+      } else {
+        res.style.cssText = 'background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.2);color:#ef4444;'
+          + 'padding:10px 14px;border-radius:8px;display:flex;flex-direction:column;gap:3px';
+        res.innerHTML = '<span style="font-size:12px;font-weight:800">✗ NO CUMPLIÓ · ' + pct + '%</span>'
+          + '<span style="font-size:9px;font-weight:700;color:#fca5a5">Le faltaron ' + (re - prod).toLocaleString('es-CO') + ' cr.</span>';
+      }
+    };
+
+    window._reModalRESave = function(modelId, periodo, prod, prevRachaDefault) {
+      var inp   = document.getElementById('_re-modal-re-inp');
+      var prInp = document.getElementById('_re-modal-pr-inp');
+      var btn   = document.getElementById('_re-modal-re-btn');
+      if (!inp || !btn) return;
+      var re = Number(inp.value) || 0;
+      if (!re) return;
+      var prevRacha = prInp ? (Number(prInp.value) || 0) : (prevRachaDefault || 0);
+      var cumplio    = prod >= re;
+      var nuevaRacha = cumplio ? (prevRacha >= 6 ? 1 : prevRacha + 1) : 1;
+      var BONOS      = [0, 0, 8, 12, 18, 22, 25];
+      var bono       = (cumplio && nuevaRacha >= 2) ? BONOS[Math.min(nuevaRacha, 6)] : 0;
+
+      btn.textContent = 'Guardando...';
+      btn.disabled = true;
+
+      var payload = {
+        model_id:      modelId,
+        periodo:       periodo,
+        cumplio_re:    cumplio,
+        racha_actual:  nuevaRacha,
+        bono_racha_usd: bono
+      };
+
+      var sqlFallback =
+        'INSERT INTO rachas_modelos (model_id, periodo, cumplio_re, racha_actual, bono_racha_usd)\nVALUES\n'
+        + '  (\'' + modelId + '\', \'' + periodo + '\', ' + (cumplio ? 'true' : 'false') + ', ' + nuevaRacha + ', ' + bono + ')\n'
+        + 'ON CONFLICT (model_id, periodo) DO UPDATE SET\n'
+        + '  cumplio_re     = EXCLUDED.cumplio_re,\n'
+        + '  racha_actual   = EXCLUDED.racha_actual,\n'
+        + '  bono_racha_usd = EXCLUDED.bono_racha_usd;';
+
+      fetch(_SUPA_URL + '/rest/v1/rachas_modelos', {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey':        _SUPA_KEY,
+          'Authorization': 'Bearer ' + _SUPA_KEY,
+          'Prefer':        'resolution=merge-duplicates'
+        },
+        body: JSON.stringify(payload)
+      }).then(function(r) {
+        if (r.ok) {
+          btn.textContent = '✓ Guardado';
+          btn.style.background = '#16a34a';
+          setTimeout(function() {
+            var modal = document.getElementById('_re-re-modal');
+            if (modal) modal.remove();
+            // Recargar sección RE
+            if (typeof _reLoadData === 'function') _reLoadData();
+            else location.reload();
+          }, 1200);
+        } else {
+          // RLS u otro error → mostrar SQL
+          btn.textContent = 'Guardar';
+          btn.disabled = false;
+          var sqlDiv  = document.getElementById('_re-modal-re-sql');
+          var sqlCode = document.getElementById('_re-modal-re-sqlcode');
+          if (sqlDiv && sqlCode) {
+            sqlCode.textContent = sqlFallback;
+            sqlDiv.style.display = 'block';
+            window._reSQLToSave = sqlFallback;
+          }
+        }
+      }).catch(function() {
+        btn.textContent = 'Guardar';
+        btn.disabled = false;
+        var sqlDiv  = document.getElementById('_re-modal-re-sql');
+        var sqlCode = document.getElementById('_re-modal-re-sqlcode');
+        if (sqlDiv && sqlCode) {
+          sqlCode.textContent = sqlFallback;
+          sqlDiv.style.display = 'block';
+          window._reSQLToSave = sqlFallback;
         }
       });
-      // Detalle
-      h += '<td style="padding:9px 12px;text-align:center">';
-      h += '<button onclick="_reAbrirDetalle(\'' + m.id + '\')" style="background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.3);color:#a78bfa;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;white-space:nowrap">Ver</button>';
-      h += '</td>';
-      h += '</tr>';
+    };
+
+    window._reModalCopySQL = function() {
+      var sql = window._reSQLToSave || '';
+      if (!sql) return;
+      var btn = document.querySelector('[onclick="_reModalCopySQL()"]');
+      navigator.clipboard.writeText(sql).then(function() {
+        if (btn) { btn.textContent = '✓ Copiado'; setTimeout(function() { btn.textContent = '📋 Copiar SQL'; }, 2000); }
+      }).catch(function() {
+        var pre = document.getElementById('_re-modal-re-sqlcode');
+        if (pre) { var r = document.createRange(); r.selectNode(pre); window.getSelection().removeAllRanges(); window.getSelection().addRange(r); }
+      });
+    };
+
+    // ── ROWS ───────────────────────────────────────────────────────────────
+    h += '<div style="display:flex;flex-direction:column;gap:6px">';
+
+    _modsM.forEach(function(m, ridx) {
+      var hist  = _reRachas[m.id]||[];
+      var re    = Number(m.reto_estrella)||0;
+      var esAct = _ACTIVOS_RE.indexOf((m.estado||'').toLowerCase().trim())>=0;
+
+      // Última quincena elegible
+      var lE = null;
+      for(var _li=hist.length-1;_li>=0;_li--){if(!hist[_li].futuro&&hist[_li].rachaEligible!==false){lE=hist[_li];break;}}
+      var rachaAct  = lE?lE.racha:0;
+      var bonoAct   = lE?lE.bono:0;
+      var cumplioAct= lE?lE.cumplio:null;
+
+      // Período actual
+      var enAct = null;
+      for(var _ei=0;_ei<hist.length;_ei++){if(hist[_ei].periodo===periodoActual){enAct=hist[_ei];break;}}
+      var prodAct = enAct?enAct.prod||0:0;
+      var pctAct  = re>0&&prodAct>0?prodAct/re*100:0;
+
+      // rachaIf (proyectada si cumple hoy)
+      var rachaIf=1;
+      var _curIdx=-1;
+      for(var _ci=0;_ci<hist.length;_ci++){if(hist[_ci].periodo===periodoActual){_curIdx=_ci;break;}}
+      if(_curIdx>0){for(var _pi=_curIdx-1;_pi>=0;_pi--){if(!hist[_pi].futuro){if(hist[_pi].rachaEligible!==false){var _pr=hist[_pi].racha||0;rachaIf=hist[_pi].cumplio?(_pr>=6?1:_pr+1):1;}else{rachaIf=1;}break;}}}
+
+      // Colores del ring
+      var colRing = pctAct>=100?'#22c55e':pctAct>=80?'#f59e0b':prodAct>0?'#ef4444':'#334155';
+
+      // Badge de ranking
+      var rankBadge, rankStyle;
+      if (ridx===0 && re>0) {
+        rankBadge='🥇';
+        rankStyle='color:#f59e0b;font-size:18px';
+      } else {
+        rankBadge=String(ridx+1).padStart(2,'0');
+        rankStyle='color:#475569;font-size:13px;font-weight:900;font-family:monospace';
+      }
+
+      // Borde especial: riesgo racha (racha 4 o 5 pero no cumpliendo aún)
+      var isRisk = rachaAct>=4 && !cumplioAct && prodAct>0;
+      var isGold = ridx===0 && re>0 && pctAct>=100;
+      var rowBorder = isGold
+        ? '1px solid rgba(245,158,11,.35);background:linear-gradient(90deg,rgba(245,158,11,.05),#0f1121)'
+        : isRisk
+        ? '1px solid rgba(249,115,22,.3)'
+        : '1px solid #1e2138';
+
+      h += '<div style="border:'+rowBorder+';border-radius:12px;display:grid;'
+        +'grid-template-columns:44px 150px 68px 1fr 90px;align-items:center;'
+        +'overflow:hidden;background:'+(isGold?'linear-gradient(90deg,rgba(245,158,11,.05),#0f1121)':'#0f1121')+'">';
+
+      // RANK
+      h += '<div style="width:44px;display:flex;align-items:center;justify-content:center;'
+        +'padding:14px 0;border-right:1px solid #1e2138;'+rankStyle+'">'+rankBadge+'</div>';
+
+      // INFO: nombre + RE + racha
+      h += '<div style="padding:10px 13px;border-right:1px solid #1e2138">';
+      h += '<div style="font-size:12px;font-weight:800;color:'+(esAct?'#e2e2e2':'#4a5168')+';'
+        +'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer" '
+        +'onclick="_reAbrirDetalle(\''+m.id+'\')">'+m.nombre+'</div>';
+      if (re>0) {
+        h += '<div style="font-size:9.5px;color:#a78bfa;font-weight:700;margin-top:1px">RE · '+_reFmtCrShort(re)+' cr.</div>';
+      } else {
+        h += '<div style="font-size:9.5px;color:#334155;font-style:italic;margin-top:1px">Sin RE</div>';
+      }
+      // Racha actual
+      if (rachaAct>=6) {
+        h += '<div style="font-size:8.5px;font-weight:800;color:#f59e0b;margin-top:2px">🏆 Racha 6/6'+( bonoAct?'+USD '+bonoAct:'')+'</div>';
+      } else if (rachaAct>0 && cumplioAct) {
+        h += '<div style="font-size:8.5px;font-weight:800;color:'+_mRC(rachaAct)+';margin-top:2px">🔥 Racha '+rachaAct+'/6'+(bonoAct?' +USD '+bonoAct:'')+'</div>';
+      } else if (re>0&&enAct&&!enAct.futuro) {
+        // En curso: mostrar proyección
+        if (pctAct>0) {
+          h += '<div style="font-size:8.5px;font-weight:800;color:'+_mRC(rachaIf)+';margin-top:2px">Si cumple: 🔥'+rachaIf+'/6</div>';
+        }
+      }
+      h += '</div>';
+
+      // RING SVG
+      h += '<div style="padding:8px;border-right:1px solid #1e2138;display:flex;'
+        +'flex-direction:column;align-items:center;gap:3px">';
+      h += _sbRing(pctAct, colRing);
+      h += '<div style="font-size:8px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;'
+        +'color:#475569">'+(enAct&&!enAct.futuro?(_allQ.filter(function(q){return q.id===periodoActual;})[0]||{label:'Actual'}).label:'—')+'</div>';
+      h += '</div>';
+
+      // CHIPS
+      h += '<div style="padding:8px 10px;display:flex;gap:4px;flex-wrap:wrap;align-items:center">';
+      h += _sbChips(m);
+      h += '</div>';
+
+      // BONO
+      h += '<div style="padding:10px 13px;text-align:center;border-left:1px solid #1e2138">';
+      if (bonoAct&&bonoAct>0) {
+        h += '<div style="font-size:15px;font-weight:900;color:#22c55e">USD '+bonoAct+'</div>';
+        h += '<div style="font-size:8.5px;color:#475569;font-weight:600;margin-top:1px">Racha '+rachaAct+'</div>';
+      } else if (re>0&&enAct&&!enAct.futuro&&pctAct>0&&rachaIf>0) {
+        h += '<div style="font-size:12px;font-weight:800;color:'+(pctAct>=100?'#22c55e':'#475569')+'">USD '+_reBono(rachaIf)+'</div>';
+        h += '<div style="font-size:8.5px;color:#475569;font-weight:600;margin-top:1px">Si cumple</div>';
+      } else {
+        h += '<div style="font-size:13px;color:#2e3148">—</div>';
+      }
+      h += '</div>';
+
+      h += '</div>'; // row
     });
-    h += '</tbody></table></div>';
+
+    h += '</div>'; // lista scoreboard
+
+    // LEYENDA
+    h += '<div style="margin-top:10px;display:flex;gap:7px;flex-wrap:wrap;align-items:center">';
+    [['rgba(34,197,94,.12)','rgba(34,197,94,.3)','#22c55e','✓ CUMPLIÓ'],
+     ['rgba(239,68,68,.1)','rgba(239,68,68,.25)','#ef4444','✗ NO CUMPLIÓ'],
+     ['rgba(124,58,237,.15)','rgba(167,139,250,.4)','#c4b5fd','⏳ EN CURSO'],
+     ['rgba(245,158,11,.15)','rgba(245,158,11,.4)','#f59e0b','🏆 RACHA 6'],
+     ['transparent','rgba(249,115,22,.3)','#f97316','⚠ RACHA EN RIESGO']
+    ].forEach(function(l){
+      h += '<span style="display:inline-block;background:'+l[0]+';border:1px solid '+l[1]+';border-radius:4px;padding:2px 6px;font-size:8.5px;font-weight:800;color:'+l[2]+'">'+l[3]+'</span>';
+    });
+    h += '</div>';
   }
 
-  // Leyenda bono de racha
-  h += '<div style="margin-top:16px;background:#1a1d27;border:1px solid #2e3040;border-radius:10px;padding:14px 16px">';
-  h += '<div style="font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📋 Escala Bono de Racha Oficial</div>';
-  h += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
-  var escala = [[1,'USD 0','Base'],[2,'USD 8','2ª consec.'],[3,'USD 12','3ª consec.'],[4,'USD 18','4ª consec.'],[5,'USD 22','5ª consec.'],[6,'USD 25 + 🏆','6ª+ (MÁXIMO)']];
-  escala.forEach(function(e) {
-    var isMax = e[0] >= 6;
-    h += '<div style="background:' + (isMax ? 'rgba(245,158,11,.1)' : 'rgba(255,255,255,.04)') + ';border:1px solid ' + (isMax ? 'rgba(245,158,11,.3)' : '#2e3040') + ';border-radius:7px;padding:7px 12px;text-align:center">';
-    h += '<div style="font-size:10px;color:#888;margin-bottom:3px">Q' + e[0] + '</div>';
-    h += '<div style="font-size:13px;font-weight:800;color:' + (isMax ? '#f59e0b' : '#e8e8e8') + '">' + e[1] + '</div>';
-    h += '<div style="font-size:9px;color:#64748b;margin-top:2px">' + e[2] + '</div>';
+    // ── ESCALA DE BONOS ───────────────────────────────────────────────────────
+  h += '<div style="margin-top:14px;background:#1a1d27;border:1px solid #2e3040;border-radius:10px;padding:12px 15px">';
+  h += '<div style="font-size:10.5px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📋 Escala de Bonos — Bono de Racha (desde julio 2026)</div>';
+  h += '<div style="display:flex;gap:7px;flex-wrap:wrap">';
+  [[1,'USD 0','inicio'],[2,'USD 8','R2'],[3,'USD 12','R3'],[4,'USD 18','R4'],[5,'USD 22','R5'],[6,'USD 25','R6 🏆']].forEach(function(e){
+    var isM=e[0]===6;
+    h += '<div style="background:'+(isM?'rgba(245,158,11,.1)':'rgba(255,255,255,.04)')+';border:1px solid '+(isM?'rgba(245,158,11,.3)':'#2e3040')+';border-radius:7px;padding:5px 10px;text-align:center;min-width:76px">';
+    h += '<div style="font-size:9px;color:#888;margin-bottom:1px">Racha '+e[0]+' — '+e[2]+'</div>';
+    h += '<div style="font-size:13px;font-weight:800;color:'+(isM?'#f59e0b':'#e8e8e8')+'">'+e[1]+'</div>';
     h += '</div>';
   });
   h += '</div>';
-  h += '<div style="margin-top:10px;font-size:10.5px;color:#3e4050">Fuente: Estrategia oficial · Bono de racha se calcula por posición consecutiva en la racha. Reinicio en siguiente quincena si no se cumple RE. Lo ya ganado no se devuelve.</div>';
+  h += '<div style="margin-top:7px;font-size:9.5px;color:#3e4050">⚙️ Racha 6 completa ciclo → siguiente Q comienza Racha 1. Falla → racha vuelve a 0. RE vigente = valor actual (histórico requiere tabla reto_estrella_historico en Supabase).</div>';
   h += '</div>';
 
   el.innerHTML = h;
 }
 
 /* ── Filtros ──────────────────────────────────────────────────────── */
-function _reCambiarAnio(v) { _reFiltroAnio = parseInt(v, 10); _reInit(); }
-function _reCambiarFiltroState(v) { _reFiltroState = v; _reRender(); }
-function _reCambiarFiltroRacha(v) { _reFiltroRacha = v; _reRender(); }
-function _reCambiarBuscar(v)      { _reBuscar = v;  _reRender(); }
-function _reRefresh()             { _reInit(); }
+function _reCambiarAnio(v)       { _reFiltroAnio = parseInt(v, 10); _reInit(); }
+function _reCambiarTrimestre(v)  { _reFiltroTrimestre = parseInt(v, 10) || 0; _reRender(); }
+function _reToggleHistorico()    { _reVerHistorico = !_reVerHistorico; _reRender(); }
+function _reCambiarFiltroState(v){ _reFiltroState = v; _reRender(); }
+function _reCambiarFiltroRacha(v){ _reFiltroRacha = v; _reRender(); }
+function _reCambiarBuscar(v)     {
+  _reBuscar = v;
+  _reRender();
+  // Restaurar foco y posición del cursor después del re-render
+  var inp = document.getElementById('_re-buscar-inp');
+  if (inp) { inp.focus(); var l = v.length; inp.setSelectionRange(l, l); }
+}
+function _reRefresh()            { _reInit(); }
+
+/* ── Auditoría de matriz (requiere _reProduccion cargado) ─────────── */
+async function _reAuditarMatriz() {
+  var el = document.getElementById('re-audit-panel');
+  if (!el) return;
+  el.style.display = 'block';
+  el.innerHTML = '<div style="color:#a78bfa;font-size:12px;padding:12px">⏳ Ejecutando auditoría — re-consultando facturacion_diaria desde Supabase...</div>';
+
+  try {
+    // Re-acumular producción desde la base de datos (igual que _reCargar)
+    var anio  = _reFiltroAnio;
+    var desde = anio + '-01-01';
+    var hasta = anio + '-12-31';
+    var PAGE  = 1000, off = 0, more = true;
+    var auProd = {};
+    _reModelos.forEach(function(m) {
+      auProd[m.id] = {};
+      _reQuincenas.forEach(function(q) { auProd[m.id][q.id] = 0; });
+    });
+    var totalRows = 0;
+
+    while (more) {
+      var r = await _supaDb.from('facturacion_diaria')
+        .select('fecha,modelo_id,modelo_nombre,valor,plataforma')
+        .gte('fecha', desde).lte('fecha', hasta)
+        .ilike('estudio_nombre', '%fornax%')
+        .range(off, off + PAGE - 1);
+      var batch = r.data || [];
+      batch.forEach(function(row){ _reAcumFilaAudit(auProd, row); }); // misma lógica que _reCargar
+      more = (batch.length === PAGE);
+      off += PAGE;
+      totalRows += batch.length;
+    }
+
+    // Comparar con _reProduccion (el que usa la matriz)
+    var diffs = [], maxDiff = 0;
+    var mismatch = 0;
+    _reModelos.forEach(function(m) {
+      _reQuincenas.forEach(function(q) {
+        var auVal  = auProd[m.id] ? (auProd[m.id][q.id] || 0) : 0;
+        var maVal  = (_reProduccion[m.id] || {})[q.id] || 0;
+        var diff   = Math.abs(auVal - maVal);
+        if (auVal > 0 || maVal > 0) {
+          if (diff > 0.01) { mismatch++; maxDiff = Math.max(maxDiff, diff); }
+          diffs.push({ mod: m.nombre, q: q.label, au: auVal, ma: maVal, diff: diff });
+        }
+      });
+    });
+
+    // Renderizar resultado
+    var h2 = '';
+    h2 += '<div style="padding:12px 14px">';
+    h2 += '<div style="font-size:13px;font-weight:800;color:'+(mismatch===0?'#22c55e':'#ef4444')+';margin-bottom:8px">';
+    h2 += (mismatch===0 ? '✅ AUDITORÍA SUPERADA — Diferencias: 0' : '❌ AUDITORÍA: '+mismatch+' diferencias encontradas (max Δ '+maxDiff.toFixed(2)+' cr)');
+    h2 += '</div>';
+    h2 += '<div style="font-size:10px;color:#64748b;margin-bottom:10px">';
+    h2 += 'Filas re-consultadas: <strong style="color:#94a3b8">'+totalRows.toLocaleString()+'</strong> · ';
+    h2 += 'Modelos: <strong style="color:#94a3b8">'+_reModelos.length+'</strong> · ';
+    h2 += 'Año: <strong style="color:#94a3b8">'+anio+'</strong>';
+    h2 += '</div>';
+
+    if (mismatch > 0) {
+      h2 += '<div style="overflow-x:auto;max-height:300px;overflow-y:auto">';
+      h2 += '<table style="border-collapse:collapse;width:100%;font-size:11px">';
+      h2 += '<thead><tr style="background:#1e2138"><th style="padding:4px 8px;text-align:left">Modelo</th><th style="padding:4px 8px">Quincena</th><th style="padding:4px 8px;text-align:right">Auditoría (BD)</th><th style="padding:4px 8px;text-align:right">Matriz (_reProduccion)</th><th style="padding:4px 8px;text-align:right">Δ</th></tr></thead><tbody>';
+      diffs.filter(function(d){return d.diff>0.01;}).forEach(function(d,i){
+        h2 += '<tr style="background:'+(i%2===0?'#0f1121':'#0c0e1d')+'">';
+        h2 += '<td style="padding:3px 8px;color:#e8e8e8">'+d.mod+'</td>';
+        h2 += '<td style="padding:3px 8px;color:#94a3b8">'+d.q+'</td>';
+        h2 += '<td style="padding:3px 8px;text-align:right;color:#22c55e">'+d.au.toLocaleString('es-CO',{maximumFractionDigits:0})+'</td>';
+        h2 += '<td style="padding:3px 8px;text-align:right;color:#a78bfa">'+d.ma.toLocaleString('es-CO',{maximumFractionDigits:0})+'</td>';
+        h2 += '<td style="padding:3px 8px;text-align:right;color:#ef4444">'+d.diff.toFixed(1)+'</td>';
+        h2 += '</tr>';
+      });
+      h2 += '</tbody></table></div>';
+    } else {
+      h2 += '<div style="font-size:11px;color:#64748b">Comparación completa: <strong style="color:#22c55e">'+diffs.length+' celdas verificadas</strong> · Δ máximo = 0 · La Matriz muestra exactamente lo que contiene facturacion_diaria.</div>';
+    }
+    h2 += '<button onclick="document.getElementById(\'re-audit-panel\').style.display=\'none\'" style="margin-top:10px;background:#252830;border:1px solid #3e4050;color:#64748b;padding:4px 10px;border-radius:5px;cursor:pointer;font-size:11px">Cerrar</button>';
+    h2 += '</div>';
+    el.innerHTML = h2;
+
+  } catch(err) {
+    el.innerHTML = '<div style="color:#ef4444;padding:12px;font-size:11px">❌ Error en auditoría: '+err.message+'</div>';
+  }
+}
+
+/* Helper de auditoría: normalización de nombre (igual que _reNorm en _reCargar) */
+function _reNormAudit(s) {
+  return (s||'').toLowerCase().trim()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ');
+}
+/* Helper interno para auditoría: acumula una fila en el mapa dado (misma lógica que _reAcumFila en _reCargar) */
+function _reAcumFilaAudit(mapaDestino, row) {
+  var fecha = (row.fecha || '').substring(0, 10);
+  if (!fecha) return;
+  var y = parseInt(fecha.substring(0,4),10);
+  if (y !== _reFiltroAnio) return;
+  var mm  = fecha.substring(5,7);
+  var d   = parseInt(fecha.substring(8,10),10);
+  var qid = y + '-' + mm + '-' + (d <= 15 ? 'Q1' : 'Q2');
+
+  // Resolver modelo: por id primero, luego por nombre normalizado
+  var mid = row.modelo_id;
+  if (!mid || !_reModelos.some(function(m){return m.id===mid;})) {
+    var kExact = (row.modelo_nombre||'').toLowerCase().trim();
+    var kNorm  = _reNormAudit(row.modelo_nombre);
+    var match  = _reModelos.filter(function(m){
+      return (m.nombre||'').toLowerCase().trim()===kExact || _reNormAudit(m.nombre)===kNorm;
+    })[0];
+    if (match) mid = match.id; else return;
+  }
+
+  if (!mapaDestino[mid] || !(qid in mapaDestino[mid])) return;
+
+  var plat = (row.plataforma||'').toLowerCase();
+  var esSM = plat.indexOf('streamate')>=0 || plat==='sm';
+  var val  = parseFloat(row.valor||0);
+  mapaDestino[mid][qid] += esSM ? val/0.05 : val;
+}
 
 /* ── Detalle de modelo (modal) ────────────────────────────────────── */
 function _reAbrirDetalle(modelId) {
@@ -71603,6 +72547,10 @@ async function bdestAbrirCrear() {
   document.getElementById('bdest-m-id').value = '';
   document.getElementById('bdest-m-nombre').value = '';
   document.getElementById('bdest-m-estado').value = 'Activa';
+  var _reElC = document.getElementById('bdest-m-re');
+  if (_reElC) _reElC.value = '';
+  var _monElC = document.getElementById('bdest-m-monitor');
+  if (_monElC) _monElC.value = '';
   bdestOcultarError();
   // Siempre re-cargar estudios frescos desde Supabase antes de abrir
   var selEst = document.getElementById('bdest-m-estudio');
@@ -71634,6 +72582,10 @@ function bdestAbrirEditar(modeloId) {
   document.getElementById('bdest-m-id').value = String(m.id);
   document.getElementById('bdest-m-nombre').value = m.nombre;
   document.getElementById('bdest-m-estado').value = m.estado || 'Activa';
+  var _reEl = document.getElementById('bdest-m-re');
+  if (_reEl) _reEl.value = m.reto_estrella > 0 ? m.reto_estrella : '';
+  var _monEl = document.getElementById('bdest-m-monitor');
+  if (_monEl) _monEl.value = m.monitor || '';
 
   // Determinar qué valor seleccionar: estudio_id o exec_<id>
   var dx = m.datos_extra || {};
@@ -71827,7 +72779,9 @@ async function bdestGuardar() {
   var modeloId  = (document.getElementById('bdest-m-id').value||'').trim();
   var nombre    = (document.getElementById('bdest-m-nombre').value||'').trim();
   var estudioRaw = (document.getElementById('bdest-m-estudio').value||'').trim();
-  var estado    = 'Activa'; // Siempre activo al guardar
+  var estado    = (document.getElementById('bdest-m-estado') ? document.getElementById('bdest-m-estado').value : '') || 'Activa';
+  var retoEstrella = parseInt((document.getElementById('bdest-m-re')||{}).value||'0', 10) || 0;
+  var monitor   = ((document.getElementById('bdest-m-monitor')||{}).value||'').trim();
 
   // Detectar si se seleccionó un ejecutivo comercial (prefijo exec_) o un estudio real
   var estudioId = '';
@@ -71931,9 +72885,12 @@ async function bdestGuardar() {
     var dxNuevo = Object.assign({}, dxActual, dxMerge);
 
     var payload = {
-      nombre:      nombre,
-      estado:      estado,
-      datos_extra: dxNuevo
+      nombre:        nombre,
+      estado:        estado,
+      datos_extra:   dxNuevo,
+      estudio_id:    estudioId || null,    // top-level: requerido por panel RE y todas las vistas Fornax
+      reto_estrella: retoEstrella || null, // top-level: requerido por Bono de Racha
+      monitor:       monitor || null        // top-level: requerido por filtros de monitor
     };
 
     var res;
@@ -71946,7 +72903,15 @@ async function bdestGuardar() {
         : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             var r = Math.random()*16|0, v = c==='x'?r:(r&0x3|0x8); return v.toString(16);
           });
-      var insPayload = { id: _newId, nombre: nombre, estado: estado, datos_extra: dxNuevo };
+      var insPayload = {
+        id:            _newId,
+        nombre:        nombre,
+        estado:        estado,
+        datos_extra:   dxNuevo,
+        estudio_id:    estudioId || null,
+        reto_estrella: retoEstrella || null,
+        monitor:       monitor || null
+      };
       var ins = await db.from('modelos').insert([insPayload]).select('id').single();
       if (ins.error) throw ins.error;
       modeloId = ins.data.id || _newId;
@@ -92110,6 +93075,182 @@ async function _m3dFetchRows(ini, fin, nombres){
   return rows;
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   META COMERCIAL — Consulta metas_comerciales para el Dashboard Monitor
+   Fuente única: tabla metas_comerciales (SuperAdmin → Metas Comerciales)
+   Real: NO modificado — sigue viniendo de facturacion_diaria vía _m3dCargar.
+════════════════════════════════════════════════════════════════════ */
+async function _m3dGetMetaComercial(f, rango){
+  if(!_supaDb) return null;
+  var anio = f.ano || new Date().getFullYear();
+  var mes  = parseInt(f.mes) || 0;
+  var q    = parseInt(f.q)   || 0;
+  var COMP = 'fornax';
+  var MESES = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio',
+               'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  try {
+    /* 1. Cargar todas las metas activas del año */
+    var {data: metas, error: _mErr} = await _supaDb.from('metas_comerciales')
+      .select('*').eq('company_id', COMP).eq('anio', anio).eq('activo', true);
+    if(_mErr){ console.warn('[MON meta] Supabase error:', _mErr); return null; }
+    if(!metas || !metas.length) return { sinMeta: true, periodoLbl: 'Sin metas configuradas para '+anio, noData: true };
+
+    /* 2. Resolver platform_id desde nombre de plataforma del filtro */
+    var platId = null;
+    if(f.plat){
+      var _pc = window._platCache || [];
+      var _pf = _pc.find(function(p){ return p.nombre === f.plat; });
+      if(_pf) platId = _pf.id;
+      else {
+        var _sgm = {'flirt4free':'plat_seed_F4F','f4f':'plat_seed_F4F','stripchat':'plat_seed_STC',
+          'chaturbate':'plat_seed_CHB','camsoda':'plat_seed_CSD','streamate':'plat_seed_STM','livejasmin':'plat_seed_LJM'};
+        platId = _sgm[(f.plat||'').toLowerCase()] || null;
+      }
+    }
+
+    /* 3. Sumar meta para una lista de registros + filtro de plataforma */
+    function _sumarMeta(lista){
+      if(!lista || !lista.length) return 0;
+      if(platId){
+        var r = lista.find(function(m){ return m.platform_id === platId; });
+        return r ? parseFloat(r.valor||0) : 0;
+      }
+      var porPlat = lista.filter(function(m){ return m.platform_id; });
+      if(porPlat.length) return porPlat.reduce(function(s,m){ return s+parseFloat(m.valor||0); },0);
+      var glob = lista.find(function(m){ return !m.platform_id; });
+      return glob ? parseFloat(glob.valor||0) : 0;
+    }
+
+    /* 4. Días helpers */
+    var _bisiest = (anio%4===0&&(anio%100!==0||anio%400===0));
+    var _diasAnio = _bisiest ? 366 : 365;
+    function _diasMes(m){ return new Date(anio, m, 0).getDate(); }
+
+    /* 5. Meta anual base (fallback proporcional) */
+    var anuales = metas.filter(function(m){ return m.tipo_periodo === 'anual'; });
+    var metaAnualTotal = _sumarMeta(anuales);
+
+    /* 6. Resolver meta y período */
+    var metaValor = null, periodoLbl = '', fechaIni = null, fechaFin = null, sinMeta = false;
+
+    /* 6A. Rango de fecha personalizado */
+    if(f.desde && f.hasta){
+      var dIni = f.desde, dFin = f.hasta;
+      /* Parsear componentes directamente del string YYYY-MM-DD para evitar
+         desfase de zona horaria (new Date('2026-12-31') en UTC-5 → día 30) */
+      var _sp1=dIni.split('-'), _sp2=dFin.split('-');
+      var anoIni=+_sp1[0], anoFin=+_sp2[0];
+      var mesIni=+_sp1[1], mesFin=+_sp2[1];
+      var diaIni=+_sp1[2], diaFin=+_sp2[2];
+
+      if(anoIni !== anio || anoFin !== anio){ sinMeta=true; periodoLbl=dIni+' → '+dFin; }
+      else if(mesIni === mesFin){
+        var dm = _diasMes(mesIni);
+        var mk = anio+'-'+String(mesIni).padStart(2,'0');
+        if(diaIni===1 && diaFin===dm){
+          /* Mes completo */
+          var mms = metas.filter(function(m){ return m.tipo_periodo==='mensual'&&m.periodo_codigo===mk; });
+          metaValor = _sumarMeta(mms) || (metaAnualTotal>0 ? Math.round(metaAnualTotal*dm/_diasAnio) : null);
+          periodoLbl=MESES[mesIni]+' '+anio; fechaIni=mk+'-01'; fechaFin=mk+'-'+String(dm).padStart(2,'0');
+        } else if(diaIni===1 && diaFin===15){
+          /* Q1 */
+          var qi1=(mesIni-1)*2+1, qk1='Q'+String(qi1).padStart(2,'0');
+          var qm1=metas.filter(function(m){ return m.tipo_periodo==='quincenal'&&m.periodo_codigo===qk1; });
+          var mms1=metas.filter(function(m){ return m.tipo_periodo==='mensual'&&m.periodo_codigo===mk; });
+          var base1=_sumarMeta(mms1)||(metaAnualTotal>0?Math.round(metaAnualTotal*dm/_diasAnio):0);
+          metaValor=_sumarMeta(qm1)||(base1>0?Math.round(base1*15/dm):null);
+          periodoLbl='Q1 '+MESES[mesIni]+' '+anio; fechaIni=mk+'-01'; fechaFin=mk+'-15';
+        } else if(diaIni===16 && diaFin===dm){
+          /* Q2 */
+          var qi2=mesIni*2, qk2='Q'+String(qi2).padStart(2,'0');
+          var qm2=metas.filter(function(m){ return m.tipo_periodo==='quincenal'&&m.periodo_codigo===qk2; });
+          var mms2=metas.filter(function(m){ return m.tipo_periodo==='mensual'&&m.periodo_codigo===mk; });
+          var base2=_sumarMeta(mms2)||(metaAnualTotal>0?Math.round(metaAnualTotal*dm/_diasAnio):0);
+          metaValor=_sumarMeta(qm2)||(base2>0?Math.round(base2*(dm-15)/dm):null);
+          periodoLbl='Q2 '+MESES[mesIni]+' '+anio; fechaIni=mk+'-16'; fechaFin=mk+'-'+String(dm).padStart(2,'0');
+        } else { sinMeta=true; periodoLbl=dIni+' → '+dFin; }
+      } else {
+        /* Rango multi-mes — detectar si es un trimestre calendario completo */
+        var _lastDayFin = new Date(anoIni, mesFin, 0).getDate();
+        var _esTrimestreCompleto = (mesFin - mesIni === 2)
+          && diaIni === 1
+          && diaFin === _lastDayFin
+          && (mesIni % 3 === 1); /* Q1=ene, Q2=abr, Q3=jul, Q4=oct */
+
+        if(_esTrimestreCompleto){
+          var _qtNum = Math.ceil(mesIni/3);
+          var _qtNom = ['','I','II','III','IV'][_qtNum];
+          periodoLbl = 'Trimestre '+_qtNom+' '+anio;
+          fechaIni = dIni; fechaFin = dFin;
+          /* Sumar metas de los 3 meses del trimestre */
+          var _metaSumTrim = 0;
+          for(var _mi = mesIni; _mi <= mesFin; _mi++){
+            var _mk = anio+'-'+String(_mi).padStart(2,'0');
+            var _dm = new Date(anio,_mi,0).getDate();
+            var _mmsT = metas.filter(function(m){ return m.tipo_periodo==='mensual'&&m.periodo_codigo===_mk; });
+            var _mMes = _sumarMeta(_mmsT) || (metaAnualTotal>0 ? Math.round(metaAnualTotal*_dm/_diasAnio) : 0);
+            _metaSumTrim += _mMes;
+          }
+          metaValor = _metaSumTrim > 0 ? _metaSumTrim : null;
+        } else {
+          sinMeta=true; periodoLbl=dIni+' → '+dFin;
+        }
+      }
+    }
+    /* 6B. Mes + Quincena específica */
+    else if(mes>0 && q>0){
+      var dm6=(function(m){ return new Date(anio,m,0).getDate(); })(mes);
+      var qi6=q===1?(mes-1)*2+1:mes*2, qk6='Q'+String(qi6).padStart(2,'0');
+      var mk6=anio+'-'+String(mes).padStart(2,'0');
+      var qm6=metas.filter(function(m){ return m.tipo_periodo==='quincenal'&&m.periodo_codigo===qk6; });
+      var mms6=metas.filter(function(m){ return m.tipo_periodo==='mensual'&&m.periodo_codigo===mk6; });
+      var base6=_sumarMeta(mms6)||(metaAnualTotal>0?Math.round(metaAnualTotal*dm6/_diasAnio):0);
+      var frac6=q===1?15/dm6:(dm6-15)/dm6;
+      metaValor=_sumarMeta(qm6)||(base6>0?Math.round(base6*frac6):null);
+      periodoLbl=(q===1?'Q1':'Q2')+' '+MESES[mes]+' '+anio;
+      fechaIni=anio+'-'+String(mes).padStart(2,'0')+(q===1?'-01':'-16');
+      fechaFin=anio+'-'+String(mes).padStart(2,'0')+(q===1?'-15':'-'+String(dm6).padStart(2,'0'));
+    }
+    /* 6C. Mes completo */
+    else if(mes>0 && q===0){
+      var dm7=_diasMes(mes), mk7=anio+'-'+String(mes).padStart(2,'0');
+      var mms7=metas.filter(function(m){ return m.tipo_periodo==='mensual'&&m.periodo_codigo===mk7; });
+      metaValor=_sumarMeta(mms7)||(metaAnualTotal>0?Math.round(metaAnualTotal*dm7/_diasAnio):null);
+      periodoLbl=MESES[mes]+' '+anio; fechaIni=mk7+'-01'; fechaFin=mk7+'-'+String(dm7).padStart(2,'0');
+    }
+    /* 6D. Año completo */
+    else {
+      metaValor=metaAnualTotal||null;
+      periodoLbl='Año '+anio; fechaIni=anio+'-01-01'; fechaFin=anio+'-12-31';
+    }
+
+    if(sinMeta) return { sinMeta:true, periodoLbl:periodoLbl };
+
+    /* 7. Avance esperado */
+    var today=new Date(); today.setHours(0,0,0,0);
+    var dIni7=new Date(fechaIni), dFin7=new Date(fechaFin);
+    var totalDias=Math.round((dFin7-dIni7)/86400000)+1;
+    var diasTransc;
+    if(today>dFin7) diasTransc=totalDias;
+    else if(today<dIni7) diasTransc=0;
+    else diasTransc=Math.round((today-dIni7)/86400000)+1;
+    var esperadoPct=totalDias>0?diasTransc/totalDias*100:0;
+    var periodoTerminado=today>dFin7;
+
+    return {
+      sinMeta: false,
+      metaValor: metaValor ? Math.round(metaValor) : 0,
+      periodoLbl: periodoLbl,
+      fechaIni: fechaIni, fechaFin: fechaFin,
+      esperadoPct: esperadoPct, diasTransc: diasTransc, totalDias: totalDias,
+      periodoTerminado: periodoTerminado,
+      platLabel: f.plat || 'Todas las plataformas',
+      entLabel: f.ent || null
+    };
+  } catch(e){ console.error('[MON meta]',e); return null; }
+}
+
 async function _m3dCargar(){
   if(_m3d.loading) return;
   _m3d.loading=true;
@@ -92209,6 +93350,10 @@ async function _m3dCargar(){
     if(f.plat) prevRows=prevRows.filter(function(r){ return typeof _e3normPlat==='function'?_e3normPlat(r.plataforma||'')===_e3normPlat(f.plat):(r.plataforma||'')===f.plat; });
     _m3d.prevRows=prevRows;
 
+    /* ── META COMERCIAL: fetch desde metas_comerciales antes de renderizar ── */
+    try{ _m3d.metaInfo = await _m3dGetMetaComercial(f, rango); }
+    catch(_me){ console.warn('[MON meta] error fetch meta:', _me); _m3d.metaInfo = null; }
+
     _m3d.loaded=true;
     _m3dRender(rango, f);
 
@@ -92216,6 +93361,130 @@ async function _m3dCargar(){
     scroll.innerHTML='<div class="efac3d-loading-msg">❌ Error: '+(err&&err.message||String(err))+'</div>';
     console.error('[MON dashboard]',err);
   }finally{ _m3d.loading=false; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   META COMERCIAL — Renderiza la tarjeta de avance vs meta en el Dashboard
+════════════════════════════════════════════════════════════════════ */
+function _m3dRenderMetaCard(real, metaInfo){
+  if(!metaInfo) return '';
+
+  /* Sin meta configurada o rango libre no coincide */
+  if(metaInfo.sinMeta){
+    return '<div class="efac3d-sec">'
+      +'<div class="efac3d-sec-hdr"><div class="efac3d-sec-tit">🎯 Meta Comercial</div></div>'
+      +'<div style="background:var(--card);border:1px solid var(--border);border-radius:11px;padding:16px 18px;color:var(--muted);font-size:12px;text-align:center">'
+      +'<span style="opacity:.7">Meta no disponible para este rango personalizado<br><span style="font-size:11px">'+_m3esc(metaInfo.periodoLbl||'')+'</span></span>'
+      +'</div></div>';
+  }
+
+  var meta = metaInfo.metaValor || 0;
+  if(meta <= 0){
+    return '<div class="efac3d-sec">'
+      +'<div class="efac3d-sec-hdr"><div class="efac3d-sec-tit">🎯 Meta Comercial · <span style="color:var(--gold)">'+_m3esc(metaInfo.periodoLbl)+'</span></div></div>'
+      +'<div style="background:var(--card);border:1px solid var(--border);border-radius:11px;padding:16px 18px;color:var(--muted);font-size:12px;text-align:center">'
+      +'<span style="opacity:.7">No hay meta configurada para este período en Metas Comerciales</span>'
+      +'</div></div>';
+  }
+
+  var fmt = _m3fmt;
+  var cumplPct    = meta > 0 ? Math.min(999, real / meta * 100) : 0;
+  var cumplPctMos = Math.min(999, cumplPct);
+  var esperPct    = metaInfo.esperadoPct || 0;
+  /* Brecha: cuánto llevamos vs cuánto deberíamos llevar */
+  var brechaPct   = cumplPct - esperPct;
+
+  /* Estado semáforo */
+  var VERDE='#22c55e', AMARILLO='#f59e0b', ROJO='#ef4444';
+  var estadoColor, estadoIcon, estadoTxt;
+  if(metaInfo.periodoTerminado){
+    if(cumplPct >= 100){ estadoColor=VERDE; estadoIcon='✅'; estadoTxt='Objetivo cumplido'; }
+    else { estadoColor=ROJO; estadoIcon='❌'; estadoTxt='No se alcanzó la meta'; }
+  } else {
+    if(brechaPct >= 3){        estadoColor=VERDE;    estadoIcon='🟢'; estadoTxt='Por encima del ritmo esperado'; }
+    else if(brechaPct >= -5){  estadoColor=AMARILLO; estadoIcon='🟡'; estadoTxt='En línea con el ritmo esperado'; }
+    else {                     estadoColor=ROJO;     estadoIcon='🔴'; estadoTxt='Por debajo del ritmo esperado'; }
+  }
+
+  /* Barra de progreso — barra real + marcador de esperado */
+  var barReal = Math.min(100, cumplPctMos);
+  var barEsp  = Math.min(100, esperPct);
+  var barColor = cumplPct >= 100 ? VERDE : (estadoColor);
+
+  var plat = metaInfo.platLabel && metaInfo.platLabel !== 'Todas las plataformas'
+    ? '· Plataforma: '+_m3esc(metaInfo.platLabel) : '';
+
+  var html = '<div class="efac3d-sec">';
+  html += '<div class="efac3d-sec-hdr"><div class="efac3d-sec-tit">🎯 Meta Comercial · <span style="color:var(--gold)">'+_m3esc(metaInfo.periodoLbl)+'</span>'
+    +(plat?'<span style="font-weight:400;color:var(--muted);margin-left:6px">'+plat+'</span>':'')+'</div></div>';
+
+  html += '<div style="background:var(--card);border:1px solid var(--border);border-radius:11px;padding:18px 20px;display:flex;flex-direction:column;gap:14px">';
+
+  /* Fila de KPIs en 4 columnas */
+  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">';
+
+  /* 1 — Meta */
+  html += '<div style="display:flex;flex-direction:column;gap:3px">'
+    +'<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">🎯 Meta del período</div>'
+    +'<div style="font-size:16px;font-weight:800;font-family:monospace;color:var(--text)">'+fmt(meta,true)+'</div>'
+    +'<div style="font-size:10px;color:var(--muted)">'+_m3esc(metaInfo.periodoLbl)+'</div>'
+    +'</div>';
+
+  /* 2 — Real */
+  html += '<div style="display:flex;flex-direction:column;gap:3px">'
+    +'<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">📊 Real acumulado</div>'
+    +'<div style="font-size:16px;font-weight:800;font-family:monospace;color:var(--gold)">'+fmt(real,true)+'</div>'
+    +'<div style="font-size:10px;color:var(--muted)">Producción Fornax</div>'
+    +'</div>';
+
+  /* 3 — % Cumplimiento */
+  html += '<div style="display:flex;flex-direction:column;gap:3px">'
+    +'<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">📈 Cumplimiento</div>'
+    +'<div style="font-size:16px;font-weight:800;font-family:monospace;color:'+barColor+'">'+cumplPct.toFixed(1)+'%</div>'
+    +'<div style="font-size:10px;color:var(--muted)">sobre la meta</div>'
+    +'</div>';
+
+  /* 4 — Esperado hoy */
+  html += '<div style="display:flex;flex-direction:column;gap:3px">'
+    +'<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">📅 Esperado hoy</div>'
+    +'<div style="font-size:16px;font-weight:800;font-family:monospace;color:var(--text)">'+esperPct.toFixed(1)+'%</div>'
+    +'<div style="font-size:10px;color:var(--muted)">'+(metaInfo.periodoTerminado?'Período terminado':(metaInfo.diasTransc+'/'+metaInfo.totalDias+' días'))+'</div>'
+    +'</div>';
+
+  html += '</div>'; /* end grid */
+
+  /* Barra de progreso con marcador */
+  html += '<div style="display:flex;flex-direction:column;gap:5px">';
+  html += '<div style="position:relative;height:10px;background:rgba(42,52,82,.8);border-radius:99px;overflow:visible">';
+  /* Barra real */
+  html += '<div style="height:100%;border-radius:99px;background:'+barColor+';width:'+barReal+'%;transition:width .4s ease;position:absolute;top:0;left:0"></div>';
+  /* Marcador de esperado */
+  if(!metaInfo.periodoTerminado && barEsp > 0 && barEsp < 100){
+    html += '<div style="position:absolute;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.55);border-radius:2px;left:'+barEsp+'%;transform:translateX(-50%)" title="Esperado hoy: '+barEsp.toFixed(1)+'%"></div>';
+  }
+  html += '</div>'; /* end bar */
+  html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+  html += '<span style="font-size:10px;color:var(--muted)">0%</span>';
+  if(!metaInfo.periodoTerminado){
+    html += '<span style="font-size:10px;color:rgba(255,255,255,.45)">Línea esperada: '+esperPct.toFixed(1)+'%</span>';
+  }
+  html += '<span style="font-size:10px;color:var(--muted)">100%</span>';
+  html += '</div>';
+  html += '</div>'; /* end barra wrapper */
+
+  /* Estado semáforo */
+  html += '<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;background:'+estadoColor+'22;border:1px solid '+estadoColor+'44">'
+    +'<span style="font-size:15px">'+estadoIcon+'</span>'
+    +'<span style="font-size:12px;font-weight:700;color:'+estadoColor+'">'+_m3esc(estadoTxt)+'</span>'
+    +(brechaPct !== 0 && !metaInfo.periodoTerminado
+      ? '<span style="margin-left:auto;font-size:11px;color:'+estadoColor+'">'+
+        (brechaPct>=0?'+':'')+brechaPct.toFixed(1)+'pp vs ritmo</span>'
+      : '')
+    +'</div>';
+
+  html += '</div>'; /* end card */
+  html += '</div>'; /* end sec */
+  return html;
 }
 
 function _m3dRender(rango, f){
@@ -92279,6 +93548,9 @@ function _m3dRender(rango, f){
   html+=kpi('c-purple','1ª quincena',fmt(c.byQ.q1,true),'Días 1–15',null,'neu');
   html+=kpi('c-gold2','2ª quincena',fmt(c.byQ.q2,true),'Días 16–fin',null,'neu');
   html+='</div></div>';
+
+  /* ── META COMERCIAL ── */
+  html += _m3dRenderMetaCard(_factTotal, _m3d.metaInfo || null);
 
   /* Ranking de modelos */
   var rankRows=Object.entries(c.byMod||c.byEnt).sort(function(a,b){ return b[1].total-a[1].total; });
@@ -93600,7 +94872,11 @@ function monBdExportarExcel(){
           <div>
             <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:5px">COLUMNA FECHA <span style="color:var(--warning);font-weight:400">(opcional)</span></label>
             <select id="hel-csv-col-fec" onchange="helCSVRefrescarPreview()" style="width:100%;background:var(--card2);border:1px solid rgba(82,201,122,.5);border-radius:7px;color:var(--text);padding:7px 10px;font-size:12px;font-family:inherit"></select>
-            <div id="hel-csv-fec-hint" style="display:none;font-size:10px;color:var(--warning);margin-top:3px">⚠ Sin fecha: se usará la fecha de consulta del módulo</div>
+            <div id="hel-csv-fec-hint" style="display:none;margin-top:6px">
+              <label style="font-size:11px;font-weight:700;color:var(--warning);display:block;margin-bottom:4px">📅 FECHA A ASIGNAR</label>
+              <input type="date" id="hel-csv-fecha-manual" onchange="helCSVRefrescarPreview()" style="width:100%;background:var(--card2);border:1px solid rgba(255,193,7,.6);border-radius:7px;color:var(--text);padding:7px 10px;font-size:12px;font-family:inherit">
+              <div style="font-size:10px;color:var(--warning);margin-top:3px">⚠ Sin columna de fecha: todos los registros se guardarán con esta fecha.</div>
+            </div>
           </div>
           <div>
             <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:5px">COLUMNA HORAS</label>
@@ -94970,14 +96246,20 @@ function helCSVRefrescarPreview() {
   /* Mostrar/ocultar aviso de fecha de consulta */
   var fecHint=document.getElementById('hel-csv-fec-hint');
   if(fecHint) fecHint.style.display=sinFecha?'block':'none';
+  /* Pre-rellenar campo de fecha manual con hoy si está vacío */
+  var _manualFecEl=document.getElementById('hel-csv-fecha-manual');
+  if(sinFecha && _manualFecEl && !_manualFecEl.value){
+    _manualFecEl.value=new Date().toISOString().slice(0,10);
+  }
   /* Necesitamos mínimo modelo y horas */
   if (!colM||!colH) {
     pre.innerHTML='<p style="color:var(--muted);font-size:12px;padding:8px 0">Selecciona las columnas de modelo y horas para ver la vista previa.</p>';
     document.getElementById('hel-csv-match-count').textContent='';
     return;
   }
-  /* Fecha de fallback: primer día del período de consulta HEL */
-  var fechaFallback=(document.getElementById('hel-fecha-inicio')||{}).value||new Date().toISOString().slice(0,10);
+  /* Fecha de fallback: 1) campo manual del modal 2) período de consulta HEL 3) hoy */
+  var _manualFec=(document.getElementById('hel-csv-fecha-manual')||{}).value||'';
+  var fechaFallback=_manualFec||(document.getElementById('hel-fecha-inicio')||{}).value||new Date().toISOString().slice(0,10);
   /* Detectar si la columna de HORAS es en realidad una columna-fecha (valores en minutos, ej. Streamate) */
   var _preColHEsFecha=helCSVColEsFecha(colH);
   var matched=0,unmatched=0;
@@ -95072,7 +96354,8 @@ function helCSVImportar() {
       var n=helCSVNormFecha((f||'').trim());
       return (n && n>='2020-01-01') ? n : null;
     }
-    fechaFallback = _fValid((document.getElementById('hel-fecha-inicio')||{}).value)
+    fechaFallback = _fValid((document.getElementById('hel-csv-fecha-manual')||{}).value)
+                 || _fValid((document.getElementById('hel-fecha-inicio')||{}).value)
                  || _fValid((document.getElementById('rd-fecha')||{}).value)
                  || new Date().toISOString().slice(0,10);
     console.log('[HEL-CSV] fechaFallback →',fechaFallback,

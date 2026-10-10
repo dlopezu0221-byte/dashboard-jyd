@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v5.37-debug-supabase-test-fn -->
+<!DOCTYPE html><!-- v5.60d-fix-estudios-liquidacion-estadisticas -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -11461,13 +11461,14 @@ async function _efacGetEstudiosFromSupabase(){
         if(_curEmpId && e.ejecutivo_id && String(e.ejecutivo_id)===String(_curEmpId)) return true;
         // PRIMARIO B: UUID de jd_usuarios (legacy)
         if(_curId && e.ejecutivo_id && String(e.ejecutivo_id)===String(_curId)) return true;
-        if(e.ejecutivo_id) return false; // tiene ID pero no coincide con ninguno
-        // Si _curEmpId está disponible (arquitectura real), NO usar nombre como fallback para estudios.
-        // El nombre de un ejecutivo podría coincidir accidentalmente con estudios de otros.
-        // Los estudios deben estar vinculados por ejecutivo_id para aparecer aquí.
-        if(_curEmpId) return false;
-        // Fallback por nombre solo cuando no hay ID de empleado (sistema antiguo sin jd_empleados)
-        return _execMatchesName(e.ejecutivo||e.ejecutivoComercial||'');
+        if(e.ejecutivo_id) return false; // tiene ejecutivo_id pero no coincide — excluir
+        // Sin ejecutivo_id top-level: buscar por nombre en datos_extra.ejecutivo
+        // (estudios asignados por nombre antes de que se guardara el FK correctamente)
+        var _dxEjec = (e.datos_extra||{}).ejecutivo||'';
+        if(_dxEjec && _execMatchesName(_dxEjec)) return true;
+        // Fallback por nombre en campos directos (solo cuando no hay _curEmpId — sistema legado)
+        if(!_curEmpId) return _execMatchesName(e.ejecutivo||e.ejecutivoComercial||'');
+        return false;
       })
       .forEach(function(e){
         var nom=(e.nombreAgencia||e.nombre||'').trim();
@@ -14789,7 +14790,35 @@ function _e3dRangoPrevio(f, rango){
 async function _e3dCargar(){
   if(_e3d.loading){ console.warn('[e3d BLOQUEADO] _e3d.loading=true — clic ignorado. Forzando reset.'); _e3d.loading=false; }
   _e3d.loading=true;
-  console.warn('[e3d INICIO] _e3dCargar iniciado', new Date().toISOString(), '| modelos:', _e3ModelosAsig.length, '| e3HasModelId:', !!window._e3HasModelId);
+
+  /* ══ FIX v5.36 ══════════════════════════════════════════════════════════════════
+     _e3ModelosFornaxBase puede estar vacía si el Dashboard se cargó antes de que
+     execFacRender completara _efacGetModelosFornaxAll, o si efacRecargar la limpió.
+     La GUARDIA v5.35 (allRows.forEach) tiene condición size>0 — con size=0 es inerte
+     y modelos trasladados como Lucia Brown pasan sin filtrar → descuadre 602 cr.
+     Solución: repoblar _e3ModelosFornaxBase ahora si está vacía, igual que hace
+     execFacRender, antes de que se construya allRows. */
+  if(_esMon3d &&
+     typeof _e3ModelosFornaxBase !== 'undefined' &&
+     (!_e3ModelosFornaxBase || _e3ModelosFornaxBase.size === 0) &&
+     typeof _efacGetModelosFornaxAll === 'function'){
+    console.warn('[e3d v5.36] _e3ModelosFornaxBase VACÍA al iniciar Dashboard — repoblando...');
+    try{
+      await _efacGetModelosFornaxAll('');
+      console.warn('[e3d v5.36] ✓ _e3ModelosFornaxBase repoblada:', _e3ModelosFornaxBase.size,
+        'modelos base Fornax | _e3ModelosAsig:', _e3ModelosAsig.length);
+    }catch(_ex536){
+      console.warn('[e3d v5.36] ⚠️ Error al repoblar _e3ModelosFornaxBase:', _ex536);
+    }
+  } else if(_esMon3d){
+    console.warn('[e3d v5.36] _e3ModelosFornaxBase ya tenía', _e3ModelosFornaxBase.size,
+      'modelos — sin repoblar (caso normal)');
+  }
+
+  console.warn('[e3d INICIO] _e3dCargar iniciado', new Date().toISOString(),
+    '| modelos:', _e3ModelosAsig.length,
+    '| e3HasModelId:', !!window._e3HasModelId,
+    '| _e3ModelosFornaxBase.size:', (typeof _e3ModelosFornaxBase!=='undefined'?_e3ModelosFornaxBase.size:'UNDEF'));
   var scroll=document.getElementById('efac3d-scroll');
   scroll.innerHTML='<div class="efac3d-loading-msg">⏳ Consultando facturación…</div>';
 
@@ -14986,6 +15015,36 @@ async function _e3dCargar(){
         o3+=PAGE;
       }
     }
+    /* ── DIAG v5.36: suma total allRows antes de cualquier filtro ── */
+    (function(){
+      var _sumPre=allRows.reduce(function(s,r){ return s+(+(r.valor||0)); },0);
+      console.warn('[e3d v5.36 DIAG] allRows tras Q1+Q2+Q3: '+allRows.length+' filas | suma valor: '+Math.round(_sumPre));
+      /* Desglose de modelos Fornax en período actual con valor > 0 */
+      var _byMod={};
+      allRows.forEach(function(r){
+        if(!((r.estudio_nombre||'').toLowerCase().includes('fornax'))) return;
+        var k=(r.modelo_nombre||'(vacío)').trim();
+        _byMod[k]=(_byMod[k]||0)+(+(r.valor||0));
+      });
+      var _keys=Object.keys(_byMod).sort(function(a,b){ return _byMod[b]-_byMod[a]; });
+      if(_keys.length){
+        console.warn('[e3d v5.36 DIAG] Modelos Fornax en allRows (top 15):');
+        _keys.slice(0,15).forEach(function(k){ console.warn('  "'+k+'" =', Math.round(_byMod[k])); });
+        if(_keys.length>15) console.warn('  ... y '+ (_keys.length-15)+' más');
+        /* Modelos NOT in _e3ModelosFornaxBase */
+        if(_e3ModelosFornaxBase && _e3ModelosFornaxBase.size>0){
+          var _foraneos=_keys.filter(function(k){ return !_e3ModelosFornaxBase.has(k); });
+          if(_foraneos.length){
+            var _sumFor=_foraneos.reduce(function(s,k){ return s+_byMod[k]; },0);
+            console.warn('[e3d v5.36 DIAG] ⚠️ Fornax+NO en _e3ModelosFornaxBase (',_foraneos.length,'modelos,',Math.round(_sumFor),'cr):',JSON.stringify(_foraneos.slice(0,10)));
+          } else {
+            console.warn('[e3d v5.36 DIAG] ✓ Todos los modelos Fornax están en _e3ModelosFornaxBase');
+          }
+        } else {
+          console.warn('[e3d v5.36 DIAG] ⚠️ _e3ModelosFornaxBase VACÍA — GUARDIA v5.35 INERTE');
+        }
+      }
+    })();
     console.warn('[e3d Q3 FIN] allRows tras Q3:', allRows.length);
 
     /* ── FIX v5.34e: Excluir modelos trasladados (vigencia temporal) — SEGUNDA FUNCIÓN ──
@@ -15006,11 +15065,12 @@ async function _e3dCargar(){
         if(_mod.indexOf('lucia')!==-1&&_mod.indexOf('brow')!==-1) return false;
         return true;
       });
+      var _sumPost=allRows.reduce(function(s,r){ return s+(+(r.valor||0)); },0);
       if(allRows.length!==_antes){
         console.warn('[e3d v5.34e] Traslados excluidos (Lucia Brown >= 2026-09-01): '+
-          (_antes-allRows.length)+' filas. allRows restantes: '+allRows.length);
+          (_antes-allRows.length)+' filas. allRows restantes: '+allRows.length+' | suma: '+Math.round(_sumPost));
       } else {
-        console.warn('[e3d v5.34e] ⚠️ Sin filas Lucia Brown en allRows (ya excluidas o no en período)');
+        console.warn('[e3d v5.34e] ⚠️ Sin filas Lucia Brown en allRows (ya excluidas o no en período) | suma allRows: '+Math.round(_sumPost));
       }
     })();
 
@@ -15075,21 +15135,20 @@ async function _e3dCargar(){
     var seen=new Set(), rows=[];
     allRows.forEach(function(r){
       var mod=(r.modelo_nombre||'').trim(), est=(r.estudio_nombre||'').trim();
-      /* ── FIX v5.35 GUARDIA FORNAX INLINE — alinear Dashboard con Facturación ──────────────
-         Idéntico a la GUARDIA de _e3CargarMes (línea ~13183):
-           if(_e3ModelosFornaxBase.size && !_e3ModelosFornaxBase.has(est)) return;
-         Para monitores Fornax, solo procesar registros cuyo modelo_nombre esté
-         en _e3ModelosFornaxBase. Excluye: modelos trasladados (ej. Lucia Brown >= sep-2026),
-         registros con modelo_nombre vacío, y cualquier modelo no validado en la base Fornax.
-         Esto garantiza que Dashboard y Facturación usen exactamente el mismo criterio. */
-      if(_esMon3d && _isFornaxStudio(est) &&
+      /* ── FIX v5.37 GUARDIA UNIVERSAL — alinear Dashboard con Facturación ─────────────────────
+         La GUARDIA de _e3CargarMes (Facturación) filtra TODOS los registros cuyo modelo_nombre
+         no esté en _e3ModelosFornaxBase, sin importar el estudio_nombre.
+         El error de v5.35 era restringir solo a registros con estudio Fornax — dejaba pasar
+         registros trasladados con estudio_nombre ≠ 'Fornax' (ej: 'Grupo J&D - Independiente')
+         que sí se excluyen en Facturación. La corrección: eliminar _isFornaxStudio(est) del
+         condicional y aplicar la GUARDIA a TODOS los registros, igual que Facturación. */
+      if(_esMon3d &&
          typeof _e3ModelosFornaxBase !== 'undefined' && _e3ModelosFornaxBase && _e3ModelosFornaxBase.size > 0){
         if(!_e3ModelosFornaxBase.has(mod)){
-          /* Logging de primer caso detectado (evitar spam de console) */
           if(!window._e3Grd35Logged){ window._e3Grd35Logged=0; }
           window._e3Grd35Logged++;
-          if(window._e3Grd35Logged<=3){
-            console.warn('[e3d v5.35 GUARDIA] Excluido: modelo_nombre="'+mod+'" est="'+est+'" fecha='+(r.fecha||'?')+' valor='+(r.valor||0));
+          if(window._e3Grd35Logged<=5){
+            console.warn('[e3d v5.37 GUARDIA] Excluido: modelo_nombre="'+mod+'" est="'+est+'" fecha='+(r.fecha||'?')+' valor='+(r.valor||0));
           }
           return; // registro excluido — modelo_nombre no está en base validada de Fornax
         }
@@ -15186,10 +15245,17 @@ async function _e3dCargar(){
                   modNom:((mod&&modSet.has(mod))||_esModEjec)?mod:null });
     });
     /* Resumen GUARDIA v5.35 */
+    var _sumRowsPost35=rows.reduce(function(s,r){ return s+r.valor; },0);
     if(window._e3Grd35Logged > 0){
-      console.warn('[e3d v5.35 GUARDIA] Total registros excluidos por GUARDIA INLINE Fornax:', window._e3Grd35Logged);
+      console.warn('[e3d v5.37 GUARDIA] Total registros excluidos por GUARDIA UNIVERSAL:', window._e3Grd35Logged,
+        '| suma rows post-GUARDIA:', Math.round(_sumRowsPost35));
     } else if(_esMon3d && typeof _e3ModelosFornaxBase !== 'undefined' && _e3ModelosFornaxBase && _e3ModelosFornaxBase.size > 0){
-      console.warn('[e3d v5.35 GUARDIA] ✓ 0 registros excluidos — allRows.forEach ya validado por _e3ModelosFornaxBase (', _e3ModelosFornaxBase.size, 'modelos en base)');
+      console.warn('[e3d v5.37 GUARDIA] ✓ 0 registros excluidos — todos los modelo_nombre validados en _e3ModelosFornaxBase (',
+        _e3ModelosFornaxBase.size, 'modelos en base) | suma rows:', Math.round(_sumRowsPost35));
+    } else {
+      console.warn('[e3d v5.37 GUARDIA] _e3ModelosFornaxBase.size=',
+        (typeof _e3ModelosFornaxBase!=='undefined'?_e3ModelosFornaxBase.size:'UNDEF'),
+        '| suma rows tras allRows.forEach:', Math.round(_sumRowsPost35));
     }
     window._e3Grd35Logged = 0; // reset para próxima carga
     /* ══ DIAGNÓSTICO LUCIA BROWN ══
@@ -15317,6 +15383,17 @@ async function _e3dCargar(){
     var prevMTS = Object.assign({}, modToStudio, prevLocalMTS);
     prevAll.forEach(function(r){
       var mod=(r.modelo_nombre||'').trim(), est=(r.estudio_nombre||'').trim();
+      /* ── FIX v5.38 GUARDIA PREV — alinear período anterior con Facturación ─────────────────
+         Mismo principio que v5.37: si un modelo_nombre no está en _e3ModelosFornaxBase
+         (base validada de modelos Fornax activos), sus registros se excluyen del período
+         de comparación. Evita que modelos trasladados (ej: Lucia Brown desde Sep 2026)
+         aparezcan en "vs. período anterior" con datos de su nuevo estudio. */
+      if(_esMon3d &&
+         typeof _e3ModelosFornaxBase !== 'undefined' && _e3ModelosFornaxBase && _e3ModelosFornaxBase.size > 0){
+        if(!_e3ModelosFornaxBase.has(mod)){
+          return; // registro excluido — mismo criterio que GUARDIA UNIVERSAL v5.37
+        }
+      }
       var ent;
       if(studiosSet.has(est) && !(_superadminFornax && _isFornaxStudio(est) && mod)){ ent=est; }
       else if(studiosSet.has(est) && _superadminFornax && _isFornaxStudio(est) && mod){ ent=mod; }
@@ -20058,14 +20135,9 @@ var _e3dOrigExecFacRender=null;
       <!-- Tabla de plan de comisiones -->
       <div style="padding:14px 16px;flex:1">
         <div style="font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:10px">Plan de Comisiones</div>
-        <div style="display:flex;flex-direction:column;gap:0">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:10.5px;color:var(--muted)">Plan ≤ 4%</span><span style="font-size:11px;font-weight:700;color:var(--text)">0,5%</span></div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:10.5px;color:var(--muted)">Plan 5%</span><span style="font-size:11px;font-weight:700;color:var(--text)">1,0%</span></div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:10.5px;color:var(--muted)">Plan 6%</span><span style="font-size:11px;font-weight:700;color:var(--text)">1,25%</span></div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:10.5px;color:var(--muted)">Plan 7%</span><span style="font-size:11px;font-weight:700;color:var(--text)">1,5%</span></div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.08)"><span style="font-size:10.5px;color:var(--muted)">Plan ≥ 8%</span><span style="font-size:11px;font-weight:700;color:#34D399">1,75%</span></div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 4px"><span style="font-size:10.5px;color:#a78bfa">🛰️ Satélite Fornax</span><span style="font-size:11px;font-weight:700;color:#a78bfa">2,0%</span></div>
-        </div>
+        <!-- v5.57: tabla dinámica editable — generada por _leRenderCommPlanTable() -->
+        <div id="le-comm-plan-rows" style="display:flex;flex-direction:column;gap:0"></div>
+        <div style="font-size:9px;color:var(--muted);margin-top:6px;opacity:.7">✏️ Doble clic en % para editar</div>
       </div>
 
       <!-- Botón asignar modelos -->
@@ -20097,12 +20169,22 @@ var _e3dOrigExecFacRender=null;
           </div>
           <div id="le-trm-status" style="font-size:9px;color:var(--muted);margin-top:2px"></div>
         </div>
+        <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px">
+          <label style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#1d4ed8;text-transform:uppercase">Tasa F4F (USD/créd.)</label>
+          <input type="number" id="le-f4f-rate" placeholder="Ej: 0.03" step="0.0001" min="0" style="background:var(--input-bg,rgba(255,255,255,.05));border:1px solid rgba(29,78,216,.4);border-radius:7px;color:var(--text);font-family:Outfit,sans-serif;font-size:12px;padding:7px 10px;outline:none;width:100%" title="Cuando Flirt4Free no tiene valor USD en BD, se calcula: Créditos × esta tasa">
+          <div style="font-size:8.5px;color:var(--muted);margin-top:1px">Para estudios sin USD en BD</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:110px">
+          <label style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#818cf8;text-transform:uppercase">% Plan mod. directos</label>
+          <input type="number" id="le-dm-plan-pct" placeholder="Ej: 8" step="0.01" min="0" max="100" style="background:var(--input-bg,rgba(255,255,255,.05));border:1px solid rgba(129,140,248,.4);border-radius:7px;color:var(--text);font-family:Outfit,sans-serif;font-size:12px;padding:7px 10px;outline:none;width:100%" title="% de plan del modelo usado para calcular comisión cuando la BD no lo trae (Sección B y C)">
+          <div style="font-size:8.5px;color:var(--muted);margin-top:1px">Fallback si BD no trae %</div>
+        </div>
         <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:140px">
           <label style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase">Fecha de Pago</label>
           <input type="date" id="le-fecha-pago" style="background:var(--input-bg,rgba(255,255,255,.05));border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:Outfit,sans-serif;font-size:12px;padding:7px 10px;outline:none;width:100%">
         </div>
         <button class="btn btn-ghost btn-sm" onclick="leReset()" style="white-space:nowrap">✕ Limpiar</button>
-        <button class="btn btn-primary btn-sm" onclick="lePreview()" style="background:rgba(52,211,153,.18);border-color:rgba(52,211,153,.4);color:#34D399;font-weight:700;white-space:nowrap">🔍 Vista Previa</button>
+        <button class="btn btn-primary btn-sm" onclick="leSiguiente()" style="background:rgba(52,211,153,.18);border-color:rgba(52,211,153,.4);color:#34D399;font-weight:700;white-space:nowrap">➡ Siguiente</button>
       </div>
     </div>
   </div>
@@ -20117,7 +20199,7 @@ var _e3dOrigExecFacRender=null;
     <div style="text-align:center;padding:50px 24px;color:#64748B">
       <div style="font-size:36px;margin-bottom:10px">📊</div>
       <div style="font-size:14px;font-weight:600;margin-bottom:6px">Seleccione el ejecutivo, período y plataformas</div>
-      <div style="font-size:12px">Luego ingrese la TRM y presione "Calcular Comisiones"</div>
+      <div style="font-size:12px">Ingrese la TRM y presione <strong style="color:#34D399">➡ Siguiente</strong> para consultar la producción</div>
     </div>
   </div>
 </div>
@@ -29931,18 +30013,130 @@ var LE_PLAT_CFG = {
 };
 
 /** CORRECCIÓN CRÍTICA — _getExecCommPct era llamada sin definición (ReferenceError).
- *  Retorna la tasa de comisión del ejecutivo según el plan del aliado/estudio. */
+ *  Retorna la tasa de comisión del ejecutivo según el plan del aliado/estudio.
+ *  v5.57: usa _LE_COMM_PLAN configurable en lugar de valores hardcodeados. */
 function _getExecCommPct(planPct){
   var p = parseFloat(planPct)||0;
-  if(p >= 10) return 0.0175;
-  if(p >= 8)  return 0.0175;
-  if(p >= 7)  return 0.0150;
-  if(p >= 6)  return 0.0125;
-  if(p >= 5)  return 0.0100;
-  if(p >= 4)  return 0.0050;
-  if(p >  0)  return 0.0050;
+  var cp = window._LE_COMM_PLAN || {p4:0.005,p5:0.010,p6:0.0125,p7:0.015,p8:0.0175};
+  if(p >= 8) return cp.p8;
+  if(p >= 7) return cp.p7;
+  if(p >= 6) return cp.p6;
+  if(p >= 5) return cp.p5;
+  if(p >= 4) return cp.p4;
+  if(p >  0) return cp.p4;
   return 0;
 }
+
+/* ══ PLAN DE COMISIONES CONFIGURABLE v5.57 ═════════════════════════════════
+   Las tasas se editan desde la tabla lateral del Liquidador Ejecutivo.
+   Se persisten en localStorage y en Supabase jd_configuracion.
+   Estructura: { p4, p5, p6, p7, p8, fornaxSat }
+   ─────────────────────────────────────────────────────────────────────────*/
+window._LE_COMM_PLAN = (function(){
+  var defaults = { p4:0.005, p5:0.010, p6:0.0125, p7:0.015, p8:0.0175, fornaxSat:0.02 };
+  try {
+    var stored = localStorage.getItem('_le_comm_plan');
+    if(stored){ var parsed = JSON.parse(stored); return Object.assign({}, defaults, parsed); }
+  } catch(e){}
+  return Object.assign({}, defaults);
+})();
+
+/** Formatea tasa decimal como porcentaje legible (ej: 0.0175 → "1,75%") */
+function _leCommFmt(rate){
+  var pct = (rate||0)*100;
+  return pct.toLocaleString('es-CO',{minimumFractionDigits:0,maximumFractionDigits:2})+'%';
+}
+
+/** Renderiza la tabla de comisiones en la barra lateral (con edición inline) */
+function _leRenderCommPlanTable(){
+  var container = document.getElementById('le-comm-plan-rows');
+  if(!container) return;
+  var cp = window._LE_COMM_PLAN;
+  var rows = [
+    { key:'p4',       label:'Plan ≤ 4%',       color:'var(--text)',  border:'rgba(255,255,255,.04)' },
+    { key:'p5',       label:'Plan 5%',          color:'var(--text)',  border:'rgba(255,255,255,.04)' },
+    { key:'p6',       label:'Plan 6%',          color:'var(--text)',  border:'rgba(255,255,255,.04)' },
+    { key:'p7',       label:'Plan 7%',          color:'var(--text)',  border:'rgba(255,255,255,.04)' },
+    { key:'p8',       label:'Plan ≥ 8%',        color:'#34D399',     border:'rgba(255,255,255,.08)' },
+    { key:'fornaxSat',label:'🛰️ Sat. Fornax',   color:'#a78bfa',     border:'none', isLast:true }
+  ];
+  container.innerHTML = rows.map(function(r){
+    var valFmt = _leCommFmt(cp[r.key]);
+    var rowStyle = 'display:flex;justify-content:space-between;align-items:center;padding:'+(r.isLast?'8px 0 4px':'5px 0')+';'+(r.border!=='none'?'border-bottom:1px solid '+r.border+';':'');
+    var labelStyle = 'font-size:10.5px;color:'+r.color+';cursor:default';
+    var valStyle   = 'font-size:11px;font-weight:700;color:'+r.color+';cursor:pointer;padding:2px 5px;border-radius:4px;transition:background .15s';
+    return '<div style="'+rowStyle+'">'+
+      '<span style="'+labelStyle+'">'+r.label+'</span>'+
+      '<span id="lecp-val-'+r.key+'" style="'+valStyle+'" '+
+        'title="Doble clic para editar" '+
+        'ondblclick="_leEditCommRate(\''+r.key+'\')" '+
+        'onmouseover="this.style.background=\'rgba(255,255,255,.08)\'" '+
+        'onmouseout="this.style.background=\'transparent\'"'+
+        '>'+valFmt+'</span>'+
+    '</div>';
+  }).join('');
+}
+
+/** Activa edición inline de una tasa del plan */
+function _leEditCommRate(key){
+  var span = document.getElementById('lecp-val-'+key);
+  if(!span || span.querySelector('input')) return;
+  var currentPct = ((window._LE_COMM_PLAN[key]||0)*100);
+  var orig = span.innerHTML;
+  span.innerHTML = '';
+  var inp = document.createElement('input');
+  inp.type='number'; inp.step='0.01'; inp.min='0'; inp.max='100';
+  inp.value = parseFloat(currentPct.toFixed(4));
+  inp.style.cssText='width:62px;background:#1e293b;border:1px solid #334155;border-radius:4px;color:inherit;font-size:11px;font-weight:700;text-align:right;padding:2px 4px;font-family:Outfit,sans-serif;outline:none';
+  var suffix = document.createElement('span');
+  suffix.textContent='%'; suffix.style.cssText='font-size:11px;font-weight:700;margin-left:2px';
+  span.appendChild(inp); span.appendChild(suffix);
+  inp.focus(); inp.select();
+  function _commit(){
+    var val = parseFloat(inp.value);
+    if(isNaN(val)||val<0||val>100){ span.innerHTML=orig; return; }
+    window._LE_COMM_PLAN[key] = val/100;
+    leSaveCommPlan();
+    _leRenderCommPlanTable();
+    console.log('[LE] Plan guardado:',key,'→',val+'%');
+  }
+  inp.onblur = _commit;
+  inp.onkeydown = function(e){ if(e.key==='Enter'){ inp.blur(); } if(e.key==='Escape'){ inp.onblur=null; span.innerHTML=orig; } };
+}
+
+/** Guarda el plan de comisiones en localStorage + Supabase */
+function leSaveCommPlan(){
+  try{ localStorage.setItem('_le_comm_plan', JSON.stringify(window._LE_COMM_PLAN)); } catch(e){}
+  if(!_supaDb) return;
+  try{
+    _supaDb.from('jd_configuracion').upsert({
+      clave: 'le_comision_plan',
+      valor: JSON.stringify(window._LE_COMM_PLAN),
+      descripcion: 'Plan de comisiones del Liquidador Ejecutivo',
+      actualizado_en: new Date().toISOString()
+    }, { onConflict: 'clave' }).then(function(r){
+      if(r.error) console.warn('[LE] Error guardando plan en Supabase:', r.error);
+      else console.log('[LE] Plan de comisiones guardado en Supabase.');
+    });
+  } catch(e){ console.warn('[LE] leSaveCommPlan error:', e); }
+}
+
+/** Carga el plan de comisiones desde Supabase (se llama al entrar al módulo LE) */
+async function leLoadCommPlan(){
+  _leRenderCommPlanTable(); // mostrar valores actuales inmediatamente (localStorage o defaults)
+  if(!_supaDb) return;
+  try{
+    var r = await _supaDb.from('jd_configuracion').select('valor').eq('clave','le_comision_plan').maybeSingle();
+    if(r.data && r.data.valor){
+      var remote = JSON.parse(r.data.valor);
+      Object.assign(window._LE_COMM_PLAN, remote);
+      try{ localStorage.setItem('_le_comm_plan', JSON.stringify(window._LE_COMM_PLAN)); } catch(e){}
+      _leRenderCommPlanTable(); // re-renderizar con valores remotos
+      console.log('[LE] Plan de comisiones cargado desde Supabase:', window._LE_COMM_PLAN);
+    }
+  } catch(e){ console.warn('[LE] leLoadCommPlan error:', e); }
+}
+/* ══════════════════════════════════════════════════════════════════════════ */
 
 /** Carga y sincroniza LE_PLAT_CFG desde jd_plataformas (fuente única de verdad).
  *  Fix permanente del bug Streamate: inactivar en BD → desaparece del liquidador. */
@@ -29992,6 +30186,7 @@ function _fmtUSD(n){ return '$'+((n||0).toLocaleString('en-US',{minimumFractionD
 /** Called by goPage when entering liqs-ejecutivos */
 function renderLiqEjecutivos(){
   leLoadPlatCfg().then(function(){ leInitPlats(); });
+  leLoadCommPlan(); // v5.57: cargar plan de comisiones configurable desde Supabase
   leInitEjecSel();
   leWakeupSupabase();
   /* Auto-completar fecha de pago con hoy */
@@ -30071,15 +30266,18 @@ async function leOnEjecChange(){
   var _execEmpresaAttr = '';
   var _execEsFornaxPorEmpresa = false;
   // FIX v5.33: catálogo dinámico de IDs de estudios Fornax (precargado en paralelo con empresa)
-  var _allFornaxEstIds = new Set(['mt8elsuqllk']); // incluye ID inmutable hardcoded
+  var _allFornaxEstIds = new Set(); // v5.49: removido ID hardcoded incorrecto mt8elsuqllk
+  var _allFornaxEmpIds = new Set(); // v5.49: IDs de empresa (tabla empresas) que son Fornax
   if(empId && _supaDb){
     try{
       var _rParPreload = await Promise.all([
         _supaDb.from('jd_empleados').select('empresa').eq('id', empId).maybeSingle(),
-        _supaDb.from('estudios').select('id').ilike('nombre', '%fornax%')
+        _supaDb.from('estudios').select('id').ilike('nombre', '%fornax%'),
+        _supaDb.from('empresas').select('id,nombre').ilike('nombre','%fornax%') // v5.49
       ]);
-      var _rEmpresa  = _rParPreload[0];
+      var _rEmpresa   = _rParPreload[0];
       var _rFornaxEst = _rParPreload[1];
+      var _rFornaxEmp = _rParPreload[2]; // v5.49
       if(!_rEmpresa.error && _rEmpresa.data){
         _execEmpresaAttr = (_rEmpresa.data.empresa||'').trim().toLowerCase();
         _execEsFornaxPorEmpresa = _execEmpresaAttr.indexOf('fornax') !== -1;
@@ -30090,6 +30288,10 @@ async function leOnEjecChange(){
       if(!_rFornaxEst.error && Array.isArray(_rFornaxEst.data)){
         _rFornaxEst.data.forEach(function(e){ if(e.id) _allFornaxEstIds.add(String(e.id)); });
         console.log('[LE fornaxEst v5.33] IDs Fornax en BD:', Array.from(_allFornaxEstIds).join(', '));
+      }
+      if(!_rFornaxEmp.error && Array.isArray(_rFornaxEmp.data)){ // v5.49
+        _rFornaxEmp.data.forEach(function(e){ if(e.id) _allFornaxEmpIds.add(String(e.id)); });
+        console.log('[LE fornaxEmp v5.49] IDs empresa Fornax en BD:', Array.from(_allFornaxEmpIds).join(', '));
       }
     }catch(_eEmp){ console.warn('[LE empresa] Query falló:', _eEmp.message||_eEmp); }
   }
@@ -30105,6 +30307,12 @@ async function leOnEjecChange(){
     var estudios = [], modelos = [], _usedFallback = false, _fallbackStep = '';
     /* Columnas reales de BD (sin inventar columnas inexistentes) */
     var _SEL_EST = 'id,nombre,ejecutivo_id,datos_extra';
+    /* FIX v5.52: ejecutivoComercial tampoco es columna top-level en Supabase modelos (vive en datos_extra).
+       AUDITORÍA 2026-10-10 confirmó con SELECT directo: "column modelos.ejecutivoComercial does not exist".
+       Incluirla causaba el mismo error que planMon/porcentaje en v5.51 → modelos=[] → execModelMap vacío → Sección B/C = 0%.
+       _leNormMod lee m.ejecutivoComercial || dx.ejecutivoComercial → el fallback dx funciona correctamente.
+       Columnas top-level válidas confirmadas: id, nombre, nombre_real, ejecutivo_id, estudio_id, empresa_id,
+         datos_extra, estado, tipo_vinculo.  planMon, porcentaje, ejecutivoComercial → solo en datos_extra. */
     var _SEL_MOD = 'id,nombre,nombre_real,ejecutivo_id,estudio_id,empresa_id,datos_extra,estado,tipo_vinculo';
     /* Normalizar estudio: aplana datos_extra a top-level para que el resto del código no cambie */
     function _leNormEst(e){
@@ -30122,7 +30330,8 @@ async function leOnEjecChange(){
     /* Normalizar modelo: aplana datos_extra a top-level para que _isModFornax y render no cambien */
     function _leNormMod(m){
       var dx={};try{dx=typeof m.datos_extra==='string'?JSON.parse(m.datos_extra):(m.datos_extra||{});}catch(err){}
-      // FIX v5.31: "0" como string es truthy en JS → usar parseFloat>0 para ignorar ceros historicos
+      // FIX v5.51: planMon y porcentaje NO son columnas top-level en Supabase; solo viven en datos_extra.
+      // Leer SIEMPRE desde datos_extra. m.planMon / m.porcentaje serán undefined (no están en _SEL_MOD).
       var _pln = parseFloat(dx.planMon) > 0 ? dx.planMon : null;
       var _pct = parseFloat(dx.porcentaje) > 0 ? dx.porcentaje : null;
       return Object.assign({},m,{
@@ -30131,9 +30340,10 @@ async function leOnEjecChange(){
         tipo:                 dx.tipo||m.tipo_vinculo||'',
         planMon:              _pln || _pct || '',
         porcentaje:           _pct || _pln || '',
-        ejecutivoComercial:   dx.ejecutivoComercial||'',
+        // v5.44: m.ejecutivoComercial es la columna TOP-LEVEL (Mig-v5); datos_extra como fallback
+        ejecutivoComercial:   m.ejecutivoComercial||dx.ejecutivoComercial||'',
         ejecutivoComercialId: dx.ejecutivoComercialId||m.ejecutivo_id||'',
-        ejecutivo:            dx.ejecutivo||dx.ejecutivoComercial||''
+        ejecutivo:            dx.ejecutivo||m.ejecutivoComercial||dx.ejecutivoComercial||''
       });
     }
 
@@ -30179,6 +30389,9 @@ async function leOnEjecChange(){
       var _ape_acc = _parts_acc[2] || _parts_acc[1] || _parts_acc[0];
       // Segundo nombre (índice 1) — a veces usado como nombre corto (ej: "Fabio" de "Héctor Fabio")
       var _nom2_acc = _parts_acc.length > 2 ? _parts_acc[1] : null;
+      // v5.45: primer nombre (índice 0) — cubre datos_extra Y columna top-level (igual que efac3)
+      var _nom0_acc = _parts_acc[0]; // primer nombre (ej: "Erika")
+      var _nom0_cond = (_nom0_acc && _nom0_acc !== _nom_acc && _nom0_acc !== _ape_acc && _nom0_acc.length > 3);
       var _rModAcc = await Promise.all([
         /* 1. datos_extra.ejecutivoComercial — nombre completo */
         _supaDb.from('modelos').select(_SEL_MOD).ilike('datos_extra->>ejecutivoComercial','%'+_nom_acc+'%'),
@@ -30190,6 +30403,20 @@ async function leOnEjecChange(){
         (_ape_acc && _ape_acc !== _nom_acc) ? _supaDb.from('modelos').select(_SEL_MOD).ilike('datos_extra->>ejecutivo','%'+_ape_acc+'%') : null,
         /* 5. datos_extra por segundo nombre (p. ej. "Fabio" → Héctor Fabio Angrino) */
         (_nom2_acc && _nom2_acc !== _nom_acc && _nom2_acc.length > 3) ? _supaDb.from('modelos').select(_SEL_MOD).ilike('datos_extra->>ejecutivoComercial','%'+_nom2_acc+'%') : null,
+        /* 6. v5.43 — datos_extra.ejecutivoComercialId = empId (asignación por ID numérico) */
+        empId ? _supaDb.from('modelos').select(_SEL_MOD).eq('datos_extra->>ejecutivoComercialId', String(empId)) : null,
+        /* ELIMINADOS v5.53: queries 7-9 usaban .ilike('ejecutivoComercial', ...) sobre columna top-level
+           inexistente en Supabase (confirmado auditoría 2026-10-10). Fallaban con error silencioso.
+           La cobertura real ya está en queries 1-6 (datos_extra->>ejecutivoComercial) y 9-12. */
+        /* 7. v5.45 — datos_extra.ejecutivoComercial — PRIMER NOMBRE (CASO CRÍTICO)
+               Angelo Vitale / William Gardner tienen datos_extra.ejecutivoComercial = "Erika"
+               Sin este query nunca son encontrados — igual lógica que efac3 usa _fnxEmpFirstName */
+        _nom0_cond ? _supaDb.from('modelos').select(_SEL_MOD).ilike('datos_extra->>ejecutivoComercial','%'+_nom0_acc+'%') : null,
+        /* 11. v5.45 — datos_extra.ejecutivo — PRIMER NOMBRE (cobertura campo alternativo) */
+        _nom0_cond ? _supaDb.from('modelos').select(_SEL_MOD).ilike('datos_extra->>ejecutivo','%'+_nom0_acc+'%') : null,
+        /* 12. v5.49 — TOP-LEVEL ejecutivo_id = empId (FK directa guardada por formulario Registro de Modelo)
+               Este es el campo que usa el dashboard al guardar la asignación del ejecutivo comercial. */
+        empId ? _supaDb.from('modelos').select(_SEL_MOD).eq('ejecutivo_id', String(empId)) : null,
       ]);
       var _modAccIds = new Set(modelos.map(function(m){ return String(m.id||''); }).filter(Boolean));
       var _modAccNuevos = 0;
@@ -30207,7 +30434,7 @@ async function leOnEjecChange(){
         }
       });
       if(_modAccNuevos > 0){ _usedFallback = true; if(!_fallbackStep) _fallbackStep = 'C(ejecutivoComercial-merge)'; }
-      console.log('[LE acum-mod] Merge "'+_nom_acc+'": +'+_modAccNuevos+' nuevos por ejecutivoComercial (top-level+datos_extra). Total modelos: '+modelos.length);
+      console.log('[LE acum-mod v5.54] Merge "'+_nom_acc+'" (empId='+empId+'): +'+_modAccNuevos+' nuevos (9 queries: nombre/apellido/primerNombre/ID en datos_extra + ejecutivo_id FK). Total modelos: '+modelos.length);
     }
 
     /* ── PASO C: datos_extra — estudios (fallback si no se encontraron por FK) ──
@@ -30326,22 +30553,42 @@ async function leOnEjecChange(){
       console.log('[LE filtroUniverso] Empresa del ejecutivo no definida — fallback por estudios. execEsGE='+_execEsGE);
     }
     if(_execEsGE && modelos.length > 0){
-      /* FIX v5.33: Filtro ampliado — detecta Fornax por empresa, nombreAgencia, estudio_id
-         estático (mt8elsuqllk) Y estudio_id dinámico (catálogo cargado al inicio desde BD).
-         Caso típico: modelo con datos_extra.empresa vacío pero estudio_id apuntando a Fornax Studios.
-         REGLA ABSOLUTA: ejecutivo GE → 0 modelos Fornax. */
-      // Agregar IDs de estudios Fornax encontrados en los estudios del ejecutivo
+      /* v5.48: filtroUniverso actualizado — EXCEPCIÓN Sección C.
+         Los modelos con ejecutivoComercial asignado EXPLÍCITAMENTE a este ejecutivo
+         se CONSERVAN aunque sean Fornax — irán a Sección C de la colilla.
+         Solo se eliminan modelos Fornax sin asignación directa (evitan contaminación cruzada). */
       _fxEst.forEach(function(e){ if(e.id) _allFornaxEstIds.add(String(e.id)); });
+      // Claves de coincidencia: nombre completo y primer nombre del ejecutivo
+      var _normNomEjec = (nombre||'').toLowerCase().trim();
+      var _primerNomEjec = _normNomEjec.split(/\s+/)[0];
       var _mbAntes = modelos.length;
+      var _fornaxConservados = 0;
       modelos = modelos.filter(function(m){
-        if(_isModFornax(m)) return false; // detectado por empresa / nombreAgencia / estudio_id estático
-        // v5.33: filtro adicional por estudio_id contra catálogo dinámico
-        if(m.estudio_id && _allFornaxEstIds.has(String(m.estudio_id))) return false;
-        return true;
+        var _esFornax = _isModFornax(m) || (m.estudio_id && _allFornaxEstIds.has(String(m.estudio_id))) || (m.empresa_id && _allFornaxEmpIds.has(String(m.empresa_id)));
+        if(!_esFornax) return true; // modelo GE → siempre conservar
+        // v5.49: modelo Fornax con asignación explícita → conservar para Sección C
+        // v5.54: _execAsigDX lee SOLO datos_extra.ejecutivoComercial (campo comercial oficial).
+        // Se elimina el fallback a datos_extra.ejecutivo para evitar falsos positivos:
+        // 'ejecutivo' puede contener el ejecutivo operativo/monitor sin implicar asignación comercial.
+        var _execAsig = (m.ejecutivoComercial||'').toLowerCase().trim();
+        var _execAsigDX = ''; try{ var _dxTmp=typeof m.datos_extra==='string'?JSON.parse(m.datos_extra):(m.datos_extra||{}); _execAsigDX=(_dxTmp.ejecutivoComercial||'').toLowerCase().trim(); }catch(e){}
+        var _tieneAsig = (_execAsig && (_execAsig.indexOf(_normNomEjec) !== -1 || _execAsig.indexOf(_primerNomEjec) !== -1))
+                      || (_execAsigDX && (_execAsigDX.indexOf(_normNomEjec) !== -1 || _execAsigDX.indexOf(_primerNomEjec) !== -1))
+                      || (m.ejecutivo_id && String(m.ejecutivo_id) === String(empId)); // v5.49: FK directa
+        if(_tieneAsig){ _fornaxConservados++; return true; }
+        return false; // modelo Fornax sin asignación directa → eliminar
       });
       var _eliminadosTotal = _mbAntes - modelos.length;
-      console.warn('[LE filtroUniverso v5.33] Ejecutivo GE "'+nombre+'": '+_eliminadosTotal+' modelos Fornax eliminados del universo. Restantes: '+modelos.length);
+      console.warn('[LE filtroUniverso v5.48] Ejecutivo GE "'+nombre+'": '+_eliminadosTotal+' modelos Fornax eliminados | '+_fornaxConservados+' Fornax conservados (asignación directa → Sección C). Restantes: '+modelos.length);
     }
+
+    /* ── v5.48: Tagear isFornax en cada modelo DESPUÉS de filtroUniverso ───────────
+       Garantiza que leCalcular pueda usar m.isFornax directamente (fiable: usa
+       _isModFornax + catálogo dinámico _allFornaxEstIds, no solo nombre). */
+    modelos = modelos.map(function(m){
+      var _fx = _isModFornax(m) || (m.estudio_id && _allFornaxEstIds.has(String(m.estudio_id))) || (m.empresa_id && _allFornaxEmpIds.has(String(m.empresa_id)));
+      return _fx ? Object.assign({}, m, { isFornax: true }) : m;
+    });
 
     /* ── FIX v5.33: Enriquecer % desde caché local si Supabase no lo tiene ──────────
        Causa raíz detectada: PCT-SAVE y CEM solo actualizan localStorage; si luego se
@@ -30375,8 +30622,11 @@ async function leOnEjecChange(){
       });
     }
 
+    /* ── v5.49: PASO F eliminado (diagnóstico temporal ya no necesario) ── */
+    var _primerNomDiag = (nombre||'').toLowerCase().trim().split(/\s+/)[0]; // aún usado en DISPLAY
+
     /* ── Guardar en global para leCalcular() ── */
-    window._leEjecData = { empId:empId, nombre:nombre, cedula:cedula, usuarioId:usuarioId, estudios:estudios, modelos:modelos, usedFallback:_usedFallback };
+    window._leEjecData = { empId:empId, nombre:nombre, cedula:cedula, usuarioId:usuarioId, estudios:estudios, modelos:modelos, usedFallback:_usedFallback, execEsGE:_execEsGE };
 
     /* ── DISPLAY: lista real de estudios y modelos debajo del nombre ── */
     var lines = [];
@@ -30399,9 +30649,9 @@ async function leOnEjecChange(){
     if(modelos.length){
       lines.push('<div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-top:8px;margin-bottom:4px">Modelos asignados</div>');
       modelos.forEach(function(m){
-        var _mEsFnx = _isModFornax(m);
+        var _mEsFnx = !!(m.isFornax); // v5.49: usar flag ya calculado
         var _mDot   = _mEsFnx ? '#a78bfa' : '#60a5fa';
-        var _mTag   = _mEsFnx ? 'Fornax'  : 'G.E.';
+        var _mTag   = _mEsFnx ? '💜 Fornax'  : 'G.E.';
         lines.push('<div style="display:flex;align-items:center;gap:5px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.04)">'
           +'<span style="width:6px;height:6px;border-radius:50%;background:'+_mDot+';flex-shrink:0;display:inline-block"></span>'
           +'<span style="font-size:10px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(m.nombre||m.nombreAgencia||'')+'">'+(m.nombre||m.nombreAgencia||'—')+'</span>'
@@ -30417,6 +30667,7 @@ async function leOnEjecChange(){
       lines.push('<div style="color:#f87171;font-size:10px;margin-top:4px">Sin asignaciones en BD</div>');
       console.warn('[LE] Sin asignaciones para "'+nombre+'" | empId='+empId+' | usuarioId='+usuarioId+'. Verificar ejecutivo_id en estudios/modelos.');
     }
+
     if(info) info.innerHTML = '<div style="font-size:10.5px;line-height:1.6">'+lines.join('')+'</div>';
     console.log('[LE] "'+nombre+'" → '+estudios.length+' estudios, '+modelos.length+' mod | fallback='+(_fallbackStep||'ninguno'));
   }catch(ex){
@@ -30631,19 +30882,21 @@ function _excalcNormalizePlanPct(raw){
   return n<1 ? n*100 : n;
 }
 
-/* Plan label + commission % for exec */
+/* Plan label + commission % for exec
+ * v5.57: usa _LE_COMM_PLAN configurable en lugar de tasas hardcodeadas */
 function _excalcPlanInfo(rawPlanMon, rawPorcentaje, isFornaxSat){
-  if(isFornaxSat) return {label:'Fornax Sat.', commPct:0.02};
+  var cp = window._LE_COMM_PLAN || {p4:0.005,p5:0.010,p6:0.0125,p7:0.015,p8:0.0175,fornaxSat:0.02};
+  if(isFornaxSat) return {label:'Fornax Sat.', commPct:cp.fornaxSat};
   var pct = _excalcNormalizePlanPct(rawPlanMon) || _excalcNormalizePlanPct(rawPorcentaje);
   if(pct===null) return {label:'Sin plan', commPct:null};
   var label, commPct;
-  if(pct>=10)     { label='Plan TOP'; commPct=0.0175; }
-  else if(pct>=8) { label='Plan '+Math.round(pct)+'%'; commPct=0.0175; }  /* 8% y 9% → 1.75% comisión */
-  else if(pct>=7) { label='Plan 7%';  commPct=0.015; }
-  else if(pct>=6) { label='Plan 6%';  commPct=0.0125; }
-  else if(pct>=5) { label='Plan 5%';  commPct=0.010; }
-  else if(pct>=4) { label='Básico 4%'; commPct=0.005; }
-  else if(pct>0)  { label='Básico '+pct.toFixed(1)+'%'; commPct=0.005; }
+  if(pct>=10)     { label='Plan TOP'; commPct=cp.p8; }
+  else if(pct>=8) { label='Plan '+Math.round(pct)+'%'; commPct=cp.p8; }  /* 8% y 9% → tasa Plan ≥ 8% */
+  else if(pct>=7) { label='Plan 7%';  commPct=cp.p7; }
+  else if(pct>=6) { label='Plan 6%';  commPct=cp.p6; }
+  else if(pct>=5) { label='Plan 5%';  commPct=cp.p5; }
+  else if(pct>=4) { label='Básico 4%'; commPct=cp.p4; }
+  else if(pct>0)  { label='Básico '+pct.toFixed(1)+'%'; commPct=cp.p4; }
   else            { label='Sin plan'; commPct=null; }
   return {label:label, commPct:commPct};
 }
@@ -32092,9 +32345,92 @@ function _excalcRenderPeriodDropdown(){}
  *  3. Cruza con jd_modelos (localStorage) → tipo + estudio, y jd_estudios → ejecutivo + planMon.
  *  4. Detecta Satélites Fornax (tipo='Satélite' + estudio contiene 'Fornax') → 2% fijo.
  *  5. Aplica tabla de comisiones por planPct para estudios regulares. */
-/** REQ-9 — Vista previa antes de calcular.
+/* ══ v5.46 — leSiguiente: flujo directo sin modal de confirmación ══════════════════════
+ *  Reemplaza el antiguo flujo "Vista Previa → Confirmar y Calcular".
+ *  1. Valida ejecutivo, TRM y al menos una plataforma con fechas.
+ *  2. Guarda bonificaciones/deducciones ya ingresadas (para sobrevivir la re-consulta).
+ *  3. Llama leCalcular() directamente — sin modal intermedio.
+ *  4. Restaura bonificaciones guardadas después del render.
+ * ════════════════════════════════════════════════════════════════════════════════════ */
+async function leSiguiente(){
+  var ejec = ((document.getElementById('le-ejec-sel')||{}).value||'').trim();
+  if(!ejec){ alert('Seleccione un ejecutivo comercial.'); return; }
+  if(!window._leEjecData){
+    alert('Espere a que carguen los datos del ejecutivo (unos segundos) y vuelva a intentarlo.');
+    return;
+  }
+  var trm = parseFloat((document.getElementById('le-trm')||{}).value||0)||0;
+  if(!trm){ alert('Ingrese la TRM (COP/USD).'); return; }
+  // Verificar al menos una plataforma marcada con sus fechas
+  var hasPlatSelected = false;
+  Object.keys(LE_PLAT_CFG||{}).forEach(function(pid){
+    var chk = document.getElementById('le-plat-chk-'+pid);
+    if(chk && chk.checked) hasPlatSelected = true;
+  });
+  if(!hasPlatSelected){ alert('Seleccione al menos una plataforma con sus fechas.'); return; }
+  // v5.46 — Capturar bonificaciones/deducciones existentes antes de re-consultar
+  var _savedAjustes = leCaptureAllAjustes();
+  // Scroll suave al contenedor de resultados
+  var cont = document.getElementById('le-container');
+  if(cont) cont.scrollIntoView({ behavior:'smooth', block:'start' });
+  // Ejecutar consulta y render directo
+  await leCalcular();
+  // Restaurar bonificaciones después del render
+  if(_savedAjustes && Object.keys(_savedAjustes).length > 0){
+    leRestoreAllAjustes(_savedAjustes);
+  }
+}
+
+/** v5.46 — Captura todas las filas de bonificaciones/deducciones actualmente en pantalla */
+function leCaptureAllAjustes(){
+  var saved = {};
+  var containers = document.querySelectorAll('[id$="-bonos-list"],[id$="-deds-list"]');
+  containers.forEach(function(cont){
+    var rows = cont.querySelectorAll('[data-ajuste-row]');
+    if(rows.length === 0) return;
+    var items = [];
+    rows.forEach(function(row){
+      var idx = row.getAttribute('data-ajuste-row');
+      var usdEl = document.getElementById(cont.id+'-usd-'+idx);
+      var copEl = document.getElementById(cont.id+'-cop-'+idx);
+      var cptEl = document.getElementById(cont.id+'-cpt-'+idx);
+      items.push({
+        usd:      ((usdEl||{}).value||''),
+        cop:      ((copEl||{}).value||''),
+        concepto: ((cptEl||{}).value||'').trim()
+      });
+    });
+    if(items.length) saved[cont.id] = items;
+  });
+  return saved;
+}
+
+/** v5.46 — Restaura bonificaciones/deducciones guardadas después de un re-render */
+function leRestoreAllAjustes(saved){
+  if(!saved) return;
+  Object.keys(saved).forEach(function(contId){
+    var cont = document.getElementById(contId);
+    if(!cont) return;
+    var tipo = (contId.indexOf('bonos') !== -1) ? 'bon' : 'ded';
+    var uid  = contId.replace(/-bonos-list$/,'').replace(/-deds-list$/,'');
+    var items = saved[contId];
+    items.forEach(function(item){
+      leAddAjuste(contId, uid, tipo);
+      var newIdx = cont.querySelectorAll('[data-ajuste-row]').length - 1;
+      var usdEl = document.getElementById(contId+'-usd-'+newIdx);
+      var copEl = document.getElementById(contId+'-cop-'+newIdx);
+      var cptEl = document.getElementById(contId+'-cpt-'+newIdx);
+      if(usdEl && item.usd)      usdEl.value = item.usd;
+      if(copEl && item.cop)      copEl.value = item.cop;
+      if(cptEl && item.concepto) cptEl.value = item.concepto;
+    });
+    if(items.length) leRecalcNetoV2(uid);
+  });
+}
+
+/** REQ-9 — Vista previa antes de calcular (conservada para compatibilidad).
  *  Valida campos, muestra modal con resumen completo y botón "Confirmar y Calcular". */
-function lePreview(){
+async function lePreview(){
   /* ── 1. Validaciones básicas ─────────────────────────────── */
   var ejec = ((document.getElementById('le-ejec-sel')||{}).value||'').trim();
   var trm  = parseFloat((document.getElementById('le-trm')||{}).value||0)||0;
@@ -32107,6 +32443,25 @@ function lePreview(){
   var ejecCed   = ejecData.cedula || '';
   var estudios  = ejecData.estudios  || [];
   var modelos   = ejecData.modelos   || [];
+
+  // v5.41 — cargar modelos de los estudios asignados para preview completo
+  var studioModelos = [];
+  if(estudios.length > 0 && window._supaDb){
+    var _pvStIds = estudios.map(function(e){ return String(e.id||''); }).filter(Boolean);
+    if(_pvStIds.length > 0){
+      try{
+        var _pvSmr = await window._supaDb.from('modelos').select('id,nombre,estudio_id,datos_extra').in('estudio_id', _pvStIds);
+        if(!_pvSmr.error && Array.isArray(_pvSmr.data)){
+          studioModelos = _pvSmr.data.map(function(m){
+            var _dx={}; try{ _dx=JSON.parse(m.datos_extra||'{}'); }catch(e){}
+            var _stNom=(estudios.find(function(e){ return String(e.id||'')===String(m.estudio_id||''); })||{}).nombreAgencia||'';
+            return { nombre:(m.nombre||'?'), estudio:_stNom, planMon:_dx.planMon||_dx.porcentaje||'' };
+          });
+          console.log('[lePreview] v5.41 — studioModelos:', studioModelos.length);
+        }
+      }catch(_pvE){ console.warn('[lePreview] studio modelos query failed:', _pvE.message); }
+    }
+  }
 
   /* ── 2. Plataformas seleccionadas ───────────────────────── */
   var platRows = [];
@@ -32122,19 +32477,25 @@ function lePreview(){
     platRows.push({ pid:pid, label:LE_PLAT_CFG[pid].label, color:LE_PLAT_CFG[pid].color,
                     desde:_fd(desde), hasta:_fd(hasta) });
   });
-  if(platRows.length === 0){ alert('Seleccione al menos una plataforma con sus fechas.'); return; }
-  if(errMsg.length){ alert(errMsg.join('\n')); return; }
+  // v5.54: mostrar primero errores específicos de fechas faltantes (errMsg más informativo que el genérico)
+  if(errMsg.length){ alert('Complete las fechas de la(s) plataforma(s) seleccionada(s):\n\n' + errMsg.join('\n')); return; }
+  if(platRows.length === 0){ alert('Seleccione al menos una plataforma y complete sus fechas Desde y Hasta.'); return; }
 
   /* ── 3. TRM status ──────────────────────────────────────── */
   var trmSt = (document.getElementById('le-trm-status')||{}).innerHTML||'';
   var trmFmt = '$'+trm.toLocaleString('es-CO', {minimumFractionDigits:0, maximumFractionDigits:2});
 
-  /* ── 4. Plan de comisiones del ejecutivo ────────────────── */
+  /* ── 4. Plan de comisiones del ejecutivo (v5.57: usa _LE_COMM_PLAN dinámico) */
+  var _cpM = window._LE_COMM_PLAN || {p4:0.005,p5:0.010,p6:0.0125,p7:0.015,p8:0.0175,fornaxSat:0.02};
+  var _cpFmt = function(r){ var p=(r||0)*100; return p.toLocaleString('es-CO',{minimumFractionDigits:0,maximumFractionDigits:2})+'%'; };
   var planRows = '';
   var planCfg = [
-    {lbl:'Plan ≤ 4%', pct:'0,5%'}, {lbl:'Plan 5%', pct:'1,0%'}, {lbl:'Plan 6%', pct:'1,25%'},
-    {lbl:'Plan 7%', pct:'1,5%'}, {lbl:'Plan ≥ 8%', pct:'1,75%', hi:true},
-    {lbl:'Satélite Fornax', pct:'2,0% fijo', sat:true}
+    {lbl:'Plan ≤ 4%',       pct:_cpFmt(_cpM.p4)},
+    {lbl:'Plan 5%',         pct:_cpFmt(_cpM.p5)},
+    {lbl:'Plan 6%',         pct:_cpFmt(_cpM.p6)},
+    {lbl:'Plan 7%',         pct:_cpFmt(_cpM.p7)},
+    {lbl:'Plan ≥ 8%',       pct:_cpFmt(_cpM.p8),          hi:true},
+    {lbl:'Satélite Fornax', pct:_cpFmt(_cpM.fornaxSat)+' fijo', sat:true}
   ];
   planCfg.forEach(function(pc){
     planRows += '<tr><td style="padding:4px 10px;color:#94a3b8">'+pc.lbl+'</td>';
@@ -32145,16 +32506,28 @@ function lePreview(){
   var studHTML = estudios.length
     ? estudios.map(function(e){ var n=e.nombreAgencia||e.nombre||''; var pm=parseFloat(e.planMon||e.porcentaje||0)||0; var pmD=(pm>0&&pm<1)?pm*100:pm; return '<li style="color:#a5f3fc">'+n+(pmD?' <span style="color:#64748b;font-size:11px">Plan '+pmD.toFixed(pmD%1===0?0:2)+'%</span>':'')+'</li>'; }).join('')
     : '<li style="color:#f87171">Sin estudios asignados en BD</li>';
-  var modHTML  = modelos.length
-    ? modelos.map(function(m){
-        var _mn = m.nombre||m.nombreAgencia||'?';
-        // FIX: mostrar porcentaje del modelo igual que se hace con los estudios
-        var _pm = parseFloat(m.planMon||m.porcentaje||0)||0;
-        var _pmD = (_pm>0&&_pm<1)?_pm*100:_pm;
-        var _pmTag = _pmD>0 ? ' <span style="color:#64748b;font-size:11px">Plan '+_pmD.toFixed(_pmD%1===0?0:2)+'%</span>' : '<span style="color:#f87171;font-size:11px"> Sin % asignado</span>';
-        return '<li style="color:#bbf7d0">'+_mn+_pmTag+'</li>';
-      }).join('')
-    : '<li style="color:#64748b">Sin modelos directos asignados</li>';
+  // v5.41 — combinar modelos directos + modelos en estudios
+  var _modHTMLParts = '';
+  if(modelos.length > 0){
+    _modHTMLParts += modelos.map(function(m){
+      var _mn = m.nombre||m.nombreAgencia||'?';
+      var _pm = parseFloat(m.planMon||m.porcentaje||0)||0;
+      var _pmD = (_pm>0&&_pm<1)?_pm*100:_pm;
+      var _pmTag = _pmD>0 ? ' <span style="color:#64748b;font-size:11px">Plan '+_pmD.toFixed(_pmD%1===0?0:2)+'%</span>' : '<span style="color:#f87171;font-size:11px"> Sin % asignado</span>';
+      return '<li style="color:#bbf7d0">'+_mn+_pmTag+'</li>';
+    }).join('');
+  }
+  if(studioModelos.length > 0){
+    _modHTMLParts += studioModelos.map(function(m){
+      var _pm = parseFloat(m.planMon||0)||0;
+      var _pmD = (_pm>0&&_pm<1)?_pm*100:_pm;
+      var _stTag = m.estudio ? ' <span style="color:#64748b;font-size:11px">· '+m.estudio+'</span>' : '';
+      var _pmTag = _pmD>0 ? ' <span style="color:#64748b;font-size:11px">Plan '+_pmD.toFixed(_pmD%1===0?0:2)+'%</span>' : '';
+      return '<li style="color:#c4b5fd">'+m.nombre+_stTag+_pmTag+'</li>';
+    }).join('');
+  }
+  var modHTML = _modHTMLParts || '<li style="color:#64748b">Sin modelos asignados</li>';
+  var _totalModsCount = modelos.length + studioModelos.length;
 
   /* ── 6. Plataformas HTML ────────────────────────────────── */
   var platHTML = platRows.map(function(pr){
@@ -32205,7 +32578,7 @@ function lePreview(){
           '<div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#64748b;text-transform:uppercase;margin-bottom:8px">Estudios Asignados ('+estudios.length+')</div>'+
           '<div style="background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;max-height:130px;overflow-y:auto">'+
             '<ul style="margin:0;padding-left:14px;font-size:12px;line-height:1.8">'+studHTML+'</ul></div>'+
-          '<div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#64748b;text-transform:uppercase;margin:14px 0 8px">Modelos Directos ('+modelos.length+')</div>'+
+          '<div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#64748b;text-transform:uppercase;margin:14px 0 8px">Modelos Asignados ('+_totalModsCount+')</div>'+
           '<div style="background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;max-height:100px;overflow-y:auto">'+
             '<ul style="margin:0;padding-left:14px;font-size:12px;line-height:1.8">'+modHTML+'</ul></div>'+
           '<div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#64748b;text-transform:uppercase;margin:14px 0 8px">Plan de Comisiones Vigente</div>'+
@@ -32233,6 +32606,7 @@ function lePreview(){
 }
 
 async function leCalcular(){
+  console.log('[leCalcular] v5.48c — inicio');
   var leCont_outer = document.getElementById('le-container');
   try {
   var trm    = parseFloat((document.getElementById('le-trm')||{}).value||0)||0;
@@ -32259,8 +32633,9 @@ async function leCalcular(){
       periodStr: _fmtDate(desde)+' - '+_fmtDate(hasta),
       dbName: pidToDbName[pid] });
   });
-  if(platRanges.length === 0){ alert('Seleccione al menos una plataforma con sus fechas.'); return; }
-  if(errMsg.length){ alert(errMsg.join('\n')); return; }
+  // v5.54: errores específicos de fechas antes que el mensaje genérico
+  if(errMsg.length){ alert('Complete las fechas de la(s) plataforma(s) seleccionada(s):\n\n' + errMsg.join('\n')); return; }
+  if(platRanges.length === 0){ alert('Seleccione al menos una plataforma y complete sus fechas Desde y Hasta.'); return; }
 
   if(!_supaDb){ alert('Sin conexión a base de datos.'); return; }
 
@@ -32333,19 +32708,28 @@ async function leCalcular(){
       dbId:        m.id,
       // FIX v5.31: incluir planMon del modelo para que el liquidador (Rama B) encuentre el %
       planMon:     parseFloat(m.planMon||m.porcentaje||0)||0,
-      // isFornax por estudio_id ya filtrado en leOnEjecChange, o por campo empresa
-      isFornax:    ((m.nombreAgencia||m.empresa||'')).toLowerCase().indexOf('fornax') !== -1
+      // v5.48: usar flag isFornax tageado en leOnEjecChange (incluye estudio_id + empresa + nombreAgencia)
+      isFornax:    !!(m.isFornax) || ((m.nombreAgencia||m.empresa||'')).toLowerCase().indexOf('fornax') !== -1
     };
     execModelNames.push(nombre);
   });
 
   // ── Flag de universo del ejecutivo ─────────────────────────────────────────
-  // _execIsGE = true → ejecutivo GE (J&D), nunca debe ver modelos/estudios Fornax
-  // Se determina por la presencia de estudios/modelos sin "fornax" en su nombre/empresa
-  var _execIsGE = rawEstudios.some(function(es){
-    return ((es.nombreAgencia||es.nombre||es.empresa||'')).toLowerCase().indexOf('fornax') === -1
-        && (es.nombreAgencia||es.nombre||'').trim().length > 0;
-  });
+  // v5.42: usar execEsGE de _leEjecData (fuente de verdad: jd_empleados.empresa consultada en leOnEjecChange)
+  // Evita re-derivar desde nombres de estudios, lo cual falla cuando el estudio tiene nombre
+  // sin "fornax" aunque su empresa sea Fornax Studios (ej: "Studios RWB" con empresa="Fornax Studios").
+  var _execIsGE;
+  if(window._leEjecData && typeof window._leEjecData.execEsGE !== 'undefined'){
+    _execIsGE = window._leEjecData.execEsGE;
+    console.log('[leCalcular] v5.42 — _execIsGE desde _leEjecData.execEsGE (jd_empleados.empresa):', _execIsGE);
+  } else {
+    // Fallback para compatibilidad con cache anterior
+    _execIsGE = rawEstudios.some(function(es){
+      return ((es.nombreAgencia||es.nombre||es.empresa||'')).toLowerCase().indexOf('fornax') === -1
+          && (es.nombreAgencia||es.nombre||'').trim().length > 0;
+    });
+    console.log('[leCalcular] v5.42 — _execIsGE fallback por nombres de estudios:', _execIsGE);
+  }
   console.log('[leCalcular] Ejecutivo:', ejecNombre, '(ID:', _ejecEmpId, ') | esGE:', _execIsGE);
   console.log('[leCalcular] Estudios en BD:', execStudioNames);
   console.log('[leCalcular] Modelos directos en BD:', execModelNames);
@@ -32353,38 +32737,58 @@ async function leCalcular(){
   // ── Rama E: cargar TODOS los modelos de los estudios asignados por estudio_id ──────────
   // Esto captura registros aunque estudio_nombre esté vacío o con nombre diferente en facturacion_diaria
   var studioModelNamesMap = {}; // norm(modelName) → {displayName, planMon, isFornax}
+  var studioModelsByStudioId = {}; // v5.39b — studioId → [modelDisplayName, ...] (TODOS los asignados)
   // ── Universo del ejecutivo: excluir estudios Fornax si el ejecutivo opera en GE ──
   // Regla: "cada ejecutivo ve su universo". Un ejecutivo GE nunca ve modelos de Fornax
   // aunque esos estudios aparezcan erróneamente en rawEstudios por migración de datos.
-  var _execHasGeStudios = rawEstudios.some(function(es){
-    var _nm = ((es.nombreAgencia||es.nombre||es.empresa||'')).toLowerCase();
-    return _nm.indexOf('fornax') === -1 && _nm.trim().length > 0;
-  });
-  var _estudiosParaRamaE = _execHasGeStudios
+  // v5.42: alinear _execHasGeStudios con la fuente de verdad corregida (_execIsGE de jd_empleados.empresa)
+  // Si el ejecutivo es Fornax → usar TODOS sus estudios en Rama E (sin filtrar por nombre)
+  // Si el ejecutivo es GE → excluir estudios donde nombre+empresa indiquen Fornax
+  var _execHasGeStudios = _execIsGE;
+  var _estudiosParaRamaE = _execIsGE
     ? rawEstudios.filter(function(es){
-        return ((es.nombreAgencia||es.nombre||es.empresa||'')).toLowerCase().indexOf('fornax') === -1;
+        // v5.42: concatenar nombre Y empresa para detectar Fornax (no usar || que para en el primer truthy)
+        var _eNom = (es.nombreAgencia||es.nombre||'').toLowerCase();
+        var _eEmp = (es.empresa||'').toLowerCase();
+        return (_eNom + ' ' + _eEmp).indexOf('fornax') === -1;
       })
-    : rawEstudios; // Ejecutivo 100% Fornax Studios: usar todos sus estudios
+    : rawEstudios; // Ejecutivo Fornax: usar TODOS sus estudios asignados sin filtrar
   if(_execHasGeStudios && _estudiosParaRamaE.length < rawEstudios.length){
-    console.log('[leCalcular] Rama E — ejecutivo GE: excluyendo', rawEstudios.length - _estudiosParaRamaE.length, 'estudios Fornax del universo del ejecutivo');
+    console.log('[leCalcular] Rama E v5.42 — ejecutivo GE: excluyendo', rawEstudios.length - _estudiosParaRamaE.length, 'estudios Fornax del universo');
+  } else if(!_execHasGeStudios){
+    console.log('[leCalcular] Rama E v5.42 — ejecutivo Fornax: usando todos sus', rawEstudios.length, 'estudios asignados');
   }
   var _execStudioIds = _estudiosParaRamaE.map(function(es){ return String(es.id||es.dbId||''); }).filter(Boolean);
   if(_execStudioIds.length > 0 && _supaDb){
     try{
-      var _smRes = await _supaDb.from('modelos').select('id,nombre,estudio_id').in('estudio_id', _execStudioIds);
+      // v5.42: incluir datos_extra para leer planMon/porcentaje a nivel de modelo
+      var _smRes = await _supaDb.from('modelos').select('id,nombre,estudio_id,datos_extra').in('estudio_id', _execStudioIds);
       if(!_smRes.error && Array.isArray(_smRes.data)){
         _smRes.data.forEach(function(m){
           var mNorm = _norm(m.nombre||'');
           if(!mNorm) return;
           var stId = String(m.estudio_id||'');
           var stInfo = rawEstudios.find(function(es){ return String(es.id||es.dbId||'') === stId; });
+          // v5.39b — registrar TODOS los modelos del estudio (no solo los que facturan)
+          if(stInfo){
+            if(!studioModelsByStudioId[stId]) studioModelsByStudioId[stId] = [];
+            var _mDisp39 = (m.nombre||'').trim();
+            if(_mDisp39 && studioModelsByStudioId[stId].indexOf(_mDisp39)===-1)
+              studioModelsByStudioId[stId].push(_mDisp39);
+          }
           if(stInfo && !studioModelNamesMap[mNorm]){
-            var _pmRaw2 = parseFloat(stInfo.planMon||stInfo.porcentaje||0)||0;
-            var _pmNorm2 = (_pmRaw2 > 0 && _pmRaw2 < 1) ? parseFloat((_pmRaw2*100).toFixed(4)) : _pmRaw2;
+            // v5.42: usar planMon del MODELO si disponible (fuente primaria), fallback al del estudio
+            var _mDx42 = {}; try{ _mDx42 = typeof m.datos_extra==='string'?JSON.parse(m.datos_extra):(m.datos_extra||{}); }catch(_e42){}
+            var _mPmRaw42 = parseFloat(_mDx42.planMon||_mDx42.porcentaje||0)||0;
+            var _stPmRaw2  = parseFloat(stInfo.planMon||stInfo.porcentaje||0)||0;
+            var _pmRaw2    = _mPmRaw42 > 0 ? _mPmRaw42 : _stPmRaw2; // modelo tiene prioridad
+            var _pmNorm2   = (_pmRaw2 > 0 && _pmRaw2 < 1) ? parseFloat((_pmRaw2*100).toFixed(4)) : _pmRaw2;
             studioModelNamesMap[mNorm] = {
               displayName: stInfo.nombreAgencia||stInfo.nombre||'',
               planMon: _pmNorm2,
-              isFornax: (stInfo.nombreAgencia||stInfo.nombre||stInfo.empresa||'').toLowerCase().indexOf('fornax') !== -1
+              // v5.42: detectar Fornax concatenando nombre Y empresa (no con || que para en primer truthy)
+              // Corrije el caso: studio.nombre='Studios RWB' + studio.empresa='Fornax Studios' → isFornax=true
+              isFornax: ((stInfo.nombreAgencia||stInfo.nombre||'') + ' ' + (stInfo.empresa||'')).toLowerCase().indexOf('fornax') !== -1
             };
           }
         });
@@ -32395,15 +32799,17 @@ async function leCalcular(){
     }catch(_eE){ console.warn('[leCalcular] Rama E falló:', _eE.message); }
   }
 
-  if(Object.keys(execStudioMap).length === 0 && Object.keys(execModelMap).length === 0){
-    clearInterval(_leCountInterval);
-    if(leCont) leCont.innerHTML = '<div style="text-align:center;padding:60px 24px;color:#64748B">'+
-      '<div style="font-size:38px">⚠️</div>'+
-      '<div style="font-size:15px;font-weight:600;margin-top:12px">Sin estudios ni modelos asignados a '+ejecNombre+'</div>'+
-      '<div style="font-size:13px;margin-top:6px;max-width:420px;margin-left:auto;margin-right:auto">'+
-      'Ve a <strong>Administración → Estudios</strong> y asigna a este ejecutivo por ID, '+
-      'o usa el panel "👥 Asignar Modelos a Ejecutivos" en esta misma página.</div></div>';
-    return;
+  // v5.46 — Sin universo preconfigurado: continuar en modo diagnóstico en lugar de parar.
+  // Rama C y el panel de diagnóstico al final mostrarán lo que hay en facturacion_diaria.
+  // Solo parar si también studioModelNamesMap está vacío (ni siquiera via estudio_id).
+  var _noUniverse = Object.keys(execStudioMap).length === 0 &&
+                    Object.keys(execModelMap).length === 0 &&
+                    Object.keys(studioModelNamesMap).length === 0;
+  if(_noUniverse){
+    console.warn('[leCalcular] v5.46 — Sin universo asignado a '+ejecNombre+
+      '. Rama C intentará capturar por nombre. Se mostrará panel de diagnóstico si no hay resultados.');
+    // Continuar — no return. Si tampoco Rama C captura nada, el panel de diagnóstico
+    // al final mostrará qué estudio_nombres hay en Supabase para facilitar la asignación.
   }
 
   // Índice inverso completo para buscar estudio de un modelo por nombre
@@ -32479,12 +32885,18 @@ async function leCalcular(){
   var rows = allRows;
   console.log('[leCalcular] TOTAL filas combinadas todas plataformas:', rows.length);
   if(!rows || rows.length === 0){
-    var platNames = platRanges.map(function(pr){ return pr.dbName; }).join(', ');
-    if(leCont) leCont.innerHTML = '<div style="text-align:center;padding:60px 24px;color:#64748B">'+
-      '<div style="font-size:38px;margin-bottom:12px">📭</div>'+
-      '<div style="font-size:15px;font-weight:600">Sin datos en los períodos seleccionados</div>'+
-      '<div style="font-size:13px;margin-top:6px">No hay registros en <strong>'+platNames+'</strong> para los rangos de fechas ingresados.</div></div>';
-    return;
+    // v5.40: si hay modelos o estudios asignados al ejecutivo, continuar para mostrar stubs
+    // Solo salir si realmente no hay NADA asignado ni billing
+    if(rawModelos.length === 0 && Object.keys(execStudioMap).length === 0){
+      clearInterval(_leCountInterval);
+      var platNames = platRanges.map(function(pr){ return pr.dbName; }).join(', ');
+      if(leCont) leCont.innerHTML = '<div style="text-align:center;padding:60px 24px;color:#64748B">'+
+        '<div style="font-size:38px;margin-bottom:12px">📭</div>'+
+        '<div style="font-size:15px;font-weight:600">Sin datos en los períodos seleccionados</div>'+
+        '<div style="font-size:13px;margin-top:6px">No hay registros en <strong>'+platNames+'</strong> para los rangos de fechas ingresados.</div></div>';
+      return;
+    }
+    console.log('[leCalcular] v5.40 — sin billing en período; continuando para mostrar modelos/estudios asignados | modelos:', rawModelos.length, '| estudios:', Object.keys(execStudioMap).length);
   }
 
   // periodStr por plataforma (para leRenderResultados)
@@ -32497,6 +32909,10 @@ async function leCalcular(){
 
   var ejecMap = {};
   var capturedSet = new Set(); // "modelNorm|pid" evitar doble conteo
+  // v5.40 — pre-inicializar ejecMap[ejecNombre] SIEMPRE para garantizar que el enrichment
+  // de modelos asignados se ejecute incluso cuando no hay filas de billing para este ejecutivo
+  ejecMap[ejecNombre] = { aliados:{} };
+  console.log('[leCalcular] v5.40 pre-init | ejecNombre:', ejecNombre, '| rawModelos:', rawModelos.length, '| rawEstudios:', rawEstudios.length);
 
   function _acumularEnMap(groupKey, planPct, commPct, isSateliteFornax, extraOpts, pid, cfg, row, val){
     /* REQ-2: usar nombre del ejecutivo (no el ID) como clave del mapa */
@@ -32508,6 +32924,10 @@ async function leCalcular(){
       ejecMap[_eKey].aliados[groupKey] = entry;
     }
     var estData = ejecMap[_eKey].aliados[groupKey];
+    // v5.39 — rastrear qué modelos facturan en este estudio/agrupación
+    if(!estData.modelosSet) estData.modelosSet = new Set();
+    var _mNomAcum = (row.modelo_nombre||'').trim();
+    if(_mNomAcum) estData.modelosSet.add(_mNomAcum);
     if(!estData.platData[pid]){
       estData.platData[pid] = { pid:pid, cfg:cfg, periodStr:row._periodStr||(platPeriodMap[pid]||''), tokens:0, brutoUSD:0, commUSD:0, uid:'' };
     }
@@ -32521,10 +32941,11 @@ async function leCalcular(){
       pEntry.brutoUSD = pEntry.tokens * cfg.rate;
       pEntry.commUSD  = pEntry.brutoUSD * estData.commPct;
     } else {
-      /* REQ-7: F4F — acumular créditos siempre; acumular USD real si existe en la fila */
+      /* REQ-7: F4F — acumular créditos siempre; acumular USD real si existe en la fila y es > 0 */
+      /* v5.50: valor_usd=0 en BD se trata igual que null (sin dato USD real disponible) */
       pEntry.tokens += val;
       var _f4fUsdVal = (row.valor_usd !== null && row.valor_usd !== undefined) ? parseFloat(row.valor_usd) : null;
-      if(_f4fUsdVal !== null && !isNaN(_f4fUsdVal)){
+      if(_f4fUsdVal !== null && !isNaN(_f4fUsdVal) && _f4fUsdVal > 0){
         if(typeof pEntry.realUSD !== 'number') pEntry.realUSD = 0;
         pEntry.realUSD   += _f4fUsdVal;
         pEntry.brutoUSD   = pEntry.realUSD;
@@ -32569,7 +32990,7 @@ async function leCalcular(){
         var mi=rawModelos.find(function(m){ return _norm(m.nombre||m.nombreAgencia||'')===modelNom; });
         return mi&&mi.tipo==='Satélite';
       })();
-      var commPctA = isFornaxA ? 0.02 : _getExecCommPct(planPctA);
+      var commPctA = isFornaxA ? (window._LE_COMM_PLAN||{fornaxSat:0.02}).fornaxSat : _getExecCommPct(planPctA); // v5.57
       var groupKeyA = studioInfo.displayName || studioRaw;
       capturedSet.add(captureKey);
       _acumularEnMap(groupKeyA, planPctA, commPctA, isFornaxA, null, pid, cfg, row, val);
@@ -32611,33 +33032,12 @@ async function leCalcular(){
       return;
     }
 
-    // ─ Rama B: modelo está en jd_modelos asignado directamente a este ejecutivo ──
-    // Coincidencia exacta — parcial genera falsos positivos entre ejecutivos/estudios
-    var modelInfo = execModelMap[modelNom] || null;
-    if(modelInfo){
-      // Regla "cada ejecutivo ve su universo": ejecutivo GE nunca captura modelos Fornax
-      if(modelInfo.isFornax && _execIsGE){
-        console.log('[leCalcular] Rama B — EXCLUIDO modelo Fornax de ejecutivo GE:', row.modelo_nombre);
-        return;
-      }
-      capturedSet.add(captureKey);
-      var dmStudioNorm = _norm(studioRaw || modelInfo.estudio || '');
-      var dmStudioInfo = estudioIdx[dmStudioNorm] || _findInMap(estudioIdx, dmStudioNorm);
-      // FIX v5.31c: fallback al planMon propio del modelo cuando el estudio no tiene %
-      var planPctB    = (dmStudioInfo&&dmStudioInfo.planMon) || modelInfo.planMon || 0;
-      if(planPctB > 0 && planPctB < 1) planPctB = parseFloat((planPctB * 100).toFixed(4));
-      var commPctB    = _getExecCommPct(planPctB);
-      var modelDisplayName = (row.modelo_nombre||'').trim() || modelInfo.displayName;
-      var studioDisplayDM  = (dmStudioInfo&&dmStudioInfo.displayName) || studioRaw || modelInfo.estudio || '—';
-      var groupKeyB = '__DM__' + modelDisplayName;
-      _acumularEnMap(groupKeyB, planPctB, commPctB, false, {
-        isDirectModel:true, modelDisplayName:modelDisplayName, studioDisplay:studioDisplayDM
-      }, pid, cfg, row, val);
-    }
-    // ─ Rama E: modelo pertenece a un estudio del ejecutivo (por estudio_id en BD) ──
-    // Captura aunque estudio_nombre esté vacío, null, o con variante de nombre distinta
-    // IMPORTANTE: coincidencia EXACTA por nombre de modelo — nunca parcial
-    // (el matching parcial genera falsos positivos con modelos de Fornax u otros ejecutivos)
+    // ─ Rama E (v5.48 — antes de Rama B): modelo pertenece a un estudio del ejecutivo ──
+    // CRÍTICO: Rama E debe ejecutarse ANTES de Rama B para que modelos de estudios
+    // se agrupen bajo su estudio y NUNCA aparezcan como modelos directamente asignados.
+    // Bug anterior: Rama B capturaba primero estos modelos como directos cuando
+    // el acumulador de leOnEjecChange los incluía en execModelMap por ejecutivoComercial.
+    // Coincidencia EXACTA por nombre — no parcial para evitar falsos positivos.
     if(!capturedSet.has(captureKey)){
       var _stMInfo = studioModelNamesMap[modelNom]; // exacto — NO usar _findInMap
       if(_stMInfo){
@@ -32649,15 +33049,133 @@ async function leCalcular(){
         capturedSet.add(captureKey);
         var planPctE = _stMInfo.planMon||0;
         if(planPctE > 0 && planPctE < 1) planPctE = parseFloat((planPctE*100).toFixed(4));
-        var commPctE = _getExecCommPct(planPctE);
+        // v5.57: verificar si este modelo en estudio Fornax es satélite → 2% fijo configurable
+        var _isFornaxSatE = _stMInfo.isFornax && (function(){
+          var _mi = rawModelos.find(function(m){ return _norm(m.nombre||m.nombreAgencia||'') === modelNom; });
+          return _mi && (_mi.tipo === 'Satélite' || _mi.tipo === 'Satelite');
+        })();
+        var commPctE = _isFornaxSatE
+          ? (window._LE_COMM_PLAN||{fornaxSat:0.02}).fornaxSat
+          : _getExecCommPct(planPctE);
         var groupKeyE = _stMInfo.displayName;
-        console.log('[leCalcular] Rama E captura:', row.modelo_nombre, '→', groupKeyE, '(estudio_nombre en BD: "'+studioRaw+'")');
-        _acumularEnMap(groupKeyE, planPctE, commPctE, _stMInfo.isFornax, null, pid, cfg, row, val);
+        console.log('[leCalcular] Rama E captura (v5.48):', row.modelo_nombre, '→ estudio:', groupKeyE, '(estudio_nombre en BD: "'+studioRaw+'") isFornaxSat:', _isFornaxSatE);
+        _acumularEnMap(groupKeyE, planPctE, commPctE, _isFornaxSatE, null, pid, cfg, row, val);
         return;
       }
     }
+
+    // ─ Rama B: modelo DIRECTAMENTE asignado al ejecutivo (sin estudio asignado) ──
+    // Solo captura modelos cuyo estudio no está en el universo del ejecutivo.
+    // Gracias al reordenamiento (Rama E antes), los modelos de estudios asignados
+    // ya fueron capturados arriba y no llegan aquí.
+    // Coincidencia exacta — parcial genera falsos positivos entre ejecutivos/estudios
+    var modelInfo = execModelMap[modelNom] || null;
+    if(modelInfo){
+      // v5.48c: NO excluir modelos Fornax aquí aunque _execIsGE sea true.
+      // filtroUniverso (leOnEjecChange) ya es el guardián: los únicos modelos Fornax
+      // que llegaron hasta execModelMap son los que tienen ejecutivoComercial asignado
+      // explícitamente a este ejecutivo → deben capturarse como Sección C de la colilla.
+      // Eliminar el return previo que bloqueaba Sección C para ejecutivos GE.
+      capturedSet.add(captureKey);
+      var dmStudioNorm = _norm(studioRaw || modelInfo.estudio || '');
+      var dmStudioInfo = estudioIdx[dmStudioNorm] || _findInMap(estudioIdx, dmStudioNorm);
+      // FIX v5.31c: fallback al planMon propio del modelo cuando el estudio no tiene %
+      var planPctB    = (dmStudioInfo&&dmStudioInfo.planMon) || modelInfo.planMon || 0;
+      if(planPctB > 0 && planPctB < 1) planPctB = parseFloat((planPctB * 100).toFixed(4));
+      // FIX v5.50d: si planPctB sigue en 0 (BD sin dato), usar el % de plan configurado en el panel
+      if(!planPctB){
+        var _defDmPct = parseFloat((document.getElementById('le-dm-plan-pct')||{}).value||'')||0;
+        if(_defDmPct > 0){ planPctB = _defDmPct; console.log('[leCalcular] Rama B — planPct desde campo UI para',modelDisplayName||'modelo',':',planPctB+'%'); }
+      }
+      // v5.59b: Fornax directo → SIEMPRE 2% fijo (fornaxSat)
+      // Regla del negocio: cuando el modelo pertenece a Fornax, el ejecutivo gana 2% sin importar plan%
+      var _isFornaxSatB = !!(modelInfo.isFornax);
+      var commPctB = _isFornaxSatB
+        ? (window._LE_COMM_PLAN||{fornaxSat:0.02}).fornaxSat
+        : _getExecCommPct(planPctB);
+      var modelDisplayName = (row.modelo_nombre||'').trim() || modelInfo.displayName;
+      var studioDisplayDM  = (dmStudioInfo&&dmStudioInfo.displayName) || studioRaw || modelInfo.estudio || '—';
+      var groupKeyB = '__DM__' + modelDisplayName;
+      _acumularEnMap(groupKeyB, planPctB, commPctB, _isFornaxSatB, {
+        isDirectModel:true, modelDisplayName:modelDisplayName, studioDisplay:studioDisplayDM,
+        isFornax: !!(modelInfo.isFornax)  // v5.48: propagar isFornax para sección C de colilla
+      }, pid, cfg, row, val);
+    }
     // Si no cae en ninguna rama → no pertenece a este ejecutivo
   });
+
+  // ── v5.39b: enriquecer resultado con TODOS los modelos asignados ─────────────
+  // 1) Agregar modelos asignados a cada estudio (aunque no facturaron en el período)
+  // 2) Agregar modelos directos asignados que no tienen billing en el período
+  if(ejecMap[ejecNombre]){
+    // v5.41 — crear entradas stub para estudios asignados que no tuvieron billing en el período
+    rawEstudios.forEach(function(es){
+      var _esNom = es.nombreAgencia||es.nombre||'';
+      if(!_esNom) return;
+      var _esIsFornax = (_esNom+' '+(es.empresa||'')).toLowerCase().indexOf('fornax') !== -1;
+      if(_esIsFornax && _execIsGE) return;
+      var _esKey = _esNom;
+      if(!ejecMap[ejecNombre].aliados[_esKey]){
+        var _pmRawEs = parseFloat(es.planMon||es.porcentaje||0)||0;
+        var _pmNormEs = (_pmRawEs>0&&_pmRawEs<1)?parseFloat((_pmRawEs*100).toFixed(4)):_pmRawEs;
+        ejecMap[ejecNombre].aliados[_esKey] = {
+          planPct:_pmNormEs, commPct:_getExecCommPct(_pmNormEs),
+          isSateliteFornax:false, isDirectModel:false,
+          platData:{}, sinFacturacion:true
+        };
+        console.log('[leCalcular] v5.41 — estudio asignado sin billing:', _esNom);
+      }
+    });
+    // Enriquecer estudios regulares con sus modelos asignados completos
+    Object.keys(ejecMap[ejecNombre].aliados).forEach(function(k){
+      var est = ejecMap[ejecNombre].aliados[k];
+      if(est.isDirectModel) return; // modelos directos no aplica
+      var matchSt = rawEstudios.find(function(es){
+        var nm = es.nombreAgencia||es.nombre||'';
+        return nm===k || _norm(nm)===_norm(k);
+      });
+      if(matchSt){
+        var stId = String(matchSt.id||matchSt.dbId||'');
+        var allMods = studioModelsByStudioId[stId]||[];
+        if(!est.modelosSet) est.modelosSet = new Set();
+        allMods.forEach(function(mn){ if(mn) est.modelosSet.add(mn); });
+      }
+    });
+    // Agregar modelos directos asignados que no tuvieron facturación
+    console.log('[leCalcular] v5.40 stubs — rawModelos:', rawModelos.map(function(m){ return m.nombre||''; }));
+    rawModelos.forEach(function(m){
+      var mName = (m.nombre||'').trim();
+      if(!mName) return;
+      // v5.48c: usar m.isFornax (tageado por filtroUniverso) en lugar del chequeo de string.
+      // filtroUniverso ya es el guardián: si m.isFornax===true, el modelo tiene asignación
+      // directa explícita con este ejecutivo → Sección C. NO bloquear stubs de Sección C.
+      var _isFornaxM = !!(m.isFornax);
+      // Solo bloquear Fornax que NO tienen asignación explícita (no deberían llegar aquí,
+      // pero por seguridad: si isFornax y el modelo no viene de la excepción, saltar).
+      // Con filtroUniverso como barrera esto nunca debería ser cierto; se deja por integridad.
+      if(_isFornaxM && _execIsGE && !(m.ejecutivoComercial||m.ejecutivo||'')){
+        return; // modelo Fornax sin asignación explícita — no debería estar aquí
+      }
+      var dmKey = '__DM__'+mName;
+      if(!ejecMap[ejecNombre].aliados[dmKey]){
+        var _pmRaw39b = parseFloat(m.planMon||m.porcentaje||0)||0;
+        var _pmNorm39b = (_pmRaw39b>0&&_pmRaw39b<1)?parseFloat((_pmRaw39b*100).toFixed(4)):_pmRaw39b;
+        // v5.59b: Fornax directo → SIEMPRE 2% fijo (fornaxSat), independiente del plan%
+        var _isDMFornaxSat = !!_isFornaxM;
+        var _dmCommPct = _isDMFornaxSat
+          ? (window._LE_COMM_PLAN||{fornaxSat:0.02}).fornaxSat
+          : _getExecCommPct(_pmNorm39b);
+        ejecMap[ejecNombre].aliados[dmKey] = {
+          planPct:_pmNorm39b, commPct:_dmCommPct,
+          isSateliteFornax:_isDMFornaxSat, isDirectModel:true,
+          isFornax: _isFornaxM,   // v5.48c: propagar isFornax para Sección C
+          modelDisplayName:mName, studioDisplay:m.empresa||'—',
+          platData:{}, sinFacturacion:true
+        };
+        console.log('[leCalcular] v5.59b stub —', mName, _isFornaxM ? '→ Sección C (Fornax directo 2%) plan='+_pmNorm39b+'%' : '→ GE directo plan='+_pmNorm39b+'%');
+      }
+    });
+  }
 
   if(!ejecMap[ejecNombre] || Object.keys(ejecMap[ejecNombre].aliados).length === 0){
     // ─ Panel de diagnóstico ─────────────────────────────────────────────────
@@ -32725,8 +33243,11 @@ function leRenderResultados(ejecMap, pidsSelArray, trm, platPeriodMap){
     var uid = 'le-'+ejec.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
     var totalAutoCommUSD = 0;
 
-    // Assign uid, separate regular vs satellite Fornax vs direct models, pre-sum commissions
-    var regularAliados = {}; var sateliteAliados = {}; var directosAliados = {};
+    // v5.48: 3 secciones claramente separadas
+    // Sección A: Estudios asignados (GE y Fornax studios)
+    // Sección B: Modelos GE directamente asesorados
+    // Sección C: Modelos Fornax directamente asesorados
+    var regularAliados = {}; var sateliteAliados = {}; var directosGE = {}; var directosFornax = {};
     Object.keys(eData.aliados).forEach(function(k){
       var est = eData.aliados[k];
       Object.keys(est.platData).forEach(function(pkey){
@@ -32734,15 +33255,50 @@ function leRenderResultados(ejecMap, pidsSelArray, trm, platPeriodMap){
         pd.uid = uid+'-'+k.replace(/[^a-zA-Z0-9]/g,'')+'_'+pd.pid;
         pd._commPct = est.commPct;
         pd._ejecUid = uid;
+        // v5.50: F4F sin USD en BD → aplicar tasa configurada (USD/crédito) si está disponible
+        if(pd.pid === 'F4F' && !pd.f4fHasRealUSD && (pd.tokens||0) > 0){
+          var _f4fRate = parseFloat((document.getElementById('le-f4f-rate')||{}).value||'')||0;
+          if(_f4fRate > 0){
+            pd.brutoUSD     = pd.tokens * _f4fRate;
+            pd.realUSD      = pd.brutoUSD;
+            pd.commUSD      = pd.brutoUSD * est.commPct;
+            pd.f4fHasRealUSD = true;   // activa rama "USD oficial" en display y colilla
+            pd.f4fFromRate  = true;    // marca que viene de tasa, no de BD
+          }
+        }
         if(!window._lePlatDataMap) window._lePlatDataMap = {};
         window._lePlatDataMap[pd.uid] = pd;
-        // STR y F4F con USD real se incluyen en totales automáticos (REQ-7)
+        // STR y F4F con USD real (o calculado por tasa) se incluyen en totales automáticos (REQ-7)
         if(pd.cfg.autoUSD || pd.pid === 'STR' || (pd.pid === 'F4F' && pd.f4fHasRealUSD)) totalAutoCommUSD += pd.commUSD||0;
       });
-      if(est.isDirectModel) directosAliados[k] = est;
+      if(est.isDirectModel){
+        // v5.58: modelos directamente asesorados de Fornax Studios → Sección C
+        //        modelos directamente asesorados del GE → Sección B
+        // La bandera isFornax se propaga desde leCalcular (execModelMap) en v5.48c.
+        if(est.isFornax){
+          directosFornax[k] = est;
+        } else {
+          directosGE[k] = est;
+        }
+      }
       else if(est.isSateliteFornax) sateliteAliados[k] = est;
       else regularAliados[k] = est;
     });
+    // v5.55: excluir estudios/modelos con facturación cero en todas las plataformas
+    // Solo se muestran entradas con al menos un token > 0 o un brutoUSD > 0
+    var _hasBillingEst = function(est){
+      if(est.sinFacturacion) return false; // stubs sin registro = sin facturación
+      return Object.keys(est.platData).some(function(pk){
+        var p = est.platData[pk];
+        return (p.tokens||0) > 0 || (p.brutoUSD||0) > 0;
+      });
+    };
+    Object.keys(regularAliados).forEach(function(k){ if(!_hasBillingEst(regularAliados[k])) delete regularAliados[k]; });
+    Object.keys(sateliteAliados).forEach(function(k){ if(!_hasBillingEst(sateliteAliados[k])) delete sateliteAliados[k]; });
+    Object.keys(directosGE).forEach(function(k){ if(!_hasBillingEst(directosGE[k])) delete directosGE[k]; });
+    Object.keys(directosFornax).forEach(function(k){ if(!_hasBillingEst(directosFornax[k])) delete directosFornax[k]; });
+    // Compatibilidad hacia atrás: directosAliados = unión GE + Fornax directos
+    var directosAliados = Object.assign({}, directosGE, directosFornax);
 
     var estNames = Object.keys(eData.aliados).join('|').toLowerCase();
     html += '<div id="'+uid+'-card" data-ejec="'+ejec.toLowerCase()+'" data-estudios="'+estNames+'" style="background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden">';
@@ -32753,7 +33309,14 @@ function leRenderResultados(ejecMap, pidsSelArray, trm, platPeriodMap){
     html +=     '<div style="width:36px;height:36px;border-radius:50%;background:rgba(52,211,153,.18);border:1px solid rgba(52,211,153,.4);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#34D399">'+(ejec.charAt(0).toUpperCase())+'</div>';
     html +=     '<div><div style="font-size:15px;font-weight:700;color:var(--text)">'+ejec+'</div>';
     var _headerPeriod = platsSel.length === 1 ? platsSel[0].periodStr : platsSel.map(function(p){ return p.platLabel.split(' ')[0]+': '+p.periodStr; }).join(' | ');
-    html +=       '<div style="font-size:12px;color:var(--muted);margin-top:2px">'+Object.keys(eData.aliados).length+' estudio(s) · '+pidsSelArray.length+' plataforma(s) · '+_headerPeriod+' — clic para expandir</div></div>';
+    var _hdrEstCount  = Object.keys(regularAliados).length + Object.keys(sateliteAliados).length;
+    var _hdrDirGECnt  = Object.keys(directosGE).length;
+    var _hdrDirFxCnt  = Object.keys(directosFornax).length;
+    var _hdrParts = [];
+    if(_hdrEstCount  > 0) _hdrParts.push(_hdrEstCount+' estudio(s)');
+    if(_hdrDirGECnt  > 0) _hdrParts.push(_hdrDirGECnt+' modelo(s) GE directo(s)');
+    if(_hdrDirFxCnt  > 0) _hdrParts.push(_hdrDirFxCnt+' modelo(s) Fornax');
+    html +=       '<div style="font-size:12px;color:var(--muted);margin-top:2px">'+_hdrParts.join(' · ')+' · '+pidsSelArray.length+' plataforma(s) · '+_headerPeriod+' — clic para expandir</div></div>';
     html +=   '</div>';
     html +=   '<div style="display:flex;gap:20px;align-items:center">';
     html +=     '<div style="text-align:right"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Comisión USD</div><div id="'+uid+'-hdr-comm-usd" style="font-size:18px;font-weight:800;color:#34D399">'+_fmtUSD(totalAutoCommUSD)+'</div></div>';
@@ -32766,73 +33329,117 @@ function leRenderResultados(ejecMap, pidsSelArray, trm, platPeriodMap){
     html += '<div id="'+uid+'-body" style="display:none">';
 
     // Helper: render one studio's platform table
+    // v5.60: Diseño "Clásico Refinado" — card con border-left accent, header con totales, tabla limpia, chips al pie
     var _studioTable = function(k, est, isFornax, isDirect){
-      var accentColor = isFornax ? '#f97316' : '#34D399';
-      var commLabel   = isFornax ? '2.0% fijo (Satélite Fornax)' : ((est.commPct*100).toFixed(2)+'%');
-      var s = '<div style="border-bottom:1px solid var(--border);padding:12px 20px">';
-      var icon = isDirect ? '👤 ' : (isFornax ? '🛰️ ' : '📂 ');
+      var _isSat = isFornax || !!(est.isSateliteFornax && est.isDirectModel);
+      var _planPctDisp = est.planPct||0;
+      var _planColor = _isSat ? '#f97316' : (_planPctDisp>=8?'#34D399':_planPctDisp>=5?'#60a5fa':'#f59e0b');
+      var accentColor = _isSat ? '#f97316' : '#34D399';
+      var commLabel = (est.commPct*100).toFixed(2).replace('.',',')+'%'+(_isSat?' fijo':'');
+      var icon = isDirect ? '👤 ' : (_isSat ? '🛰️ ' : '📁 ');
       var displayK = isDirect ? (est.modelDisplayName||k.replace('__DM__','')) : k;
-      var studioTag = isDirect && est.studioDisplay && est.studioDisplay!=='—' ? ' <span style="color:#818cf8;font-weight:400;font-size:11px">· '+est.studioDisplay+'</span>' : '';
-      s += '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">'+icon+displayK+studioTag;
-      s += ' <span style="color:var(--muted);font-weight:400">Plan: '+est.planPct+'% → Ejec: <span style="color:'+accentColor+'">'+commLabel+'</span></span></div>';
-      var hasBilling = Object.keys(est.platData).some(function(pk){ var p=est.platData[pk]; return p.tokens>0||p.brutoUSD>0; });
-      if(!hasBilling) s += '<div style="font-size:12px;color:var(--muted);padding:4px 0">⚠️ Sin valores en el período para este estudio.</div>';
-      s += '<div style="overflow-x:auto;margin-top:6px"><table style="width:100%;border-collapse:collapse;font-size:12px">';
-      s += '<thead><tr style="background:rgba(0,0,0,.12)">';
-      s += '<th style="text-align:left;padding:6px 10px;color:var(--muted);font-weight:600">Plataforma</th>';
-      s += '<th style="text-align:right;padding:6px 10px;color:var(--muted);font-weight:600">Tokens / USD</th>';
-      s += '<th style="text-align:right;padding:6px 10px;color:var(--muted);font-weight:600">Bruto USD</th>';
-      s += '<th style="text-align:right;padding:6px 10px;color:var(--muted);font-weight:600">Comisión USD</th>';
-      s += '</tr></thead><tbody>';
-      Object.keys(est.platData).sort().forEach(function(pk){
-        var pd = est.platData[pk];
-        s += '<tr style="border-bottom:1px solid rgba(255,255,255,.03)">';
-        s += '<td style="padding:6px 10px;font-weight:600"><span style="color:'+pd.cfg.color+'">●</span> '+pd.cfg.label+'</td>';
-        if(pd.pid === 'F4F'){
-          /* REQ-7: Mostrar créditos reales. Si hay valor_usd real en BD → mostrar y calcular.
-                    Si no → campo manual. Nunca inventar una tasa fija. */
-          var _tokStr = pd.tokens > 0 ? Math.round(pd.tokens).toLocaleString('es-CO')+' créd.' : '—';
-          s += '<td id="'+pd.uid+'-tok-cell" ondblclick="leEditTokCell(\''+pd.uid+'\')" title="Doble clic para editar créditos" style="padding:6px 10px;text-align:right;color:var(--muted);font-size:11px;cursor:pointer">'+_tokStr+'</td>';
-          if(pd.f4fHasRealUSD){
-            /* USD oficial desde facturacion_diaria.valor_usd */
-            s += '<td id="'+pd.uid+'-brusd-cell" style="padding:6px 10px;text-align:right"><span style="color:#34D399">'+_fmtUSD(pd.brutoUSD)+'</span><div style="font-size:9px;color:var(--muted)">USD oficial BD</div></td>';
-            s += '<td id="'+pd.uid+'-comm-cell" style="padding:6px 10px;text-align:right;font-weight:700;color:'+accentColor+'">'+_fmtUSD(pd.commUSD)+'</td>';
+      var studioTag = isDirect && est.studioDisplay && est.studioDisplay!=='—'
+        ? '<span style="font-size:11px;color:#94a3b8;font-weight:400"> · '+est.studioDisplay+'</span>' : '';
+
+      // Totales para header
+      var _totBruto = 0, _totComm = 0;
+      Object.keys(est.platData).forEach(function(pk){ var pd=est.platData[pk]; _totBruto+=pd.brutoUSD||0; _totComm+=pd.commUSD||0; });
+
+      // Card wrapper con border-left en color del plan
+      var s = '<div style="background:#131722;border:1px solid #252a3a;border-left:3px solid '+_planColor+';border-radius:10px;margin:6px 12px;overflow:hidden">';
+
+      // Card header
+      s += '<div style="padding:9px 13px 8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid #252a3a">';
+      s += '<span style="font-size:12.5px;font-weight:700;color:#e2e8f0">'+icon+displayK+studioTag+'</span>';
+      s += '<span style="font-size:10px;padding:2px 8px;background:'+_planColor+'18;color:'+_planColor+';border-radius:20px;font-weight:600;white-space:nowrap">Plan '+_planPctDisp+'% → <strong>'+commLabel+'</strong>'+(_isSat?' (Satélite)':'')+'</span>';
+      if(est.sinFacturacion){
+        s += '<span style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);border-radius:4px;padding:1px 6px;font-size:10px;color:#f59e0b;font-weight:700">Sin facturación</span>';
+      } else {
+        s += '<div style="margin-left:auto;display:flex;gap:16px;flex-shrink:0">';
+        s += '<span style="font-size:10px;color:#64748b">BRUTO <span style="color:#94a3b8;font-size:11px">'+_fmtUSD(_totBruto)+'</span></span>';
+        s += '<span style="font-size:10px;color:#64748b">COMISIÓN <span style="color:'+accentColor+';font-size:12px;font-weight:700">'+_fmtUSD(_totComm)+'</span></span>';
+        s += '</div>';
+      }
+      s += '</div>';
+
+      // Body
+      if(est.sinFacturacion){
+        s += '<div style="padding:10px 13px;font-size:11px;color:#64748b">Modelo asignado — sin registros de facturación en el período seleccionado.</div>';
+      } else {
+        var hasBilling = Object.keys(est.platData).some(function(pk){ var p=est.platData[pk]; return p.tokens>0||p.brutoUSD>0; });
+        if(!hasBilling) s += '<div style="padding:10px 13px;font-size:11px;color:#64748b">⚠️ Sin valores en el período para este estudio.</div>';
+        s += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:360px">';
+        s += '<thead><tr style="border-bottom:1px solid #252a3a">';
+        s += '<th style="padding:5px 0 5px 13px;font-size:8.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#64748b;text-align:left">Plataforma</th>';
+        s += '<th style="padding:5px 10px;font-size:8.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#64748b;text-align:right">Tokens / USD</th>';
+        s += '<th style="padding:5px 10px;font-size:8.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#64748b;text-align:right">Bruto USD</th>';
+        s += '<th style="padding:5px 13px 5px 10px;font-size:8.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:'+accentColor+';text-align:right">Comisión</th>';
+        s += '</tr></thead><tbody>';
+        Object.keys(est.platData).sort().forEach(function(pk){
+          var pd = est.platData[pk];
+          s += '<tr style="border-bottom:1px solid #1a1f2e">';
+          s += '<td style="padding:7px 0 7px 13px;font-size:11.5px;color:#94a3b8"><div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+pd.cfg.color+';flex-shrink:0"></span>'+pd.cfg.label+'</div></td>';
+          if(pd.pid === 'F4F'){
+            /* REQ-7: Mostrar créditos reales. Si hay valor_usd real en BD → mostrar y calcular. Si no → campo manual. */
+            var _tokStr = pd.tokens > 0 ? Math.round(pd.tokens).toLocaleString('es-CO')+' créd.' : '—';
+            s += '<td id="'+pd.uid+'-tok-cell" ondblclick="leEditTokCell(\''+pd.uid+'\')" title="Doble clic para editar créditos" style="padding:7px 10px;text-align:right;color:#64748b;font-size:11px;cursor:pointer">'+_tokStr+'</td>';
+            if(pd.f4fHasRealUSD){
+              var _f4fLabel = pd.f4fFromRate ? 'USD × tasa configurada' : 'USD oficial BD';
+              s += '<td id="'+pd.uid+'-brusd-cell" style="padding:7px 10px;text-align:right"><span style="color:#e2e8f0;font-size:11px">'+_fmtUSD(pd.brutoUSD)+'</span><div style="font-size:9px;color:#64748b">'+_f4fLabel+'</div></td>';
+              s += '<td id="'+pd.uid+'-comm-cell" style="padding:7px 13px 7px 10px;text-align:right;font-weight:700;color:'+accentColor+';font-size:11.5px">'+_fmtUSD(pd.commUSD)+'</td>';
+            } else {
+              s += '<td style="padding:4px 6px 4px 10px;text-align:right"><input type="number" id="'+pd.uid+'-brusd" placeholder="No disponible" step="0.01" oninput="leRecalcNetoV2(\''+uid+'\')" style="width:120px;padding:4px 8px;background:rgba(255,255,255,.05);border:1px solid rgba('+(isFornax?'249,115,22':'52,211,153')+',.4);border-radius:5px;color:#e2e8f0;font-size:12px;text-align:right"><div style="font-size:9px;color:#f87171">⚠ Sin USD en BD — ingreso manual</div></td>';
+              s += '<td id="'+pd.uid+'-comm" style="padding:7px 13px 7px 10px;text-align:right;font-weight:700;color:'+accentColor+';font-size:11.5px">$0.00</td>';
+            }
+          } else if(pd.pid === 'STR'){
+            s += '<td id="'+pd.uid+'-tok-cell" ondblclick="leEditTokCell(\''+pd.uid+'\')" title="Doble clic para editar USD" style="padding:7px 10px;text-align:right;color:#e2e8f0;font-size:11px;cursor:pointer">'+_fmtUSD(pd.brutoUSD)+'</td>';
+            s += '<td id="'+pd.uid+'-brusd-cell" style="padding:7px 10px;text-align:right;color:#e2e8f0;font-size:11px">'+_fmtUSD(pd.brutoUSD)+'</td>';
+            s += '<td id="'+pd.uid+'-comm-cell" style="padding:7px 13px 7px 10px;text-align:right;font-weight:700;color:'+accentColor+';font-size:11.5px">'+_fmtUSD(pd.commUSD)+'</td>';
           } else {
-            /* Sin dato USD en BD → ingreso manual (auditable) */
-            s += '<td style="padding:4px 6px;text-align:right"><input type="number" id="'+pd.uid+'-brusd" placeholder="No disponible" step="0.01" oninput="leRecalcNetoV2(\''+uid+'\')" style="width:120px;padding:4px 8px;background:var(--input-bg,rgba(255,255,255,.05));border:1px solid rgba('+(isFornax?'249,115,22':'52,211,153')+',.4);border-radius:5px;color:var(--text);font-size:12px;text-align:right"><div style="font-size:9px;color:#f87171">⚠ Sin USD en BD — ingreso manual</div></td>';
-            s += '<td id="'+pd.uid+'-comm" style="padding:6px 10px;text-align:right;font-weight:700;color:'+accentColor+'">$0.00</td>';
+            s += '<td id="'+pd.uid+'-tok-cell" ondblclick="leEditTokCell(\''+pd.uid+'\')" title="Doble clic para editar tokens" style="padding:7px 10px;text-align:right;color:#64748b;font-size:11px;cursor:pointer">'+Math.round(pd.tokens).toLocaleString('es-CO')+' tkn</td>';
+            s += '<td id="'+pd.uid+'-brusd-cell" style="padding:7px 10px;text-align:right;color:#e2e8f0;font-size:11px">'+_fmtUSD(pd.brutoUSD)+'</td>';
+            s += '<td id="'+pd.uid+'-comm-cell" style="padding:7px 13px 7px 10px;text-align:right;font-weight:700;color:'+accentColor+';font-size:11.5px">'+_fmtUSD(pd.commUSD)+'</td>';
           }
-        } else if(pd.pid === 'STR'){
-          s += '<td id="'+pd.uid+'-tok-cell" ondblclick="leEditTokCell(\''+pd.uid+'\')" title="Doble clic para editar USD" style="padding:6px 10px;text-align:right;color:var(--text);cursor:pointer">'+_fmtUSD(pd.brutoUSD)+'</td>';
-          s += '<td id="'+pd.uid+'-brusd-cell" style="padding:6px 10px;text-align:right">'+_fmtUSD(pd.brutoUSD)+'</td>';
-          s += '<td id="'+pd.uid+'-comm-cell" style="padding:6px 10px;text-align:right;font-weight:700;color:'+accentColor+'">'+_fmtUSD(pd.commUSD)+'</td>';
-        } else {
-          s += '<td id="'+pd.uid+'-tok-cell" ondblclick="leEditTokCell(\''+pd.uid+'\')" title="Doble clic para editar tokens" style="padding:6px 10px;text-align:right;color:var(--text);cursor:pointer">'+Math.round(pd.tokens).toLocaleString('es-CO')+' tkn</td>';
-          s += '<td id="'+pd.uid+'-brusd-cell" style="padding:6px 10px;text-align:right">'+_fmtUSD(pd.brutoUSD)+'</td>';
-          s += '<td id="'+pd.uid+'-comm-cell" style="padding:6px 10px;text-align:right;font-weight:700;color:'+accentColor+'">'+_fmtUSD(pd.commUSD)+'</td>';
-        }
-        s += '</tr>';
-      });
-      s += '</tbody></table></div></div>';
+          s += '</tr>';
+        });
+        s += '</tbody></table></div>';
+      } // cierre del else (sinFacturacion)
+
+      // v5.39b — mostrar TODOS los modelos asignados al estudio (billing + asignados sin billing)
+      if(!isDirect && est.modelosSet && est.modelosSet.size > 0){
+        s += '<div style="padding:7px 13px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;border-top:1px solid #1a1f2e">';
+        s += '<span style="font-size:8.5px;color:#64748b;letter-spacing:.06em;text-transform:uppercase;margin-right:4px">Modelos:</span>';
+        est.modelosSet.forEach(function(mn){
+          s += '<span style="font-size:9.5px;background:#21273a;color:#64748b;padding:2px 8px;border-radius:10px;border:1px solid #2f3650;white-space:nowrap">'+mn+'</span>';
+        });
+        s += '</div>';
+      }
+      s += '</div>';
       return s;
     };
 
-    // Regular studios
+    // ── SECCIÓN A: Estudios asignados (GE regulares) ──
     if(Object.keys(regularAliados).length > 0){
-      html += '<div style="padding:8px 20px 2px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)">Estudios Regulares</div>';
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:14px 16px 6px"><span style="width:3px;height:14px;border-radius:2px;background:#f59e0b;flex-shrink:0"></span><span style="font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#f59e0b">Sección A — Estudios Asignados</span></div>';
       Object.keys(regularAliados).sort().forEach(function(k){ html += _studioTable(k, regularAliados[k], false, false); });
     }
 
-    // Satellite Fornax studios
+    // ── Satélites Fornax (dentro de Sección A) ──
     if(Object.keys(sateliteAliados).length > 0){
-      html += '<div style="padding:8px 20px 2px;font-size:11px;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:.05em;background:rgba(249,115,22,.05);border-bottom:1px solid rgba(249,115,22,.2);border-top:1px solid rgba(249,115,22,.2)">🛰️ Satélites Fornax — Comisión 2% Fijo</div>';
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:10px 16px 4px;margin-top:4px"><span style="width:3px;height:12px;border-radius:2px;background:#f97316;flex-shrink:0"></span><span style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#f97316">Satélites Fornax — Comisión 2% Fijo</span></div>';
       Object.keys(sateliteAliados).sort().forEach(function(k){ html += _studioTable(k, sateliteAliados[k], true, false); });
     }
 
-    // Direct models section
-    if(Object.keys(directosAliados).length > 0){
-      html += '<div style="padding:8px 20px 2px;font-size:11px;font-weight:700;color:#818cf8;text-transform:uppercase;letter-spacing:.05em;background:rgba(129,140,248,.05);border-bottom:1px solid rgba(129,140,248,.2);border-top:1px solid rgba(129,140,248,.2)">👤 Modelos Directamente Asesorados</div>';
-      Object.keys(directosAliados).sort().forEach(function(k){ html += _studioTable(k, directosAliados[k], false, true); });
+    // ── SECCIÓN B: Modelos GE directamente asesorados ──
+    if(Object.keys(directosGE).length > 0){
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:14px 16px 6px;margin-top:8px"><span style="width:3px;height:14px;border-radius:2px;background:#a78bfa;flex-shrink:0"></span><span style="font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#a78bfa">Sección B — Modelos GE Directamente Asesorados</span></div>';
+      Object.keys(directosGE).sort().forEach(function(k){ html += _studioTable(k, directosGE[k], false, true); });
+    }
+
+    // ── SECCIÓN C: Modelos Fornax directamente asesorados ──
+    if(Object.keys(directosFornax).length > 0){
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:14px 16px 6px;margin-top:8px"><span style="width:3px;height:14px;border-radius:2px;background:#c084fc;flex-shrink:0"></span><span style="font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#c084fc">Sección C — Modelos Fornax Directamente Asesorados</span></div>';
+      Object.keys(directosFornax).sort().forEach(function(k){ html += _studioTable(k, directosFornax[k], false, true); });
     }
 
     // Payment panel
@@ -32878,15 +33485,18 @@ function leRenderResultados(ejecMap, pidsSelArray, trm, platPeriodMap){
     var metaObj = { ejec:ejec, platsSel:platsSel, trm:trm, ejecAliados:{} };
     Object.keys(eData.aliados).forEach(function(k){
       var est = eData.aliados[k];
-      metaObj.ejecAliados[k] = { planPct:est.planPct, commPct:est.commPct, isSateliteFornax:est.isSateliteFornax||false, platData:{} };
+      metaObj.ejecAliados[k] = { planPct:est.planPct, commPct:est.commPct, isSateliteFornax:est.isSateliteFornax||false,
+        isDirectModel:est.isDirectModel||false, isFornax:est.isFornax||false, platData:{} };
       Object.keys(est.platData).forEach(function(pkey){
         var pd = est.platData[pkey];
-        // STR stored as USD → treat as autoUSD in meta so leGuardar uses cached commUSD
-        var isAutoInMeta = pd.cfg.autoUSD || pd.pid === 'STR';
+        // STR y F4F con USD real → autoUSD en meta para que colilla use brutoUSD/commUSD ya calculados
+        // v5.50: F4F con f4fHasRealUSD=true se serializa como autoUSD para que la colilla no busque el input manual
+        var isAutoInMeta = pd.cfg.autoUSD || pd.pid === 'STR' || (pd.pid === 'F4F' && !!pd.f4fHasRealUSD);
         metaObj.ejecAliados[k].platData[pkey] = {
           pid:pd.pid, periodStr:pd.periodStr, tokens:pd.tokens, brutoUSD:pd.brutoUSD,
           commUSD:pd.commUSD, autoUSD:isAutoInMeta, unit:pd.cfg.unit,
-          platLabel:pd.cfg.label, manualNote:pd.cfg.manualNote||'', uid:pd.uid
+          platLabel:pd.cfg.label, manualNote:pd.cfg.manualNote||'', uid:pd.uid,
+          f4fHasRealUSD:!!pd.f4fHasRealUSD // v5.50: serializar flag para colilla
         };
       });
     });
@@ -33132,9 +33742,9 @@ function leAddAjuste(containerId, uid, tipo){
   var label = isGreen ? 'Bonificación '+(idx+1) : 'Deducción '+(idx+1);
   var row = document.createElement('div');
   row.setAttribute('data-ajuste-row', idx);
-  row.style.cssText = 'background:rgba('+cr+',.04);border:1px solid rgba('+cr+',.18);border-radius:8px;padding:10px 12px;margin-bottom:6px';
-  var iNum = 'padding:7px 10px;background:var(--input-bg,rgba(255,255,255,.05));border:1px solid rgba('+cr+',.35);border-radius:6px;color:var(--text);font-size:12px;width:100%';
-  var iTxt = 'padding:7px 10px;background:var(--input-bg,rgba(255,255,255,.05));border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;width:100%';
+  row.style.cssText = 'background:rgba(0,0,0,.22);border:1px solid rgba('+cr+',.28);border-radius:8px;padding:10px 12px;margin-bottom:6px';
+  var iNum = 'padding:7px 10px;background:rgba(0,0,0,.25);border:1px solid rgba('+cr+',.35);border-radius:6px;color:var(--text);font-size:12px;width:100%';
+  var iTxt = 'padding:7px 10px;background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--text);font-size:12px;width:100%';
   row.innerHTML =
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">'+
     '<div style="font-size:10px;color:var(--muted);font-weight:700">'+label+'</div>'+
@@ -33212,10 +33822,8 @@ async function leGuardar(uid, ejec){
   var netoUSD = totalCommUSD + totalBonosUSD - totalDedsUSD;
   var netoCOP = (trm ? netoUSD*trm : 0) + totalBonosCOP - totalDedsCOP;
   var periodoLabel = data.platsSel.map(function(ps){ return (ps.platLabel||ps.pid)+' '+ps.periodStr; }).join(', ');
-  /* REQ-11: guardar ejecutivo_id para integridad referencial — no sólo el nombre */
-  var _ejecIdForSave = (window._leEjecData && window._leEjecData.empId) || null;
   var payload = {
-    ejecutivo_nombre:ejec, ejecutivo_id:_ejecIdForSave,
+    ejecutivo_nombre:ejec,
     cedula:cedula, periodo:periodoLabel, plataformas:data.platsSel,
     trm:trm, comision_usd:totalCommUSD,
     bonificaciones:bonos, deducciones:deds,
@@ -33251,35 +33859,36 @@ function leImprimirColilla(uid, ejec, autoPrint){
   var totalDedsUSD  = deds.reduce(function(s,d){ return s+d.usd; }, 0);
   var totalDedsCOP  = deds.reduce(function(s,d){ return s+d.cop; }, 0);
 
-  // Calcular comisión base y construir filas de la tabla
+  // v5.48 — Calcular comisión base y construir filas separadas por sección A / B / C
   var totalCommUSD = 0;
-  var filas = '';
-  Object.keys(data.ejecAliados).sort().forEach(function(k){
-    var est = data.ejecAliados[k];
+  var _commSectA = 0; var _commSectB = 0; var _commSectC = 0;
+  var filasA = ''; var filasB = ''; var filasC = '';
+
+  var _buildFilaFn = function(k, est, totalRef){
+    var chunk = '';
+    // FIX v5.50d: eliminar prefijo __DM__ del nombre visible en la colilla
+    var _kDisp = est.modelDisplayName || (k.indexOf('__DM__')===0 ? k.substring(6) : k);
     Object.keys(est.platData).forEach(function(pkey){
       var pd = est.platData[pkey];
       var brusd, commUSD;
       if(pd.autoUSD){ brusd=pd.brutoUSD||0; commUSD=pd.commUSD||0; }
       else { var el=document.getElementById(pd.uid+'-brusd'); brusd=el?parseFloat(el.value)||0:0; commUSD=brusd*est.commPct; }
-      // Omitir filas sin facturación real
       if(brusd===0 && (pd.tokens||0)===0) return;
       totalCommUSD += commUSD;
+      totalRef[0] += commUSD;
       var tokStr;
       if(pd.pid === 'F4F'){
-        // F4F: autoUSD=false pero pd.tokens tiene los créditos reales
         tokStr = (pd.tokens||0) > 0
           ? Math.round(pd.tokens).toLocaleString('es-CO') + ' ' + (pd.unit||'Créditos')
           : (pd.unit||'Créditos');
       } else if(pd.pid === 'STR'){
-        // Streamate: tokens = brutoUSD / 0.05, mostrar como créditos enteros
         tokStr = Math.round(pd.tokens||0).toLocaleString('es-CO') + ' créditos';
       } else {
-        // SC, CB, CAM y otros autoUSD con tasa: mostrar tokens + unidad
         tokStr = Math.round(pd.tokens||0).toLocaleString('es-CO') + ' ' + (pd.unit||'Tokens');
       }
-      filas +=
+      chunk +=
         '<tr>'+
-        '<td style="padding:7px 10px">'+k+'</td>'+
+        '<td style="padding:7px 10px">'+_kDisp+'</td>'+
         '<td style="padding:7px 10px;color:#D4A843;font-weight:600">'+pd.platLabel+'</td>'+
         '<td style="padding:7px 10px;font-size:11px;color:#c8a84b">'+pd.periodStr+'</td>'+
         '<td style="padding:7px 10px;text-align:right">'+tokStr+'</td>'+
@@ -33288,7 +33897,56 @@ function leImprimirColilla(uid, ejec, autoPrint){
         '<td style="padding:7px 10px;text-align:right;font-weight:700;color:#D4A843">USD '+commUSD.toFixed(2)+'</td>'+
         '</tr>';
     });
+    return chunk;
+  };
+
+  Object.keys(data.ejecAliados).sort().forEach(function(k){
+    var est = data.ejecAliados[k];
+    if(est.isDirectModel){
+      if(est.isFornax){
+        var _rc=[0]; filasC += _buildFilaFn(k, est, _rc); _commSectC += _rc[0];
+      } else {
+        var _rb=[0]; filasB += _buildFilaFn(k, est, _rb); _commSectB += _rb[0];
+      }
+    } else {
+      var _ra=[0]; filasA += _buildFilaFn(k, est, _ra); _commSectA += _ra[0];
+    }
   });
+
+  var _tblHeader =
+    '<table style="width:100%;border-collapse:collapse">'+
+    '<thead><tr>'+
+    '<th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#D4A843;text-transform:uppercase;letter-spacing:.05em">Estudio / Modelo</th>'+
+    '<th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#D4A843;text-transform:uppercase">Plataforma</th>'+
+    '<th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#D4A843;text-transform:uppercase">Período</th>'+
+    '<th style="padding:8px 10px;text-align:right;font-size:10px;font-weight:700;color:#D4A843;text-transform:uppercase">Producción</th>'+
+    '<th style="padding:8px 10px;text-align:right;font-size:10px;font-weight:700;color:#D4A843;text-transform:uppercase">Bruto USD</th>'+
+    '<th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;color:#D4A843;text-transform:uppercase">%</th>'+
+    '<th style="padding:8px 10px;text-align:right;font-size:10px;font-weight:700;color:#D4A843;text-transform:uppercase">Comisión USD</th>'+
+    '</tr></thead>';
+
+  var _sectSubtotalRow = function(label, commUSD, color){
+    return '<tr style="background:rgba(212,168,67,.08)">'+
+      '<td colspan="6" style="padding:6px 10px;font-size:11px;font-weight:700;color:'+color+';text-align:right;letter-spacing:.03em">'+label+'</td>'+
+      '<td style="padding:6px 10px;text-align:right;font-weight:800;color:'+color+'">USD '+commUSD.toFixed(2)+'</td>'+
+      '</tr>';
+  };
+
+  // Construir HTML por sección
+  var filas = '';
+  if(filasA){
+    filas += '<div style="padding:8px 20px 4px;font-size:11px;font-weight:700;color:#34D399;text-transform:uppercase;letter-spacing:.07em;background:rgba(52,211,153,.06);border-bottom:2px solid rgba(52,211,153,.25)">📂 Sección A — Estudios Asignados</div>';
+    filas += _tblHeader.replace('background:linear-gradient(135deg,#1a1408 0%,#3a2c0a 60%,#5a4010 100%)','background:rgba(52,211,153,.12)') + '<tbody>' + filasA + _sectSubtotalRow('Subtotal Sección A', _commSectA,'#34D399') + '</tbody></table>';
+  }
+  if(filasB){
+    filas += '<div style="padding:8px 20px 4px;font-size:11px;font-weight:700;color:#818cf8;text-transform:uppercase;letter-spacing:.07em;background:rgba(129,140,248,.06);border-top:2px solid rgba(129,140,248,.2);border-bottom:2px solid rgba(129,140,248,.25)">👤 Sección B — Modelos GE Directamente Asesorados</div>';
+    filas += _tblHeader + '<tbody>' + filasB + _sectSubtotalRow('Subtotal Sección B', _commSectB,'#818cf8') + '</tbody></table>';
+  }
+  if(filasC){
+    filas += '<div style="padding:8px 20px 4px;font-size:11px;font-weight:700;color:#c084fc;text-transform:uppercase;letter-spacing:.07em;background:rgba(192,132,252,.06);border-top:2px solid rgba(192,132,252,.2);border-bottom:2px solid rgba(192,132,252,.25)">💜 Sección C — Modelos Fornax Directamente Asesorados</div>';
+    filas += _tblHeader + '<tbody>' + filasC + _sectSubtotalRow('Subtotal Sección C', _commSectC,'#c084fc') + '</tbody></table>';
+  }
+
   if(!filas){ alert('Sin datos de facturación para imprimir. Verifique que los estudios tengan billing ingresado en Cómo Vamos para el período seleccionado.'); return; }
 
   var netoUSD = totalCommUSD + totalBonosUSD - totalDedsUSD;
@@ -33414,16 +34072,13 @@ function leImprimirColilla(uid, ejec, autoPrint){
     '</div>'+
     '</div>';
 
-  // ── Tabla de facturación
+  // ── v5.48: Tablas de facturación separadas por sección A / B / C
   html += '<div class="tbl-wrap">'+
     '<div style="padding:10px 0 6px"><div class="sec-title">Detalle de Facturación — Cómo Vamos Grupo Empresarial</div></div>'+
-    '<table><thead><tr>'+
-    '<th>Estudio / Aliado</th><th>Plataforma</th><th>Período</th>'+
-    '<th style="text-align:right">Tokens / Unidad</th><th style="text-align:right">Bruto USD</th>'+
-    '<th style="text-align:center">% Ejec.</th><th style="text-align:right">Comisión USD</th>'+
-    '</tr></thead><tbody>'+filas+
-    '<tr class="subtot-row"><td colspan="6">TOTAL COMISIÓN BASE</td>'+
-    '<td style="text-align:right">'+fUSD(totalCommUSD)+'</td></tr>'+
+    filas+
+    '<table style="width:100%;border-collapse:collapse"><tbody>'+
+    '<tr class="subtot-row"><td colspan="6" style="padding:8px 10px;font-weight:700;text-align:right;background:rgba(212,168,67,.12);color:#1a1408">TOTAL COMISIÓN BASE</td>'+
+    '<td style="padding:8px 10px;text-align:right;font-weight:800;background:rgba(212,168,67,.12);color:#D4A843">'+fUSD(totalCommUSD)+'</td></tr>'+
     '</tbody></table>'+
     '</div>';
 
@@ -40559,13 +41214,15 @@ function saveEstudios(data){
   _cnsJdModsCache = {}; // invalidar cache de consultas al modificar estudios
   if(_supaDb)(async()=>{try{
     const rows=(data||[]).map(e=>{
-      const {id,nombreAgencia,nombreReal,documento,estado,...rest}=e;
+      const {id,nombreAgencia,nombreReal,documento,estado,ejecutivo_id,...rest}=e;
       return {
         id:id,
         nombre:nombreAgencia||'',
         propietario:nombreReal||'',
         nit:documento||'',
         activo:estado==='Activo',
+        // Persistir FK ejecutivo_id como columna top-level para que el filtro de liquidación/estadísticas funcione
+        ejecutivo_id: ejecutivo_id || null,
         datos_extra:rest
       };
     });
@@ -40618,6 +41275,34 @@ function renderEstudios(){
     return;
   }
 
+  // Mapa empleados para resolver FK ejecutivo_id → nombre
+  var _empMapEst = {};
+  try {
+    var _empsEst = JSON.parse(localStorage.getItem('jd_empleados')||'[]');
+    _empsEst.forEach(function(emp){
+      if(emp.id)    _empMapEst[String(emp.id)]    = emp.nombre || emp.email || '';
+      if(emp.email) _empMapEst[String(emp.email)] = emp.nombre || '';
+    });
+  } catch(_){}
+
+  // Helper: resuelve e.ejecutivo (puede ser ID crudo o nombre)
+  function _resolverEjecutivo(e){
+    var val = (e.ejecutivo||'').trim();
+    // 1. Si e.ejecutivo ya parece un nombre (tiene espacio o es "Grupo J&D"), prioridad absoluta
+    //    — el nombre guardado en datos_extra.ejecutivo siempre gana sobre el FK ejecutivo_id
+    if(val && (val.indexOf(' ') !== -1 || val === 'Grupo J&D')) return val;
+    // 2. e.ejecutivo es un ID crudo o está vacío → intentar mapa cacheado jd_usuarios
+    var _idMap = window._jdEjecutivosIdMap || {};
+    if(val && _idMap[val]) return _idMap[val];
+    // 3. Intentar resolver contra jd_empleados por id o email
+    if(val && _empMapEst[val]) return _empMapEst[val];
+    // 4. Solo si e.ejecutivo está completamente vacío, usar FK ejecutivo_id como respaldo
+    if(!val && e.ejecutivo_id && _empMapEst[String(e.ejecutivo_id)])
+      return _empMapEst[String(e.ejecutivo_id)];
+    // 5. Fallback
+    return val || '—';
+  }
+
   tbody.innerHTML = filtered.map(e=>{
     // Plataformas con logos
     const plats=(e.paginasVinculadas||[]).map(p=>{
@@ -40651,7 +41336,7 @@ function renderEstudios(){
       </td>
       <td style="font-size:12px">${managerNombreDisp}</td>
       <td>${plats||'<span class="muted fs12">—</span>'}</td>
-      <td style="font-size:12px">${e.ejecutivo||'—'}</td>
+      <td style="font-size:12px">${_resolverEjecutivo(e)}</td>
       <td class="gold fw6" style="font-size:13px">${pctDisp}</td>
       <td><button class="btn btn-ghost btn-sm" onclick="abrirPerfil('${e.id}')" title="Vista 360°" style="font-size:16px">👁</button></td>
       <td><button class="btn btn-ghost btn-sm" onclick="bdGrpEstOpciones(event,'${e.id}')" title="Editar / Migrar" style="font-size:16px">✏️</button></td>
@@ -40695,6 +41380,22 @@ function saveEstudio(){
   if(!_pvSaveCodes.length) _pvSaveCodes = ['F4F','STM','STC','CHB','CSD','OF']; // fallback
   const paginasVinculadas = _pvSaveCodes.filter(p=>document.getElementById('pv-'+p)?.checked);
 
+  // Resolver nombre del ejecutivo seleccionado → jd_empleados.id (FK top-level)
+  var _ejNomSel = document.getElementById('est-ejecutivo').value;
+  var _ejIdResuelto = '';
+  try {
+    var _empsForEj = JSON.parse(localStorage.getItem('jd_empleados')||'[]');
+    var _ejEmp = _empsForEj.find(function(emp){
+      return (emp.nombre||'').trim().toLowerCase() === _ejNomSel.trim().toLowerCase();
+    });
+    if(_ejEmp) _ejIdResuelto = String(_ejEmp.id);
+  } catch(_ej){}
+  // Si no se encontró en jd_empleados, conservar el ejecutivo_id anterior si existía
+  if(!_ejIdResuelto && id){
+    var _prevEst = getEstudios().find(function(e){ return e.id===id; });
+    if(_prevEst && _prevEst.ejecutivo_id) _ejIdResuelto = _prevEst.ejecutivo_id;
+  }
+
   const data = {
     id: id||uid(),
     tipoDoc: tipoDoc,
@@ -40704,7 +41405,8 @@ function saveEstudio(){
     telefono: document.getElementById('est-telefono').value.trim(),
     fechaIngreso: document.getElementById('est-fechaIngreso').value,
     empresa: document.getElementById('est-empresa')?.value || '',
-    ejecutivo: document.getElementById('est-ejecutivo').value,
+    ejecutivo: _ejNomSel,
+    ejecutivo_id: _ejIdResuelto,
     planMon: parseFloat(document.getElementById('est-planMon').value)||0,
     referido: document.getElementById('est-referido').value.trim(),
     banco: document.getElementById('est-banco').value,
@@ -59713,7 +60415,7 @@ function ige2IrPaso(n){
   ige2SaveDraft(window._ige2);
   ige2RenderWizard();
 }
-function ige2SiguientePaso(){
+async function ige2SiguientePaso(){
   if(!window._ige2) return;
   ige2CapturarPasoActual();
   const {ciclo,paso}=window._ige2;
@@ -59727,10 +60429,185 @@ function ige2SiguientePaso(){
   if(paso===3){
     const ok=(ciclo.paginas||[]).every(p=>p.periodoInicio&&p.periodoFin);
     if(!ok){ try{toast('Completa las fechas de todos los periodos','error');}catch(e){} return; }
+    // v5.47 — Auto-consultar producción antes de ir a Distribución
+    await ige2AutoQueryProduccion();
   }
   window._ige2.paso=Math.min(5,paso+1);
   ige2SaveDraft(window._ige2);
   ige2RenderWizard();
+}
+
+// ── v5.47b: Helper — paginación completa de facturacion_diaria ─────────────
+// Retorna TODAS las filas del período con paginación automática.
+// desde/hasta: 'YYYY-MM-DD'. Filtra valor>0 igual que el resto del sistema.
+async function ige2QueryFacPaginado(db, platAliases, desde, hasta){
+  const PAGE=1000;
+  const hastaFin=hasta+'T23:59:59'; // cubre registros del último día si fecha es timestamptz
+  let rows=[], offset=0, guard=0;
+  while(guard<60){
+    guard++;
+    const {data,error}=await db.from('facturacion_diaria')
+      .select('estudio_nombre,valor,valor_usd')
+      .in('plataforma',platAliases)
+      .gte('fecha',desde)
+      .lte('fecha',hastaFin)
+      .gt('valor',0)
+      .order('fecha',{ascending:true})
+      .range(offset,offset+PAGE-1);
+    if(error) throw error;
+    rows=rows.concat(data||[]);
+    if((data||[]).length<PAGE) break;
+    offset+=PAGE;
+  }
+  return rows;
+}
+
+// ── Helper — agrupar filas por estudio y construir distribuciones ──────────
+function ige2BuildDistFromRows(rows, platKey){
+  const byEst={};
+  (rows||[]).forEach(r=>{
+    const k=(r.estudio_nombre||'').trim();
+    if(!k) return;
+    if(!byEst[k]){byEst[k]={creditos:0,usd:0};}
+    byEst[k].creditos+=(r.valor||0);
+    byEst[k].usd+=(r.valor_usd||0);
+  });
+  const entidades=ige2GetEntidades(platKey);
+  const todas=ige2GetEntidades(null);
+  const dist=[];
+  Object.keys(byEst).forEach(nomDB=>{
+    const agg=byEst[nomDB];
+    const nLow=nomDB.toLowerCase().trim();
+    let match=entidades.find(e=>{
+      const en=(e.nombreAgencia||e.nombreReal||e.nombre||'').toLowerCase().trim();
+      return en===nLow||en.includes(nLow)||nLow.includes(en);
+    });
+    if(!match) match=todas.find(e=>{
+      const en=(e.nombreAgencia||e.nombreReal||e.nombre||'').toLowerCase().trim();
+      return en===nLow||en.includes(nLow)||nLow.includes(en);
+    });
+    const usdFact=parseFloat(agg.usd.toFixed(2));
+    dist.push({
+      entidadId:match?.id||null,
+      _tipo:match?._tipo||'estudio',
+      nombre:match?(match.nombreAgencia||match.nombreReal||match.nombre||nomDB):nomDB,
+      creditos:Math.round(agg.creditos),
+      usdFacturado:usdFact,
+      bonificaciones:0,
+      deducciones:0,
+      totalUSD:usdFact,
+      _autoQueried:true
+    });
+  });
+  dist.sort((a,b)=>(b.usdFacturado||0)-(a.usdFacturado||0));
+  return dist;
+}
+
+// ── v5.47b: Auto-consultar producción desde facturacion_diaria ─────────────
+async function ige2AutoQueryProduccion(){
+  if(!window._ige2?.ciclo?.paginas?.length) return;
+  const ci=window._ige2.ciclo;
+  const db=ige2DB();
+  if(!db){ console.warn('[ige2AutoQuery v5.47b] Sin conexión DB'); return; }
+
+  // Spinner de carga sobre el wizard
+  const wz=document.getElementById('ige2-wizard');
+  let loadEl=null;
+  if(wz){
+    if(!document.getElementById('ige2-spin-style')){
+      const st=document.createElement('style');
+      st.id='ige2-spin-style';
+      st.textContent='@keyframes ige2spin{to{transform:rotate(360deg)}}';
+      document.head.appendChild(st);
+    }
+    loadEl=document.createElement('div');
+    loadEl.id='ige2-auto-loading';
+    loadEl.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:14px;gap:14px';
+    loadEl.innerHTML='<div style="width:40px;height:40px;border:3px solid rgba(255,255,255,.15);border-top-color:#3b82f6;border-radius:50%;animation:ige2spin .7s linear infinite"></div><div style="color:#fff;font-size:14px;font-weight:700;text-align:center">Consultando producción...</div><div style="color:rgba(255,255,255,.6);font-size:12px">Leyendo facturación diaria</div>';
+    wz.style.position='relative';
+    wz.appendChild(loadEl);
+  }
+
+  try{
+    let totalCargados=0;
+    for(let pi=0;pi<ci.paginas.length;pi++){
+      const p=ci.paginas[pi];
+      const platKey=p.plataforma;
+      const desde=(p.periodoInicio||'').trim();
+      const hasta=(p.periodoFin||'').trim();
+      if(!desde||!hasta){
+        console.warn('[ige2AutoQuery v5.47b] '+platKey+': fechas vacías — omitido');
+        continue;
+      }
+
+      // Si ya tiene distribuciones con datos, no sobreescribir (preserva bonificaciones manuales)
+      const tieneData=(p.distribuciones||[]).some(d=>(d.creditos||0)>0||(d.usdFacturado||0)>0);
+      if(tieneData){ console.log('[ige2AutoQuery v5.47b] '+platKey+': ya tiene datos — omitido'); continue; }
+
+      const aliases=IGE2_PLAT_ALIASES[platKey]||[platKey];
+      console.log('[ige2AutoQuery v5.47b] Consultando '+platKey+' ('+desde+' → '+hasta+') aliases:',aliases);
+      try{
+        const rows=await ige2QueryFacPaginado(db,aliases,desde,hasta);
+        if(!rows.length){
+          console.log('[ige2AutoQuery v5.47b] Sin producción: '+platKey+' ('+desde+' → '+hasta+')');
+          continue;
+        }
+        const nuevasDist=ige2BuildDistFromRows(rows,platKey);
+        ci.paginas[pi].distribuciones=nuevasDist;
+        totalCargados+=nuevasDist.length;
+        console.log('[ige2AutoQuery v5.47b] '+platKey+': '+nuevasDist.length+' estudios / '+rows.length+' filas ('+desde+' → '+hasta+')');
+      } catch(platErr){
+        console.warn('[ige2AutoQuery v5.47b] Error plat '+platKey+':',platErr);
+      }
+    }
+    window._ige2.ciclo=ci;
+    ige2SaveDraft(window._ige2);
+    if(totalCargados>0){
+      try{toast('✅ '+totalCargados+' estudio'+(totalCargados!==1?'s':'')+' cargado'+(totalCargados!==1?'s':'')+' desde facturación','success');}catch(e){}
+    } else {
+      try{toast('ℹ️ No se encontró producción para los períodos seleccionados','info');}catch(e){}
+    }
+  } finally {
+    if(loadEl) loadEl.remove();
+  }
+}
+
+// ── v5.47b: Re-consultar producción para una plataforma específica ─────────
+async function ige2ReQueryPlat(pi){
+  if(!window._ige2?.ciclo?.paginas?.[pi]) return;
+  const p=window._ige2.ciclo.paginas[pi];
+  const desde=(p.periodoInicio||'').trim();
+  const hasta=(p.periodoFin||'').trim();
+  if(!desde||!hasta){ try{toast('Defina las fechas del período en el Paso 3','error');}catch(e){} return; }
+
+  // Limpiar distribuciones para permitir re-consulta
+  window._ige2.ciclo.paginas[pi].distribuciones=[];
+  ige2SaveDraft(window._ige2);
+
+  const db=ige2DB();
+  if(!db){ try{toast('Sin conexión a base de datos','error');}catch(e){} return; }
+
+  const btn=document.getElementById('ige2-requery-btn-'+pi);
+  if(btn){ btn.textContent='⏳ Consultando...'; btn.disabled=true; }
+
+  const platKey=p.plataforma;
+  const aliases=IGE2_PLAT_ALIASES[platKey]||[platKey];
+  console.log('[ige2ReQuery v5.47b] '+platKey+' ('+desde+' → '+hasta+') aliases:',aliases);
+  try{
+    const rows=await ige2QueryFacPaginado(db,aliases,desde,hasta);
+    const nuevasDist=ige2BuildDistFromRows(rows,platKey);
+    window._ige2.ciclo.paginas[pi].distribuciones=nuevasDist;
+    ige2SaveDraft(window._ige2);
+    console.log('[ige2ReQuery v5.47b] '+platKey+': '+nuevasDist.length+' estudios / '+rows.length+' filas');
+    try{toast('✅ '+nuevasDist.length+' estudio'+(nuevasDist.length!==1?'s':'')+' cargado'+(nuevasDist.length!==1?'s':''),'success');}catch(e){}
+    ige2RenderWizard();
+  } catch(err){
+    console.error('[ige2ReQuery v5.47b]',err);
+    try{toast('Error al consultar: '+err.message,'error');}catch(e){}
+  } finally {
+    const btn2=document.getElementById('ige2-requery-btn-'+pi);
+    if(btn2){ btn2.textContent='🔄 Re-consultar'; btn2.disabled=false; }
+  }
 }
 
 // ── Capturar campos del DOM al paso actual ─────────────────────────────────
@@ -60042,7 +60919,10 @@ function ige2Paso4HTML(ci){
           <span>Distribuido: <b id="ige2-dist-sum-${pi}" style="color:#8b5cf6">${ige2FU(totalDist)}</b></span>
           <span>Saldo: <b id="ige2-dist-saldo-${pi}" style="color:${saldo>0?'#f59e0b':'#22c55e'}">${ige2FU(saldo)}</b></span>
         </div>
-        <button id="ige2-plat-toggle-${pi}" onclick="ige2ColapsarPlat(${pi})" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:5px 14px;font-size:11px;font-weight:700;color:var(--text);cursor:pointer;white-space:nowrap" onmouseover="this.style.background='rgba(255,255,255,.14)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">${window._ige2PlatCollapsed[pi]?'▼ Ver registros':'▲ Ocultar'}</button>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button id="ige2-requery-btn-${pi}" onclick="ige2ReQueryPlat(${pi})" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.35);border-radius:7px;padding:5px 14px;font-size:11px;font-weight:700;color:#3b82f6;cursor:pointer;white-space:nowrap" onmouseover="this.style.background='rgba(59,130,246,.22)'" onmouseout="this.style.background='rgba(59,130,246,.12)'" title="Re-consultar producción para este período">🔄 Re-consultar</button>
+          <button id="ige2-plat-toggle-${pi}" onclick="ige2ColapsarPlat(${pi})" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:5px 14px;font-size:11px;font-weight:700;color:var(--text);cursor:pointer;white-space:nowrap" onmouseover="this.style.background='rgba(255,255,255,.14)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">${window._ige2PlatCollapsed[pi]?'▼ Ver registros':'▲ Ocultar'}</button>
+        </div>
       </div>
       <div id="ige2-plat-body-${pi}" style="padding:16px;display:${window._ige2PlatCollapsed[pi]?'none':''}">
         <button onclick="ige2AbrirBuscador(${pi})" style="width:100%;padding:10px;border:2px dashed ${pl.color}55;border-radius:8px;background:transparent;color:${pl.color};font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s;margin-bottom:${distRows?'12px':'0'}" onmouseover="this.style.background='${pl.color}11'" onmouseout="this.style.background='transparent'">+ Agregar Estudio / Modelo</button>
@@ -79322,9 +80202,12 @@ async function cemSubmitForm(e){
           // ID del ejecutivo comercial (FK a jd_empleados.id)
           ejecutivoComercialId: (function(){
             var _esFnx = (datos.empresa||'').toLowerCase().indexOf('fornax') !== -1;
-            if(_esFnx) return datos.ejecutivoComercialId || mods[idxM].ejecutivoComercialId || '';
+            if(_esFnx){
+              // FIX v5.59b: usar !== undefined (no ||) para respetar string vacío '' que significa "Sin asignar"
+              return datos.ejecutivoComercialId !== undefined ? datos.ejecutivoComercialId : (mods[idxM].ejecutivoComercialId || '');
+            }
             // GE: ejecutivoGEId es el ID almacenado en option.value
-            return datos.ejecutivoGEId || mods[idxM].ejecutivoComercialId || '';
+            return datos.ejecutivoGEId !== undefined ? datos.ejecutivoGEId : (mods[idxM].ejecutivoComercialId || '');
           })(),
           // Fecha desde la cual tiene ejecutivo asignado
           ejecutivoComercialDesde: (function(){
@@ -79412,13 +80295,15 @@ async function cemSubmitForm(e){
           // Antes: fire-and-forget → el redirect ocurría antes de que Supabase respondiera.
           try{
             // ejecutivo_id: ID real del ejecutivo en jd_empleados (columna FK top-level)
+            // FIX v5.59b: retornar null (no undefined) cuando está vacío → Supabase borra la FK
             var _ejIdPayload = (function(){
               var _esFnx = (_mUpd.empresa||'').toLowerCase().indexOf('fornax') !== -1;
+              // Usar !== undefined para respetar '' que significa "Sin asignar"
               var _id = _esFnx
-                ? (_mUpd.ejecutivoComercialId || datos.ejecutivoComercialId || '')
-                : (_mUpd.ejecutivoComercialId || datos.ejecutivoGEId || '');
-              // Solo enviar si parece un ID real (no vacío, no nombre de persona)
-              if(!_id || _id.trim() === '' || _id.indexOf(' ') !== -1) return undefined;
+                ? (_mUpd.ejecutivoComercialId !== undefined ? _mUpd.ejecutivoComercialId : (datos.ejecutivoComercialId || ''))
+                : (_mUpd.ejecutivoComercialId !== undefined ? _mUpd.ejecutivoComercialId : (datos.ejecutivoGEId || ''));
+              // Si está vacío o parece nombre de persona → null para borrar FK en Supabase
+              if(!_id || _id.trim() === '' || _id.indexOf(' ') !== -1) return null;
               return _id;
             })();
             var _upRes = await _supaDb.from('modelos')
@@ -79428,8 +80313,8 @@ async function cemSubmitForm(e){
                 monitor:       _mUpd.monitor||'',
                 estado:        _supaEstado,
                 plataformas:   _mUpd.paginasVinculadas||[],
-                // ejecutivo_id: columna top-level FK → permite PASO A del LE
-                ...(_ejIdPayload !== undefined ? {ejecutivo_id: _ejIdPayload} : {}),
+                // ejecutivo_id: columna top-level FK → null borra la FK, ID la asigna (siempre incluir)
+                ejecutivo_id: _ejIdPayload,
                 // NOTA: porcentaje NO existe como columna top-level en Supabase → viaja solo en datos_extra (_dxUpd).
                 // FIX BUG 4: >= + > 0 garantiza que RE igual al piso se puede re-guardar.
                 reto_estrella: _rePayload,
@@ -80539,6 +81424,8 @@ async function cemRegenerarContrato(solId){
 /* ─── Cargar ejecutivos desde jd_usuarios (fuente principal) + jd_empleados ─── */
 async function _cargarEjecutivosDesdeSupabase() {
   var lista = [];
+  // Mapa global id/email → nombre para resolver IDs crudos en renderEstudios
+  if (!window._jdEjecutivosIdMap) window._jdEjecutivosIdMap = {};
   // 1. Fuente principal: jd_usuarios con rol='ejecutivo'
   if (_supaDb) {
     try {
@@ -80550,14 +81437,23 @@ async function _cargarEjecutivosDesdeSupabase() {
         data.forEach(function(u) {
           var nombre = (u.nombre || u.email || '').trim();
           if (nombre) lista.push(nombre);
+          // Cachear id → nombre y email → nombre para resolución posterior
+          if (u.id)    window._jdEjecutivosIdMap[String(u.id)]    = nombre;
+          if (u.email) window._jdEjecutivosIdMap[String(u.email)] = nombre;
         });
       }
     } catch(e) { console.warn('[EjecDrop] Error leyendo jd_usuarios:', e); }
   }
   // 2. Fallback: jd_empleados con cargo='Ejecutivo Comercial'
+  var empleados = [];
+  try { empleados = JSON.parse(localStorage.getItem('jd_empleados')||'[]'); } catch(e){}
+  // Siempre poblar el mapa desde jd_empleados (para FK ejecutivo_id)
+  empleados.forEach(function(emp){
+    var n = emp.nombre || emp.nombreCompleto || emp.name || '';
+    if (emp.id && n) window._jdEjecutivosIdMap[String(emp.id)] = n;
+    if (emp.email && n) window._jdEjecutivosIdMap[String(emp.email)] = n;
+  });
   if (!lista.length) {
-    var empleados = [];
-    try { empleados = JSON.parse(localStorage.getItem('jd_empleados')||'[]'); } catch(e){}
     empleados.filter(function(emp){
       return (emp.cargo||'').toLowerCase().replace(/\s+/g,' ').trim() === 'ejecutivo comercial'
           && (emp.estado||'').toLowerCase() === 'activo';

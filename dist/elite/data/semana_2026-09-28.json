@@ -3,14 +3,14 @@
   "semana": "2026-09-28",
   "rango": "28 de septiembre al 4 de octubre de 2026",
   "compiten": 45,
-  "con_facturacion": 84,
+  "con_facturacion": 85,
   "superaron_promedio": 29,
   "rompieron_record": 11,
   "ids_promedio": 64.3,
-  "facturacion_grupo": 619268.0,
+  "facturacion_grupo": 638053.0,
   "alertas": {
    "caida_fuerte": 23,
-   "sin_dias_minimos": 0,
+   "sin_dias_minimos": 1,
    "sin_dias_reportados": 0,
    "sin_historial": 13,
    "variacion_sospechosa": [

@@ -10427,11 +10427,13 @@ textarea.cem-input{min-height:70px}
 .efac3-fb-legend{display:flex;gap:14px;flex-wrap:wrap;padding:6px 20px 10px}
 .efac3-fb-leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
 .efac3-fb-leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
-/* KPIs bar */
+/* KPIs bar — Opción 3: glassmorphism + gradiente superior + icono */
 .efac3-fb-kpis{display:flex;flex-wrap:wrap;gap:8px;padding:10px 20px 6px}
-.efac3-fb-kpi{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;text-align:right;min-width:110px}
-.efac3-fb-kpi-val{font-size:16px;font-weight:800;color:var(--gold);line-height:1;font-variant-numeric:tabular-nums}
-.efac3-fb-kpi-lbl{font-size:9px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.06em}
+.efac3-fb-kpi{background:linear-gradient(135deg,rgba(255,255,255,.05) 0%,rgba(255,255,255,.02) 100%);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 16px 10px;text-align:left;min-width:110px;position:relative;overflow:hidden}
+.efac3-fb-kpi-topbar{height:2px;position:absolute;top:0;left:0;right:0}
+.efac3-fb-kpi-ico{font-size:13px;margin-bottom:5px;line-height:1;opacity:.85}
+.efac3-fb-kpi-val{font-size:18px;font-weight:800;color:var(--gold);line-height:1;font-variant-numeric:tabular-nums}
+.efac3-fb-kpi-lbl{font-size:9px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.07em}
 
 /* Tabla de resultados de rango */
 .efac3-rt{border-collapse:collapse;width:100%;font-size:11.5px}
@@ -10830,23 +10832,32 @@ textarea.cem-input{min-height:70px}
 
 /* ── Tarjetas KPI del dashboard ── */
 .efac3d-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
-.efac3d-kpi{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:13px 15px;display:flex;flex-direction:column;gap:3px;position:relative;overflow:hidden;transition:border-color .15s}
-.efac3d-kpi:hover{border-color:rgba(200,168,75,.3)}
-.efac3d-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:11px 11px 0 0}
-.efac3d-kpi.c-gold::before{background:var(--gold)}
-.efac3d-kpi.c-blue::before{background:#3B82F6}
-.efac3d-kpi.c-green::before{background:#10B981}
-.efac3d-kpi.c-purple::before{background:#8B5CF6}
-.efac3d-kpi.c-pink::before{background:#EC4899}
-.efac3d-kpi.c-teal::before{background:#06B6D4}
-.efac3d-kpi.c-orange::before{background:#F59E0B}
-.efac3d-kpi.c-rose::before{background:#F43F5E}
-.efac3d-kpi-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;line-height:1.2}
-.efac3d-kpi-val{font-size:17px;font-weight:900;color:var(--text);font-variant-numeric:tabular-nums;line-height:1.1;margin-top:2px}
+.efac3d-kpi{background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,rgba(255,255,255,.02) 100%);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 16px 10px;display:flex;flex-direction:column;gap:2px;position:relative;overflow:hidden;transition:border-color .15s}
+.efac3d-kpi:hover{border-color:rgba(255,255,255,.22)}
+.efac3d-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:12px 12px 0 0}
+.efac3d-kpi.c-gold::before{background:linear-gradient(90deg,var(--gold),transparent)}
+.efac3d-kpi.c-blue::before{background:linear-gradient(90deg,#3B82F6,transparent)}
+.efac3d-kpi.c-green::before{background:linear-gradient(90deg,#10B981,transparent)}
+.efac3d-kpi.c-purple::before{background:linear-gradient(90deg,#8B5CF6,transparent)}
+.efac3d-kpi.c-pink::before{background:linear-gradient(90deg,#EC4899,transparent)}
+.efac3d-kpi.c-teal::before{background:linear-gradient(90deg,#06B6D4,transparent)}
+.efac3d-kpi.c-orange::before{background:linear-gradient(90deg,#F59E0B,transparent)}
+.efac3d-kpi.c-rose::before{background:linear-gradient(90deg,#F43F5E,transparent)}
+.efac3d-kpi.c-gold2::before{background:linear-gradient(90deg,var(--gold),transparent)}
+.efac3d-kpi-ico{font-size:13px;margin-bottom:4px;line-height:1;opacity:.85}
+.efac3d-kpi-lbl{font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:3px;line-height:1.2}
+.efac3d-kpi-val{font-size:18px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1.1}
+.efac3d-kpi.c-blue .efac3d-kpi-val{color:#3B82F6}
+.efac3d-kpi.c-green .efac3d-kpi-val{color:#10B981}
+.efac3d-kpi.c-purple .efac3d-kpi-val{color:#8B5CF6}
+.efac3d-kpi.c-pink .efac3d-kpi-val{color:#EC4899}
+.efac3d-kpi.c-teal .efac3d-kpi-val{color:#06B6D4}
+.efac3d-kpi.c-orange .efac3d-kpi-val{color:#F59E0B}
+.efac3d-kpi.c-rose .efac3d-kpi-val{color:#F43F5E}
 .efac3d-kpi-sub{font-size:9.5px;color:var(--muted);font-weight:600;margin-top:1px;line-height:1.3}
 .efac3d-kpi-delta{font-size:10px;font-weight:700;margin-top:4px}
 .efac3d-kpi-delta.pos{color:#10B981}.efac3d-kpi-delta.neg{color:#EF4444}.efac3d-kpi-delta.neu{color:var(--muted)}
-.efac3d-kpi-help{position:absolute;top:9px;right:10px;font-size:11px;color:var(--border);cursor:help;user-select:none}
+.efac3d-kpi-help{position:absolute;top:9px;right:10px;font-size:11px;color:rgba(255,255,255,.2);cursor:help;user-select:none}
 .efac3d-kpi-help:hover{color:var(--muted)}
 [title]:hover::after{content:attr(title);position:fixed;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--text);z-index:9999;max-width:240px;line-height:1.4;pointer-events:none}
 
@@ -10954,26 +10965,25 @@ textarea.cem-input{min-height:70px}
 
     <!-- ── Stats Report Card — Dashboard Estratégico ── -->
     <div class="cw-stats-card cw-stats-card-bar" id="efac3d-fbar">
-      <div class="cw-stats-card-hdr">📅 Stats Report</div>
       <div class="cw-stats-card-body">
         <div class="cw-stats-card-dates">
           <div class="cw-stats-card-fld">
-            <label>Starting Date</label>
+            <label>Fecha Inicio</label>
             <input type="date" class="cw-stats-card-inp" id="efac3d-f-desde">
           </div>
           <div class="cw-stats-card-fld">
-            <label>Ending Date</label>
+            <label>Fecha Fin</label>
             <input type="date" class="cw-stats-card-inp" id="efac3d-f-hasta">
           </div>
         </div>
         <div class="cw-stats-card-fld">
-          <label>Current Pay Period</label>
+          <label>Período Actual</label>
           <select class="cw-stats-card-sel" id="efac3d-f-periodo-card" onchange="_e3dOnPeriodoCardChange()">
             <option value="">— Seleccionar —</option>
             <optgroup label="── Corto plazo">
               <option value="q1">📅 Quincena 1 — Días 1·15</option>
               <option value="q2">📅 Quincena 2 — Días 16·fin</option>
-              <option value="mes" selected>🗓 Mes completo</option>
+              <option value="mes">🗓 Mes completo</option>
               <option value="ult7">⏱ Últ. 7 días</option>
               <option value="ult30">⏱ Últ. 30 días</option>
             </optgroup>
@@ -10990,6 +11000,12 @@ textarea.cem-input{min-height:70px}
               <option value="anio_ant">📆 Año anterior</option>
               <option value="ult90">⏱ Últ. 90 días</option>
             </optgroup>
+          </select>
+        </div>
+        <div class="cw-stats-card-fld">
+          <label>Períodos Anteriores</label>
+          <select class="cw-stats-card-sel" id="efac3d-f-historial" onchange="_e3dOnHistorialChange()">
+            <!-- Poblado por _e3dBuildHistorialSel() -->
           </select>
         </div>
         <div class="cw-stats-card-fld">
@@ -11097,55 +11113,30 @@ textarea.cem-input{min-height:70px}
   </div><!-- /panel-detalle -->
 
   <!-- ══ PANEL: CÓMO VAMOS ══ -->
-  <div id="efac3-panel-comovamos" class="efac3-panel" style="flex-direction:row;align-items:stretch">
+  <div id="efac3-panel-comovamos" class="efac3-panel" style="flex-direction:column;align-items:stretch">
     <!-- ── Stats Report Card ── -->
-    <div class="cw-stats-card" id="cw-fbar">
-      <div class="cw-stats-card-hdr">📅 Stats Report</div>
+    <div class="cw-stats-card cw-stats-card-bar" id="cw-fbar">
       <div class="cw-stats-card-body">
         <div class="cw-stats-card-dates">
           <div class="cw-stats-card-fld">
-            <label>Starting Date</label>
+            <label>Fecha Inicio</label>
             <input type="date" class="cw-stats-card-inp" id="cw-f-desde">
           </div>
           <div class="cw-stats-card-fld">
-            <label>Ending Date</label>
+            <label>Fecha Fin</label>
             <input type="date" class="cw-stats-card-inp" id="cw-f-hasta">
           </div>
         </div>
         <div class="cw-stats-card-fld">
-          <label>Pay Period (Quincena)</label>
-          <select class="cw-stats-card-sel" id="cw-quincena-sel" onchange="_cwOnQuincenaSel()">
+          <label>Período Actual</label>
+          <select class="cw-stats-card-sel" id="cw-quincena-sel" onchange="_cwOnQuincenaSel(this);_cwCargar()">
             <!-- Poblado por _cwBuildQuincenaSel() -->
           </select>
         </div>
         <div class="cw-stats-card-fld">
-          <label>Current Pay Period</label>
-          <select class="cw-stats-card-sel" id="cw-periodo-rapido" onchange="_cwOnPeriodoRapido()">
-            <option value="">— Seleccionar —</option>
-            <optgroup label="── Hoy / Semana">
-              <option value="hoy">📅 Hoy</option>
-              <option value="ayer">📅 Ayer</option>
-              <option value="semana">📅 Esta semana</option>
-              <option value="semana_ant">📅 Semana anterior</option>
-            </optgroup>
-            <optgroup label="── Quincena">
-              <option value="q_actual">📆 Quincena actual</option>
-              <option value="q_anterior">📆 Quincena anterior</option>
-            </optgroup>
-            <optgroup label="── Mensual">
-              <option value="mes_actual">🗓 Este mes</option>
-              <option value="mes_ant">🗓 Mes anterior</option>
-            </optgroup>
-            <optgroup label="── Trimestres">
-              <option value="t1">📊 T1 — Ene·Mar</option>
-              <option value="t2">📊 T2 — Abr·Jun</option>
-              <option value="t3">📊 T3 — Jul·Sep</option>
-              <option value="t4">📊 T4 — Oct·Dic</option>
-            </optgroup>
-            <optgroup label="── Anual">
-              <option value="anio">📆 Este año</option>
-              <option value="anio_ant">📆 Año anterior</option>
-            </optgroup>
+          <label>Períodos Anteriores</label>
+          <select class="cw-stats-card-sel" id="cw-periodo-rapido" onchange="_cwOnPeriodoRapido(this);_cwCargar()">
+            <!-- Poblado por _cwBuildHistorialSel() -->
           </select>
         </div>
         <div class="cw-stats-card-fld">
@@ -11166,6 +11157,65 @@ textarea.cem-input{min-height:70px}
         </div>
         <button class="cw-stats-card-btn csv-btn" onclick="_cwExportarCSV()">↑ Exportar CSV</button>
         <div class="cw-stats-card-badge" id="cw-period-badge">—</div>
+      </div>
+    </div>
+    <!-- Banner meta comercial — Op.3: Barra de progreso (v6.69) -->
+    <div id="cw-meta-banner" style="display:none;margin:0 0 14px;background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 20px">
+      <!-- Fila 1: título + % grande -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div style="min-width:180px">
+          <div id="cw-meta-titulo" style="font-size:11px;color:#10b981;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">🎯 Meta Comercial Quincenal — Fornax Studios</div>
+          <div id="cw-meta-detalle" style="font-size:13px;color:var(--muted)">—</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Cumplimiento</div>
+          <div id="cw-meta-pct" style="font-size:30px;font-weight:900;color:#e8e8e8;line-height:1">—</div>
+        </div>
+      </div>
+      <!-- Fila 2: barra de progreso -->
+      <div style="position:relative;height:8px;background:rgba(255,255,255,.06);border-radius:99px;margin-bottom:4px;overflow:visible">
+        <div id="cw-meta-bar-fill" style="height:100%;border-radius:99px;background:linear-gradient(90deg,#f59e0b,#f97316);width:0%;max-width:100%;transition:width .4s ease"></div>
+        <div id="cw-meta-bar-marker" style="position:absolute;top:-4px;bottom:-4px;width:2px;background:rgba(167,139,250,.7);border-radius:2px;display:none"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:#6b7592;margin-bottom:12px">
+        <span>0%</span>
+        <span id="cw-meta-bar-esp-wrap" style="display:none;color:rgba(167,139,250,.75)">Esperado: <span id="cw-meta-bar-esp-val">—</span></span>
+        <span>100%</span>
+      </div>
+      <!-- Fila 3: KPIs -->
+      <div style="display:flex;gap:0;flex-wrap:wrap;align-items:flex-end">
+        <div style="text-align:center;flex:1;min-width:70px;padding:0 8px;border-right:1px solid rgba(255,255,255,.05)">
+          <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Meta</div>
+          <div id="cw-meta-valor" style="font-size:18px;font-weight:800;color:#10b981">—</div>
+        </div>
+        <div id="cw-meta-avance-wrap" style="text-align:center;flex:1;min-width:70px;padding:0 8px;border-right:1px solid rgba(255,255,255,.05)">
+          <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Avance esperado</div>
+          <div id="cw-meta-avance" style="font-size:18px;font-weight:800;color:#a78bfa">—</div>
+        </div>
+        <div style="text-align:center;flex:1;min-width:70px;padding:0 8px;border-right:1px solid rgba(255,255,255,.05)">
+          <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Real acumulado</div>
+          <div id="cw-meta-real" style="font-size:18px;font-weight:800;color:#f59e0b">—</div>
+        </div>
+        <div id="cw-meta-faltante-wrap" style="text-align:center;display:none;flex:1;min-width:70px;padding:0 8px;border-right:1px solid rgba(255,255,255,.05)">
+          <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Faltante</div>
+          <div id="cw-meta-faltante" style="font-size:18px;font-weight:800;color:#ef4444">—</div>
+        </div>
+        <div id="cw-meta-excedente-wrap" style="text-align:center;display:none;flex:1;min-width:70px;padding:0 8px;border-right:1px solid rgba(255,255,255,.05)">
+          <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Excedente</div>
+          <div id="cw-meta-excedente" style="font-size:18px;font-weight:800;color:#10b981">—</div>
+        </div>
+        <div id="cw-meta-debeser-wrap" style="text-align:center;display:none;flex:1;min-width:70px;padding:0 8px;border-right:1px solid rgba(255,255,255,.05)">
+          <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Debería ir al</div>
+          <div id="cw-meta-debeser" style="font-size:18px;font-weight:800;color:#a78bfa">—</div>
+        </div>
+        <div id="cw-meta-xdia-wrap" style="text-align:center;display:none;flex:1;min-width:70px;padding:0 8px;border-right:1px solid rgba(255,255,255,.05)">
+          <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Meta/día</div>
+          <div id="cw-meta-xdia" style="font-size:18px;font-weight:800;color:var(--muted)">—</div>
+        </div>
+        <div id="cw-meta-xdiacierre-wrap" style="text-align:center;display:none;flex:1;min-width:70px;padding:0 8px">
+          <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Hacer/día al cierre</div>
+          <div id="cw-meta-xdiacierre" style="font-size:18px;font-weight:800;color:#f59e0b">—</div>
+        </div>
       </div>
     </div>
     <!-- Scroll container -->
@@ -15041,6 +15091,11 @@ async function efac3fbRenderResultado(rows,desde,hasta,horasExternas,yaConvertid
   /* ── Detectar jerarquía de estudios (solo en modo mes) ── */
   var _rolFB=(_jdCurrentUser&&_jdCurrentUser.rol)||'';
   var _esEjecFB=(_rolFB!=='monitor'&&_rolFB!=='Monitor'&&_rolFB!=='superadmin'&&_rolFB!=='admin'&&_rolFB!=='');
+
+  /* [FIX total ejecutivo — fase 1] marcador; el recálculo real ocurre después de
+     construir _modsEnEst (más abajo), cuando ya se sabe exactamente qué modelos
+     son sub-filas bajo un estudio GE. */
+
   /* Ejecutivo sin estudios GE → grupo sintético "Fornax Studios" */
   var _hasSyntheticFnx=(_efac3fbMode==='mes'&&_estList.length===0&&sorted.length>0&&_esEjecFB);
   var hasHierarchy=_hasSyntheticFnx||(_efac3fbMode==='mes'&&_estList.length>0
@@ -15049,13 +15104,16 @@ async function efac3fbRenderResultado(rows,desde,hasta,horasExternas,yaConvertid
   /* ── Construir HTML ── */
   /* KPIs */
   var d1=desde.split('-');var d2=hasta.split('-');
-  var periodoStr=(d1[2]+'/'+d1[1]+'/'+d1[0])+' – '+(d2[2]+'/'+d2[1]+'/'+d2[0]);
-  var kpisHtml='<div class="efac3-fb-kpis">'
-    +'<div class="efac3-fb-kpi"><div class="efac3-fb-kpi-val">'+_e3fmt(grandTotal,true)+'</div><div class="efac3-fb-kpi-lbl">Total créditos</div></div>'
-    +'<div class="efac3-fb-kpi"><div class="efac3-fb-kpi-val">'+_allModsSorted.length+'</div><div class="efac3-fb-kpi-lbl">Modelos</div></div>'
-    +'<div class="efac3-fb-kpi"><div class="efac3-fb-kpi-val">'+fechas.size+'</div><div class="efac3-fb-kpi-lbl">Días</div></div>'
-    +'<div class="efac3-fb-kpi" style="flex:1;text-align:left"><div class="efac3-fb-kpi-val" style="font-size:12px;color:var(--text)">'+periodoStr+'</div><div class="efac3-fb-kpi-lbl">Período</div></div>'
-    +'</div>';
+  var _fbMs=['','enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var _d1m=parseInt(d1[1],10),_d1d=parseInt(d1[2],10);
+  var _d2m=parseInt(d2[1],10),_d2d=parseInt(d2[2],10);
+  var periodoStr=(d1[0]===d2[0]&&d1[1]===d2[1])
+    ?'Período del '+_d1d+' al '+_d2d+' de '+_fbMs[_d1m]+' de '+d1[0]
+    :(d1[0]===d2[0])
+      ?'Del '+_d1d+' de '+_fbMs[_d1m]+' al '+_d2d+' de '+_fbMs[_d2m]+' de '+d1[0]
+      :(d1[2]+'/'+d1[1]+'/'+d1[0])+' – '+(d2[2]+'/'+d2[1]+'/'+d2[0]);
+  /* kpisHtml se construye DESPUÉS del fix de grandTotal (ver abajo, tras tbody) */
+  var kpisHtml='';
 
   /* Leyenda */
   var legendHtml='<div class="efac3-fb-legend">';
@@ -15134,6 +15192,29 @@ async function efac3fbRenderResultado(rows,desde,hasta,horasExternas,yaConvertid
       Object.keys(_fbEstToMods).forEach(function(est){
         _fbEstToMods[est].forEach(function(m){ _modsEnEst.add(m); });
       });
+
+      /* [FIX total ejecutivo — fase 2] Recalcular grandTotal y platTotals sumando
+         SOLO lo que se muestra en filas de cabecera:
+           • Estudios GE (agregados) — en _estList
+           • Modelos directos asignados (Angelo Vitale, etc.) — en _e3ModelosAsig
+         Se excluyen:
+           • Sub-modelos en _modsEnEst (su billing ya está en el total del estudio)
+           • _e3NomEjec y cualquier otra entidad de expansión no visible en la tabla */
+      if(_esEjecFB){
+        var _execGT2=0;
+        _E3FB_PLATS.forEach(function(p){ platTotals[p.key]=0; });
+        var _e3MA=(typeof _e3ModelosAsig!=='undefined'&&Array.isArray(_e3ModelosAsig)&&_e3ModelosAsig)||[];
+        Object.keys(byMod).forEach(function(nom){
+          var isGEStudio=(_estList.indexOf(nom)>=0);
+          var isDirectMod=(_e3MA.indexOf(nom)>=0&&!_modsEnEst.has(nom));
+          if(isGEStudio||isDirectMod){
+            _execGT2+=(byMod[nom].total||0);
+            _E3FB_PLATS.forEach(function(p){ platTotals[p.key]+=(byMod[nom][p.key]||0); });
+          }
+        });
+        grandTotal=_execGT2;
+        window._e3fbLastGrandTotal=grandTotal;
+      }
 
       /* ── Filas de estudios ── */
       _estList.forEach(function(est,idx){
@@ -15232,6 +15313,40 @@ async function efac3fbRenderResultado(rows,desde,hasta,horasExternas,yaConvertid
 
   tbody+='</tbody>';
 
+  /* ── KPIs: construir aquí, DESPUÉS del fix ejecutivo — Opción 3 (glassmorphism) ── */
+  (function(){
+    var _kpiTotalVal=_e3fmt(grandTotal,true);
+    /* Helper: construye un tile glassmorphism con icono y barra de color superior */
+    function _fbKpi3(ico,val,lbl,barColor,valColor,extra){
+      var s=extra?(' '+extra):'';
+      var vStyle=valColor?(' style="color:'+valColor+'"'):'';
+      return '<div class="efac3-fb-kpi"'+s+'>'
+        +'<div class="efac3-fb-kpi-topbar" style="background:linear-gradient(90deg,'+barColor+',transparent)"></div>'
+        +'<div class="efac3-fb-kpi-ico">'+ico+'</div>'
+        +'<div class="efac3-fb-kpi-val"'+vStyle+'>'+val+'</div>'
+        +'<div class="efac3-fb-kpi-lbl">'+lbl+'</div>'
+        +'</div>';
+    }
+    if(_esEjecFB&&_estList.length>0){
+      var _estConFact=_estList.filter(function(e){ return byMod[e]&&(byMod[e].total||0)>0; }).length;
+      var _e3MA2=(typeof _e3ModelosAsig!=='undefined'&&Array.isArray(_e3ModelosAsig)&&_e3ModelosAsig)||[];
+      kpisHtml='<div class="efac3-fb-kpis">'
+        +_fbKpi3('💰',_kpiTotalVal,'Total créditos','#f5a623','','')
+        +_fbKpi3('🏢',_estConFact,'Estudios','#3b82f6','#3b82f6','')
+        +(_e3MA2.length>0?_fbKpi3('👤',_e3MA2.length,'Asignados','#a855f7','#a855f7',''):'')
+        +_fbKpi3('📅',fechas.size,'Días','#64748b','','')
+        +_fbKpi3('🗓',periodoStr,'Período','#475569','','style="flex:1;min-width:160px" ')
+        +'</div>';
+    }else{
+      kpisHtml='<div class="efac3-fb-kpis">'
+        +_fbKpi3('💰',_kpiTotalVal,'Total créditos','#f5a623','','')
+        +_fbKpi3('📊',_allModsSorted.length,'Modelos','#3b82f6','','')
+        +_fbKpi3('📅',fechas.size,'Días','#64748b','','')
+        +_fbKpi3('🗓',periodoStr,'Período','#475569','','style="flex:1;min-width:160px" ')
+        +'</div>';
+    }
+  })();
+
   /* Footer */
   var footCells=activePlats.map(function(p){
     return '<td class="e3foot-total">'+(platTotals[p.key]?_e3fmt(platTotals[p.key],true):'—')+'</td>';
@@ -15284,7 +15399,9 @@ var _e3d={
   /* Charts activos */
   charts:{},
   /* Período anterior (para comparación) */
-  prevRows:[]
+  prevRows:[],
+  /* v5.79: total bruto del período (sin GUARDIA, sin USD conv.) — alineado con Facturación tab */
+  rawTotal: null
 };
 
 /* ── Switch de tabs ── */
@@ -15343,6 +15460,8 @@ function _e3dInitFiltros(){
   _e3dPoblarEntidades();
   /* v6.52: marcar el trimestre en curso con etiqueta dinámica */
   _e3dInitPeriodoSel();
+  /* Construir selector de períodos históricos */
+  _e3dBuildHistorialSel();
   /* Defaults */
   _e3d.f.ano=now.getFullYear();
   _e3d.f.mes=now.getMonth()+1;
@@ -15351,6 +15470,27 @@ function _e3dInitFiltros(){
   _e3d.f.hasta='';
   _e3d.f.ent='';
   _e3d.f.plat='';
+  /* v6.65: Auto-preseleccionar quincena actual en el Stats Report card del Dashboard.
+     _e3dLeerFiltros() prioriza efac3d-f-desde/hasta si tienen valor, por lo que
+     la primera consulta usa el período correcto (Q1 días 1–15 ó Q2 días 16–fin). */
+  (function(){
+    var _d65=now.getDate(),_y65=now.getFullYear(),_m65=now.getMonth()+1;
+    var _mm65=_m65<10?'0'+_m65:String(_m65);
+    var _ld65=new Date(_y65,_m65,0).getDate();
+    var _ldd65=_ld65<10?'0'+_ld65:String(_ld65);
+    var _eD65=document.getElementById('efac3d-f-desde');
+    var _eH65=document.getElementById('efac3d-f-hasta');
+    var _eP65=document.getElementById('efac3d-f-periodo-card');
+    if(_d65<=15){
+      if(_eD65) _eD65.value=_y65+'-'+_mm65+'-01';
+      if(_eH65) _eH65.value=_y65+'-'+_mm65+'-15';
+      if(_eP65) _eP65.value='q1';
+    } else {
+      if(_eD65) _eD65.value=_y65+'-'+_mm65+'-16';
+      if(_eH65) _eH65.value=_y65+'-'+_mm65+'-'+_ldd65;
+      if(_eP65) _eP65.value='q2';
+    }
+  })();
 }
 
 /* v6.31: lista global para el buscador de modelo */
@@ -15550,6 +15690,44 @@ function _e3dOnPeriodoCardChange(){
   var hEl=document.getElementById('efac3d-f-hasta');
   if(dEl&&desde) dEl.value=desde;
   if(hEl&&hasta) hEl.value=hasta;
+}
+
+/* ── Construir selector de períodos anteriores — exec Dashboard ── */
+function _e3dBuildHistorialSel(){
+  var sel=document.getElementById('efac3d-f-historial');
+  if(!sel) return;
+  var now=new Date(),y=now.getFullYear(),curM=now.getMonth()+1;
+  var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var html='<option value="">— Historial —</option>';
+  for(var i=1;i<=12;i++){
+    var pm=curM-i; var py=y;
+    if(pm<=0){ pm+=12; py--; }
+    var ld=new Date(py,pm,0).getDate();
+    var mm=pm<10?'0'+pm:String(pm);
+    var ldd=ld<10?'0'+ld:String(ld);
+    var q1v=py+'-'+mm+'-01|'+py+'-'+mm+'-15';
+    var q2v=py+'-'+mm+'-16|'+py+'-'+mm+'-'+ldd;
+    var mesv=py+'-'+mm+'-01|'+py+'-'+mm+'-'+ldd;
+    html+='<optgroup label="'+meses[pm-1]+' '+py+'">';
+    html+='<option value="'+q1v+'">📅 Q1 '+meses[pm-1]+' — 1 al 15</option>';
+    html+='<option value="'+q2v+'">📅 Q2 '+meses[pm-1]+' — 16 al '+ld+'</option>';
+    html+='<option value="'+mesv+'" style="color:#8b5cf6">🗓 '+meses[pm-1]+' — Mes completo</option>';
+    html+='</optgroup>';
+  }
+  sel.innerHTML=html;
+}
+/* ── Aplicar período histórico — exec Dashboard ── */
+function _e3dOnHistorialChange(){
+  var val=(document.getElementById('efac3d-f-historial')?.value||'');
+  if(!val) return;
+  var pts=val.split('|');
+  var dEl=document.getElementById('efac3d-f-desde');
+  var hEl=document.getElementById('efac3d-f-hasta');
+  if(dEl&&pts[0]) dEl.value=pts[0];
+  if(hEl&&pts[1]) hEl.value=pts[1];
+  /* Resetear el selector de período actual para no confundir */
+  var pSel=document.getElementById('efac3d-f-periodo-card'); if(pSel) pSel.value='';
+  _e3dAplicarFiltros();
 }
 
 /* ── Leer filtros del DOM → traducir período a {ano, mes, q, desde, hasta} ── */
@@ -16041,6 +16219,18 @@ async function _e3dCargar(){
         console.warn('[e3d v5.34e] ⚠️ Sin filas Lucia Brown en allRows (ya excluidas o no en período) | suma allRows: '+Math.round(_sumPost));
       }
     })();
+
+    /* v5.80 FIX UNIFICACIÓN — rawTotal ANTES de GUARDIA, DESPUÉS de dedup Q1+Q2+Q3.
+       allRows puede contener la misma fila 2–3 veces (resultado de concat Q1+Q2+Q3).
+       Deduplicar primero con la misma clave 5-campo de _e3CargarMes, luego sumar con _e3valCr
+       igual que Facturación tab → rawTotal debe coincidir exactamente con Facturación.
+       Excluye Lucia Brown (ya filtrada arriba). Usado por _e3dRender para KPI "Facturación total". */
+    var _seenRaw=new Set(), _allDedup=allRows.filter(function(r){
+      var k=(r.fecha||'')+'|'+(r.modelo_nombre||'')+'|'+(r.estudio_nombre||'')+'|'+(r.plataforma||'')+'|'+(+(r.valor||0));
+      if(_seenRaw.has(k)) return false; _seenRaw.add(k); return true;
+    });
+    _e3d.rawTotal=_allDedup.reduce(function(s,r){ return s+_e3valCr(r.plataforma||'',r.valor); },0);
+    console.warn('[e3d v5.80] rawTotal dedup+USD:',Math.round(_e3d.rawTotal),'(allRows:',allRows.length,'→ dedup:',_allDedup.length,')');
 
     /* Deduplicar y filtrar */
     var modSet=new Set(_e3ModelosAsig), estSet=new Set(_e3AllEstudios);
@@ -16534,6 +16724,7 @@ async function _e3dCargar(){
        que muestra Superadmin → Metas de Monitores → Consolidación trimestral y anual.
        Incluye conversión USD→cr de Streamate/LiveJasmin y excluye modelos atribuidos a Angrino. */
     _e3d.realAcum = null;
+    _e3d.rawTotal = null; /* v5.79: reset para que no quede valor del período anterior */
     _e3d.realMesMensual = null; /* v6.56: desglose mensual oficial para KPIs de trimestre */
     if(_esMonViewCargar && typeof _mmFetchFornaxBilling === 'function'){
       try{
@@ -16542,20 +16733,30 @@ async function _e3dCargar(){
           var _raAnio = parseInt((f.desde || rango.ini || '').split('-')[0], 10) || new Date().getFullYear();
           var _raMesI = parseInt((f.desde || rango.ini || '').split('-')[1], 10) || 1;
           var _raMesF = parseInt((f.hasta || rango.fin || '').split('-')[1], 10) || 3;
-          var _bDataRA = await _mmFetchFornaxBilling(_raAnio);
-          if(_bDataRA && _bDataRA.realMes){
-            var _raSuma = 0;
-            for(var _raM = _raMesI; _raM <= _raMesF; _raM++) _raSuma += (_bDataRA.realMes[_raM] || 0);
-            _e3d.realAcum = Math.round(_raSuma);
-            /* v6.56: almacenar desglose mensual oficial (misma fuente que realAcum) */
-            _e3d.realMesMensual = {};
-            for(var _raM2 = _raMesI; _raM2 <= _raMesF; _raM2++){
-              var _raMKey = _raAnio+'-'+((_raM2<10?'0':'')+_raM2);
-              _e3d.realMesMensual[_raMKey] = Math.round(_bDataRA.realMes[_raM2] || 0);
+          /* v6.60 FIX: solo usar _mmFetchFornaxBilling para rangos que abarcan MÁS DE UN mes
+             (trimestres T1-T4, semestres, etc.). Para quincenas y meses completos (mismo mes),
+             _e3d.realAcum se deja null → MetaCard usa c.totalFact (query Supabase con rango exacto).
+             Raíz del bug: para Q1/Q2 Agosto, _raMesI=_raMesF=8, entonces realMes[8] = mes COMPLETO
+             en lugar de solo la quincena → MetaCard mostraba el total del mes, no de la quincena. */
+          if(_raMesF > _raMesI){
+            var _bDataRA = await _mmFetchFornaxBilling(_raAnio);
+            if(_bDataRA && _bDataRA.realMes){
+              var _raSuma = 0;
+              for(var _raM = _raMesI; _raM <= _raMesF; _raM++) _raSuma += (_bDataRA.realMes[_raM] || 0);
+              _e3d.realAcum = Math.round(_raSuma);
+              /* v6.56: almacenar desglose mensual oficial (misma fuente que realAcum) */
+              _e3d.realMesMensual = {};
+              for(var _raM2 = _raMesI; _raM2 <= _raMesF; _raM2++){
+                var _raMKey = _raAnio+'-'+((_raM2<10?'0':'')+_raM2);
+                _e3d.realMesMensual[_raMKey] = Math.round(_bDataRA.realMes[_raM2] || 0);
+              }
+              console.warn('[v6.60 realAcum multi-mes] T'+Math.ceil(_raMesI/3)+'/'+_raAnio+
+                ' (meses '+_raMesI+'-'+_raMesF+') → '+_e3d.realAcum+' cr | fuente: _mmFetchFornaxBilling',
+                '| mensual:', JSON.stringify(_e3d.realMesMensual));
             }
-            console.warn('[v6.55 realAcum] T'+Math.ceil(_raMesI/3)+'/'+_raAnio+
-              ' (meses '+_raMesI+'-'+_raMesF+') → '+_e3d.realAcum+' cr | fuente: _mmFetchFornaxBilling',
-              '| mensual:', JSON.stringify(_e3d.realMesMensual));
+          } else {
+            /* Quincena o mes completo (un solo mes): _e3d.realAcum=null → usa c.totalFact */
+            console.warn('[v6.60 realAcum] Período de un mes (mes '+_raMesI+'/'+_raAnio+'): usando c.totalFact desde Supabase');
           }
         } else if(f.ano && !f.mes && !f.desde && !f.hasta){
           /* Año completo: suma los 12 meses del año */
@@ -16569,6 +16770,16 @@ async function _e3dCargar(){
           }
         }
       }catch(_raEx){ console.warn('[v6.55 realAcum] Error:', _raEx); }
+    }
+
+    /* v5.80b: rawTotal fue reseteado a null en la línea de "reset período anterior" (arriba).
+       Recomputar aquí, justo antes de _e3dRender, usando _allDedup ya calculado (var, fn-scoped).
+       Para mes completo/quincena, realAcum=null → rawTotal es el único valor que puede reemplazar
+       a c.totalFact (que excluye Ana Blackk/Jessy Blair por GUARDIA). */
+    if(typeof _allDedup !== 'undefined' && _allDedup && _allDedup.length > 0 && _e3d.rawTotal === null){
+      _e3d.rawTotal = _allDedup.reduce(function(s,r){ return s+_e3valCr(r.plataforma||'',r.valor); }, 0);
+      console.warn('[e3d v5.80b] rawTotal recomputed post-reset:', Math.round(_e3d.rawTotal),
+        '(dedup rows:', _allDedup.length, ')');
     }
 
     _e3dRender(rango, rangoPrev, f);
@@ -16821,6 +17032,46 @@ function _e3dCalc(rows, prevRows){
 ════════════════════════════ */
 function _e3dRender(rango, rangoPrev, f){
   var c=_e3dCalc(_e3d.rows, _e3d.prevRows);
+  /* ── v6.58: whitelist fix — totalFact debe coincidir con grandTotal de facturación ── */
+  /* Solo aplica a ejecutivo comercial (no monitor, no admin, no superadmin) */
+  var _e3dEsEjec=(_jdCurrentUser&&_jdCurrentUser.rol&&
+    ['monitor','Monitor','superadmin','admin',''].indexOf(_jdCurrentUser.rol)<0);
+  if(_e3dEsEjec && typeof _e3EstudiosAsig!=='undefined' && Array.isArray(_e3EstudiosAsig) && _e3EstudiosAsig.length){
+    var _e3dWL=(_e3EstudiosAsig||[]).concat(
+      (typeof _e3ModelosAsig!=='undefined'&&Array.isArray(_e3ModelosAsig))?_e3ModelosAsig:[]
+    );
+    var _e3dWLSet={}; _e3dWL.forEach(function(e){ _e3dWLSet[e]=true; });
+    /* Recalcular totalFact */
+    var _e3dWT=0;
+    _e3dWL.forEach(function(ent){ if(c.byEnt[ent]) _e3dWT+=(c.byEnt[ent].total||0); });
+    if(_e3dWT>0){ c.totalFact=_e3dWT; console.log('[e3d v6.58] totalFact whitelist=',_e3dWT); }
+    /* Recalcular byQ.q1 y byQ.q2 desde rows filtradas por whitelist */
+    var _e3dQ1=0, _e3dQ2=0;
+    _e3d.rows.forEach(function(r){
+      if(!_e3dWLSet[r.entidad]) return;
+      var _d=parseInt(r.fecha.substring(8,10));
+      if(_d<=15) _e3dQ1+=r.valor; else _e3dQ2+=r.valor;
+    });
+    c.byQ={q1:_e3dQ1, q2:_e3dQ2};
+    console.log('[e3d v6.58] byQ whitelist q1=',_e3dQ1,'q2=',_e3dQ2);
+    /* v6.59: Recalcular diasConDatos y promDiario desde whitelist */
+    var _e3dDiasWL=new Set();
+    _e3d.rows.forEach(function(r){
+      if(!_e3dWLSet[r.entidad]) return;
+      if((r.valor||0)>0) _e3dDiasWL.add(r.fecha);
+    });
+    var _e3dDiasCnt=_e3dDiasWL.size||1;
+    c.diasConDatos=_e3dDiasCnt;
+    c.promDiario=_e3dWT>0?Math.round(_e3dWT/_e3dDiasCnt):0;
+    console.log('[e3d v6.59] diasConDatos whitelist=',_e3dDiasCnt,'promDiario=',c.promDiario);
+    /* Contar estudios activos (whitelisted, no modelo, con total > 0) */
+    var _e3dEstAct=0;
+    _e3dWL.forEach(function(ent){
+      if(c.byEnt[ent] && !c.byEnt[ent].isModelo && c.byEnt[ent].total>0) _e3dEstAct++;
+    });
+    c._estActivos=_e3dEstAct;
+  }
+  /* ── fin whitelist fix ── */
   var scroll=document.getElementById('efac3d-scroll');
   if(!scroll) return;
 
@@ -16837,7 +17088,7 @@ function _e3dRender(rango, rangoPrev, f){
   if(_esMonitorView && typeof _m3dRenderMetaCard==='function'){
     /* v6.55: usar realAcum oficial (T1-T4/año) cuando esté disponible; si no, c.totalFact */
     html += _m3dRenderMetaCard(
-      (_e3d.realAcum !== null && _e3d.realAcum !== undefined) ? _e3d.realAcum : c.totalFact,
+      (_e3d.realAcum !== null && _e3d.realAcum !== undefined) ? _e3d.realAcum : ((_e3d.rawTotal != null && _e3d.rawTotal > 0) ? _e3d.rawTotal : c.totalFact),
       _e3d.metaInfo || null
     );
   }
@@ -16849,9 +17100,11 @@ function _e3dRender(rango, rangoPrev, f){
   /* v6.57: detectar modo trimestre aquí para usarlo en KPIs 1-2 también */
   var _kpi57isTrim = !!(f.desde && f.hasta && !f.mes);
 
-  /* KPI 1 — Total (v6.57: fallback a realAcum oficial si rows vacías en trimestre) */
-  var _kpi57Total = c.totalFact;
-  if(_kpi57isTrim && c.totalFact === 0 && _e3d.realAcum && _e3d.realAcum > 0){
+  /* KPI 1 — Total (v6.59: ejecutivo comercial → c.totalFact ya corregido por whitelist;
+     monitor/admin → rawTotal sin GUARDIA para evitar falsos ceros; fallback a realAcum en trimestre) */
+  var _kpi57Total = (_e3dEsEjec && c.totalFact > 0) ? c.totalFact :
+                    (_e3d.rawTotal != null && _e3d.rawTotal > 0) ? _e3d.rawTotal : c.totalFact;
+  if(_kpi57isTrim && _kpi57Total === 0 && _e3d.realAcum && _e3d.realAcum > 0){
     _kpi57Total = _e3d.realAcum;
     console.warn('[e3d v6.57 KPI1] fallback realAcum=', _e3d.realAcum);
   }
@@ -16872,9 +17125,14 @@ function _e3dRender(rango, rangoPrev, f){
     'Facturación ÷ días con datos en el período',
     _kpi57DiasLbl,'neu');
 
-  /* KPI 4 — Modelos con facturación */
-  html+=_kpi('c-pink','Modelos activos',c.modConDatos,
-    'Modelos independientes con al menos un registro en el período',null,'neu');
+  /* KPI 4 — Estudios activos (ejecutivo) / Modelos con facturación (monitor) */
+  if(_e3dEsEjec && c._estActivos!=null){
+    html+=_kpi('c-pink','Estudios activos',c._estActivos,
+      'Estudios con facturación en el período',null,'neu');
+  } else {
+    html+=_kpi('c-pink','Modelos activos',c.modConDatos,
+      'Modelos independientes con al menos un registro en el período',null,'neu');
+  }
 
   /* KPI 5 — Plataforma top */
   html+=_kpi('c-teal','Plataforma líder',c.bestPlat||'—',
@@ -17147,9 +17405,17 @@ function _e3dRender(rango, rangoPrev, f){
 
   scroll.innerHTML=html;
 
+  /* v6.67: capturar metaDia AQUÍ donde _e3d.metaInfo está garantizado por la card META ya
+     renderizada. El requestAnimationFrame puede dispararse cuando _e3d.metaInfo ya cambió
+     (segunda carga, filtro nuevo), pero el valor en el closure siempre refleja este render. */
+  var _v667MetaDia=0;
+  if(_e3d.metaInfo&&!_e3d.metaInfo.sinMeta&&_e3d.metaInfo.metaValor&&_e3d.metaInfo.totalDias){
+    _v667MetaDia=Math.round(_e3d.metaInfo.metaValor/_e3d.metaInfo.totalDias);
+  }
+
   /* Inicializar gráficas después del render */
   requestAnimationFrame(function(){
-    _e3dChartDia(c);
+    _e3dChartDia(c,_v667MetaDia);
     _e3dChartMes(c);
     _e3dChartQ(c);
     _e3dChartEnt(c);
@@ -19825,10 +20091,11 @@ function _e3dHtmlRecords(){
 /* ── Helpers de construcción HTML ── */
 function _kpi(cls,lbl,val,help,sub,deltaClass){
   var helpAttr=help?'title="'+_esc(help)+'"':'';
-  return '<div class="efac3d-kpi '+cls+'"><div class="efac3d-kpi-lbl">'+_esc(lbl)+'</div>'+
-    '<div class="efac3d-kpi-val" '+helpAttr+'>'+_esc(String(val))+'</div>'+
-    (sub?'<div class="efac3d-kpi-delta '+(deltaClass||'neu')+'">'+_esc(sub)+'</div>':'')+
-    '</div>';
+  return '<div class="efac3d-kpi '+cls+'">'
+    +'<div class="efac3d-kpi-val" '+helpAttr+'>'+_esc(String(val))+'</div>'
+    +'<div class="efac3d-kpi-lbl">'+_esc(lbl)+'</div>'
+    +(sub?'<div class="efac3d-kpi-delta '+(deltaClass||'neu')+'">'+_esc(sub)+'</div>':'')
+    +'</div>';
 }
 function _rec(icon,lbl,val,ent,per){
   return '<div class="efac3d-rec"><div class="efac3d-rec-icon">'+icon+'</div>'+
@@ -19876,20 +20143,53 @@ function _e3dChartCfg(){
   };
 }
 
-function _e3dChartDia(c){
+function _e3dChartDia(c,metaDia){
   var canvas=document.getElementById('efac3d-chart-dia');
   if(!canvas||typeof Chart==='undefined') return;
   var dias=Object.keys(c.byDia).sort();
   if(!dias.length) return;
   var labels=dias.map(function(d){ var p=d.split('-'); return p[2]+'/'+p[1]; });
   var data=dias.map(function(d){ return c.byDia[d]; });
+  /* v6.67 Opción 8: metaDia viene pre-calculado desde _e3dRender (closure seguro).
+     Fallback: si no se pasó (llamada directa), intentar calcular desde _e3d.metaInfo. */
+  if(!metaDia) metaDia=0;
+  if(!metaDia&&_e3d.metaInfo&&!_e3d.metaInfo.sinMeta&&_e3d.metaInfo.metaValor&&_e3d.metaInfo.totalDias){
+    metaDia=Math.round(_e3d.metaInfo.metaValor/_e3d.metaInfo.totalDias);
+  }
+  var barBg=data.map(function(v){
+    if(!metaDia) return 'rgba(139,92,246,.65)';
+    return v>=metaDia?'rgba(82,201,122,.70)':'rgba(224,82,82,.70)';
+  });
+  var barBd=data.map(function(v){
+    if(!metaDia) return 'rgba(139,92,246,1)';
+    return v>=metaDia?'#52C97A':'#E05252';
+  });
+  var datasets=[{
+    label:'Producción diaria',type:'bar',
+    data:data,backgroundColor:barBg,borderColor:barBd,
+    borderWidth:1.5,borderRadius:4,order:2
+  }];
+  if(metaDia>0){
+    datasets.push({
+      label:'Meta/día ('+_e3fmt(metaDia,true)+')',type:'line',
+      data:data.map(function(){ return metaDia; }),
+      borderColor:'rgba(245,158,11,.9)',borderWidth:1.5,
+      borderDash:[5,4],pointRadius:0,fill:false,tension:0,order:1
+    });
+  }
   try{
+    var cfg=_e3dChartCfg();
+    if(metaDia>0){
+      cfg.plugins=Object.assign({},cfg.plugins,{
+        legend:{display:true,labels:{color:'rgba(138,143,168,.85)',
+          font:{size:10},boxWidth:14,padding:10,
+          filter:function(item){ return item.datasetIndex>0; }}}
+      });
+    }
     _e3d.charts.dia=new Chart(canvas,{
-      type:'line',
-      data:{ labels:labels, datasets:[{ data:data, borderColor:_e3dCOLORS.gold,
-        backgroundColor:_e3dCOLORS.goldA, fill:true, tension:.35, pointRadius:3,
-        pointBackgroundColor:_e3dCOLORS.gold, borderWidth:2 }] },
-      options:_e3dChartCfg()
+      type:'bar',
+      data:{labels:labels,datasets:datasets},
+      options:cfg
     });
   }catch(e){ console.error(e); }
 }
@@ -42175,6 +42475,7 @@ var _reBuscar     = '';
 var _reAnioOpts      = [2026, 2027];
 var _reFiltroTrimestre = 0;      // 0=vigente automático · 1–4=fijo
 var _reVerHistorico    = false;  // true=año completo RE histórico
+var _reUltimaActualizacion = null; // timestamp de la última carga exitosa
 
 /* ── Tabla Bono de Racha oficial ── posición 1-indexed ─────────── */
 // R1=$0 · R2=$8 · R3=$12 · R4=$18 · R5=$22 · R6=$25 → reinicia ciclo en R1
@@ -42397,9 +42698,27 @@ async function _reCargar() {
     // 1. TODOS los modelos Fornax (activos e inactivos, con y sin RE).
     //    SPEC: incluir modelos históricos; NUNCA filtrar por estado ni por RE > 0.
     //    El estado se usa SOLO para ordenar (activos primero), no para excluir.
-    var resM = await _supaDb.from('modelos')
-      .select('id,nombre,reto_estrella,estado,monitor')
-      .eq('estudio_id', 'mt8elsuqllk');
+    // v5.81 — Fetch REST directo (igual que producción v6.21) → bypass caché cliente Supabase
+    //         Garantiza que reto_estrella siempre venga fresco de la BD.
+    var _RE_MOD_URL = 'https://mqafwoaghwhnvorerjha.supabase.co/rest/v1/modelos'
+      + '?select=id,nombre,reto_estrella,estado,monitor'
+      + '&estudio_id=eq.mt8elsuqllk';
+    var _RE_HDR = {
+      'apikey':        'sb_publishable_aFR9VQR68If1Nc-ZO0cI6w_FgDLLsNP',
+      'Authorization': 'Bearer sb_publishable_aFR9VQR68If1Nc-ZO0cI6w_FgDLLsNP',
+      'Accept':        'application/json'
+    };
+    var _reMTimeout = new Promise(function(_, rej) {
+      setTimeout(function() { rej(new Error('[RE] timeout modelos')); }, 15000);
+    });
+    var _reMFetch = fetch(_RE_MOD_URL, { headers: _RE_HDR })
+      .then(function(r) { return r.json().then(function(d) { return r.ok ? { data: d, error: null } : { data: null, error: d }; }); })
+      .catch(function(e) { return { data: null, error: { message: e.message } }; });
+    var resM = await Promise.race([_reMFetch, _reMTimeout]).catch(function(e) {
+      console.warn('[RE v5.81] Fetch modelos falló, fallback a _supaDb:', e.message);
+      return _supaDb.from('modelos').select('id,nombre,reto_estrella,estado,monitor').eq('estudio_id','mt8elsuqllk');
+    });
+    console.log('[RE v5.81] Modelos frescos desde REST:', (resM.data||[]).length, 'modelos');
     _reModelos = ((resM.data) || []).filter(function(m) {
       var nom = (m.nombre || '').toLowerCase().trim();
       if (nom === 'avrilpool') return false; // perfil de colaboración — no modelo individual
@@ -42438,9 +42757,11 @@ async function _reCargar() {
 
       // Normaliza cadena: minúsculas, sin tildes, sin caracteres especiales
       // Permite capturar variantes como "Melaño" == "Melano", "O'Brien" == "obrien"
+      // Los guiones bajos se convierten a espacio para unificar "Sofia_Blaze" == "Sofia Blaze"
       function _reNorm(s) {
         return (s || '').toLowerCase().trim()
           .normalize('NFD').replace(/[̀-ͯ]/g, '')
+          .replace(/_/g, ' ')
           .replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ');
       }
 
@@ -42510,6 +42831,16 @@ async function _reCargar() {
           })
           .catch(function(e) { return { data: null, error: { message: e.message } }; });
       };
+      /* Deduplicación entre Q1 (estudio_nombre) y Q2 (modelo_id) — evita doble conteo */
+      var _reSeenDK = new Set();
+      function _reAcumFilaDedup(row) {
+        var dk = (row.fecha||'')+'|'+(row.modelo_id||'')+'|'+(row.modelo_nombre||'')+'|'+(row.plataforma||'')+'|'+(+(row.valor||0));
+        if (_reSeenDK.has(dk)) return;
+        _reSeenDK.add(dk);
+        _reAcumFila(row);
+      }
+
+      /* Q1 — por estudio_nombre ilike '%fornax%' */
       var _rePg = 1000, _reOff = 0, _reMore = true, _reTotalRows = 0;
       var _MAX_RE_PAGES = 50;
       var _rePagCount   = 0;
@@ -42524,12 +42855,77 @@ async function _reCargar() {
         });
         var _reR = await Promise.race([_reFetchDir(_reUrl), _reTimeout25]);
         var _reBatch = (_reR && _reR.data) ? _reR.data : [];
-        _reBatch.forEach(_reAcumFila);
+        _reBatch.forEach(_reAcumFilaDedup);
         _reTotalRows += _reBatch.length;
         _reMore = (_reBatch.length === _rePg);
         _reOff  += _rePg;
         _rePagCount++;
       }
+
+      /* Q2 v6.60 — por modelo_id IN (todos los IDs Fornax) ─────────────────────────────
+         Captura registros con estudio_nombre NULL o diferente pero modelo_id correcto.
+         Sin esta consulta, producción de modelos Fornax registrada sin estudio_nombre
+         no es visible en el RE → gap vs total de facturación (ej. sep 2026: −58.235 cr).
+         La deduplicación _reSeenDK evita doble conteo con registros ya traídos por Q1. */
+      var _reQ2Ids = _reModelos.map(function(m) { return m.id; }).filter(Boolean);
+      if (_reQ2Ids.length) {
+        var _reQ2Off = 0, _reQ2More = true, _reQ2Pags = 0;
+        while (_reQ2More && _reQ2Pags < 20) {
+          var _reQ2Url = _RE_SUPA_URL
+            + '?select=fecha,modelo_id,modelo_nombre,valor,plataforma'
+            + '&fecha=gte.' + desde + '&fecha=lte.' + hasta
+            + '&modelo_id=in.(' + _reQ2Ids.join(',') + ')'
+            + '&limit=' + _rePg + '&offset=' + _reQ2Off;
+          var _reQ2Timeout = new Promise(function(_, rej) {
+            setTimeout(function() { rej(new Error('[RE Q2] timeout')); }, 25000);
+          });
+          var _reQ2R = await Promise.race([_reFetchDir(_reQ2Url), _reQ2Timeout]);
+          var _reQ2Batch = (_reQ2R && _reQ2R.data) ? _reQ2R.data : [];
+          var _reQ2Prev = _reSeenDK.size;
+          _reQ2Batch.forEach(_reAcumFilaDedup);
+          var _reQ2New = _reSeenDK.size - _reQ2Prev;
+          console.log('[RE Q2 v6.60] pág', _reQ2Pags, '| filas BD:', _reQ2Batch.length, '| nuevas (sin estudio_nombre):', _reQ2New);
+          _reTotalRows += _reQ2New;
+          _reQ2More = (_reQ2Batch.length === _rePg);
+          _reQ2Off  += _rePg;
+          _reQ2Pags++;
+        }
+      }
+      /* Q3 v6.61 — por _e3NomEjec (nombre comercial del monitor en facturacion_diaria)
+         El motor HFAR del dashboard detecta que algunos registros de modelos Fornax usan
+         el nombre del monitor como estudio_nombre en lugar de 'Fornax Studios'. Sin este
+         query, esa producción aparece en Facturación pero no en el RE (gap ej. sep 2026:
+         ~58.235 cr bajo 'Fabio Robledo' o similar). _reSeenDK evita doble conteo con Q1/Q2.
+         Requiere que la sección Facturación haya cargado antes (_e3NomEjec != null). */
+      if (typeof _e3NomEjec === 'string' && _e3NomEjec) {
+        var _reQ3Off = 0, _reQ3More = true, _reQ3Pags = 0, _reQ3TotalNew = 0;
+        while (_reQ3More && _reQ3Pags < 20) {
+          var _reQ3Url = _RE_SUPA_URL
+            + '?select=fecha,modelo_id,modelo_nombre,valor,plataforma'
+            + '&fecha=gte.' + desde + '&fecha=lte.' + hasta
+            + '&estudio_nombre=eq.' + encodeURIComponent(_e3NomEjec)
+            + '&limit=' + _rePg + '&offset=' + _reQ3Off;
+          var _reQ3Timeout = new Promise(function(_, rej) {
+            setTimeout(function() { rej(new Error('[RE Q3] timeout')); }, 25000);
+          });
+          var _reQ3R = await Promise.race([_reFetchDir(_reQ3Url), _reQ3Timeout]);
+          var _reQ3Batch = (_reQ3R && _reQ3R.data) ? _reQ3R.data : [];
+          var _reQ3Prev = _reSeenDK.size;
+          _reQ3Batch.forEach(_reAcumFilaDedup);
+          var _reQ3New = _reSeenDK.size - _reQ3Prev;
+          _reQ3TotalNew += _reQ3New;
+          console.log('[RE Q3 v6.61] pág', _reQ3Pags,
+            '| estudio:', _e3NomEjec,
+            '| filas BD:', _reQ3Batch.length,
+            '| nuevas (sin duplicado):', _reQ3New);
+          _reTotalRows += _reQ3New;
+          _reQ3More = (_reQ3Batch.length === _rePg);
+          _reQ3Off  += _rePg;
+          _reQ3Pags++;
+        }
+        console.log('[RE Q3 v6.61] Total filas nuevas de "' + _e3NomEjec + '":', _reQ3TotalNew);
+      }
+
       // Debug: visible en consola del navegador para validación
       console.log('[RE] Registros Fornax cargados:', _reTotalRows, '| Período:', desde, '→', hasta);
       console.log('[RE] Producción por modelo:',
@@ -42622,7 +43018,11 @@ async function _reCargar() {
       _reRachas[mod.id] = historial;
     });
 
-    // 7. Renderizar
+    // 7. Registrar timestamp de última actualización exitosa
+    _reUltimaActualizacion = new Date();
+    console.log('[RE v5.81] Datos actualizados:', _reUltimaActualizacion.toLocaleTimeString('es-CO'));
+
+    // 8. Renderizar
     _reRender();
   } finally {
     _reCargando = false;
@@ -42830,7 +43230,7 @@ function _reRender() {
 
   // Auditoría + Refresh
   h += '<button onclick="_reAuditarMatriz()" style="background:#252830;border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11.5px;font-weight:700;white-space:nowrap">🔍 Auditoría</button>';
-  h += '<button onclick="_reRefresh()" style="background:#252830;border:1px solid rgba(124,58,237,.4);color:#a78bfa;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11.5px;font-weight:700;white-space:nowrap">⟳</button>';
+  h += '<button onclick="_reRefresh()" title="Recargar datos frescos desde Supabase" style="background:#252830;border:1px solid rgba(124,58,237,.4);color:#a78bfa;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11.5px;font-weight:700;white-space:nowrap">⟳ Actualizar</button>';
   h += '</div>';
 
   // Panel de auditoría
@@ -42841,6 +43241,10 @@ function _reRender() {
   h += '<span>Período actual: <code style="background:rgba(255,255,255,.06);padding:1px 5px;border-radius:3px;color:#a78bfa">'+periodoActual+'</code></span>';
   h += '<span>Viendo: <strong style="color:#c4b5fd">'+(_reVerHistorico?'Año completo '+_reFiltroAnio:_tLabelActual)+'</strong></span>';
   h += '<span>Bono de racha desde <strong style="color:#94a3b8">jul 2026</strong></span>';
+  if (_reUltimaActualizacion) {
+    var _reHora = _reUltimaActualizacion.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+    h += '<span style="margin-left:auto;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:4px;padding:2px 7px;color:#4ade80;font-weight:700">✓ Actualizado '+_reHora+'</span>';
+  }
   h += '</div>';
 
   // ── SCOREBOARD MATRICIAL ──────────────────────────────────────────────────
@@ -44226,7 +44630,9 @@ async function _fornaxBillingFetch(ini, fin, modelosList, opts) {
       if (r.error) { console.warn('[_fornaxBillingFetch B]', r.error.message); break; }
       (r.data || []).forEach(function(row) {
         var nom = (row.modelo_nombre || '').trim();
-        if (!nom || modSet.has(nom)) rows.push(row);
+        var estB = (row.estudio_nombre || '').toLowerCase();
+        // v5.78-fix: aceptar toda fila que tenga estudio_nombre con 'fornax' (Path B ya filtra por ilike '%fornax%')
+        if (!nom || modSet.has(nom) || estB.indexOf('fornax') >= 0) rows.push(row);
       });
       if ((r.data || []).length < PAGE) break;
       off += PAGE;
@@ -44321,13 +44727,32 @@ window.addEventListener('load', async () => {
       var hace24m = new Date();
       hace24m.setMonth(hace24m.getMonth() - 24);
       var fStr = hace24m.toISOString().slice(0,10);
-      _facLoad = _origFrom('facturacion_diaria')
-        .select('*').gte('fecha', fStr).order('fecha',{ascending:false}).limit(5000)
-        .then(function(r){
+      // v5.78-paginado: descarga TODOS los registros en páginas de 1000
+      // para evitar el límite de filas por consulta de Supabase/PostgREST
+      var FAC_PAGE = 1000;
+      var allRows  = [];
+      var off = 0;
+      function _fetchPage(){
+        return _origFrom('facturacion_diaria')
+          .select('*').gte('fecha', fStr).order('fecha',{ascending:true})
+          .range(off, off + FAC_PAGE - 1)
+          .then(function(r){
+            if(r.error || !r.data || r.data.length === 0) return allRows;
+            allRows = allRows.concat(r.data);
+            if(r.data.length < FAC_PAGE) return allRows; // última página
+            off += FAC_PAGE;
+            return _fetchPage(); // siguiente página
+          });
+      }
+      _facLoad = _fetchPage()
+        .then(function(rows){
           _facLoad = null;
-          if(!r.error && r.data){ _facData = r.data; _facTs = Date.now(); }
-          return _facData || [];
-        }).catch(function(){ _facLoad = null; return _facData || []; });
+          _facData = rows;
+          _facTs = Date.now();
+          console.log('[FAC-CACHE v5.78] Cargados ' + _facData.length + ' registros totales via paginación');
+          return _facData;
+        })
+        .catch(function(){ _facLoad = null; return _facData || []; });
       return _facLoad;
     }
 
@@ -99144,16 +99569,16 @@ async function adminRepararRegistrosLegacy(){
       <div class="cw-stats-card-body">
         <div class="cw-stats-card-dates">
           <div class="cw-stats-card-fld">
-            <label>Starting Date</label>
+            <label>Fecha Inicio</label>
             <input type="date" class="cw-stats-card-inp" id="m3d-f-desde">
           </div>
           <div class="cw-stats-card-fld">
-            <label>Ending Date</label>
+            <label>Fecha Fin</label>
             <input type="date" class="cw-stats-card-inp" id="m3d-f-hasta">
           </div>
         </div>
         <div class="cw-stats-card-fld">
-          <label>Current Pay Period</label>
+          <label>Período Actual</label>
           <select class="cw-stats-card-sel" id="m3d-f-periodo-card" onchange="_m3dOnPeriodoCardChange()">
             <option value="">— Seleccionar —</option>
             <optgroup label="── Corto plazo">
@@ -99176,6 +99601,12 @@ async function adminRepararRegistrosLegacy(){
               <option value="anio_ant">📆 Año anterior</option>
               <option value="ult90">⏱ Últ. 90 días</option>
             </optgroup>
+          </select>
+        </div>
+        <div class="cw-stats-card-fld">
+          <label>Períodos Anteriores</label>
+          <select class="cw-stats-card-sel" id="m3d-f-historial" onchange="_m3dOnHistorialChange()">
+            <!-- Poblado por _m3dBuildHistorialSel() -->
           </select>
         </div>
         <div class="cw-stats-card-fld">
@@ -99245,56 +99676,31 @@ async function adminRepararRegistrosLegacy(){
   <div id="mfac3-tip"></div>
 
   <!-- ══ PANEL: CÓMO VAMOS — oculto en perfil de monitor ══ -->
-  <div id="mfac3-panel-comovamos" class="efac3-panel" style="display:none;flex-direction:row;align-items:stretch;min-height:0">
+  <div id="mfac3-panel-comovamos" class="efac3-panel" style="display:none;flex-direction:column;align-items:stretch;min-height:0">
 
     <!-- ── Stats Report Card ── -->
-    <div class="cw-stats-card" id="cw-fbar">
-      <div class="cw-stats-card-hdr">📅 Stats Report</div>
+    <div class="cw-stats-card cw-stats-card-bar" id="cw-fbar">
       <div class="cw-stats-card-body">
         <div class="cw-stats-card-dates">
           <div class="cw-stats-card-fld">
-            <label>Starting Date</label>
+            <label>Fecha Inicio</label>
             <input type="date" class="cw-stats-card-inp" id="cw-f-desde">
           </div>
           <div class="cw-stats-card-fld">
-            <label>Ending Date</label>
+            <label>Fecha Fin</label>
             <input type="date" class="cw-stats-card-inp" id="cw-f-hasta">
           </div>
         </div>
         <div class="cw-stats-card-fld">
-          <label>Pay Period (Quincena)</label>
-          <select class="cw-stats-card-sel" id="cw-quincena-sel" onchange="_cwOnQuincenaSel()">
+          <label>Período Actual</label>
+          <select class="cw-stats-card-sel" id="cw-quincena-sel" onchange="_cwOnQuincenaSel(this);_cwCargar()">
             <!-- Poblado por _cwBuildQuincenaSel() -->
           </select>
         </div>
         <div class="cw-stats-card-fld">
-          <label>Current Pay Period</label>
-          <select class="cw-stats-card-sel" id="cw-periodo-rapido" onchange="_cwOnPeriodoRapido()">
-            <option value="">— Seleccionar —</option>
-            <optgroup label="── Hoy / Semana">
-              <option value="hoy">📅 Hoy</option>
-              <option value="ayer">📅 Ayer</option>
-              <option value="semana">📅 Esta semana</option>
-              <option value="semana_ant">📅 Semana anterior</option>
-            </optgroup>
-            <optgroup label="── Quincena">
-              <option value="q_actual">📆 Quincena actual</option>
-              <option value="q_anterior">📆 Quincena anterior</option>
-            </optgroup>
-            <optgroup label="── Mensual">
-              <option value="mes_actual">🗓 Este mes</option>
-              <option value="mes_ant">🗓 Mes anterior</option>
-            </optgroup>
-            <optgroup label="── Trimestres">
-              <option value="t1">📊 T1 — Ene·Mar</option>
-              <option value="t2">📊 T2 — Abr·Jun</option>
-              <option value="t3">📊 T3 — Jul·Sep</option>
-              <option value="t4">📊 T4 — Oct·Dic</option>
-            </optgroup>
-            <optgroup label="── Anual">
-              <option value="anio">📆 Este año</option>
-              <option value="anio_ant">📆 Año anterior</option>
-            </optgroup>
+          <label>Períodos Anteriores</label>
+          <select class="cw-stats-card-sel" id="cw-periodo-rapido" onchange="_cwOnPeriodoRapido(this);_cwCargar()">
+            <!-- Poblado por _cwBuildHistorialSel() -->
           </select>
         </div>
         <div class="cw-stats-card-fld">
@@ -99332,30 +99738,62 @@ async function adminRepararRegistrosLegacy(){
         </div>
       </div>
 
-      <!-- Banner meta comercial vigente -->
-      <div id="cw-meta-banner" style="display:none;margin-bottom:14px;background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(99,102,241,.06));border:1px solid rgba(16,185,129,.25);border-radius:12px;padding:14px 18px">
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-          <div style="flex:1;min-width:200px">
-            <div style="font-size:11px;color:#10b981;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">🎯 Meta Comercial Quincenal — Fornax Studios</div>
+      <!-- Banner meta comercial — Op.3: Barra de progreso (v6.69) -->
+      <div id="cw-meta-banner" style="display:none;margin-bottom:14px;background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 20px">
+        <!-- Fila 1: título + % grande -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <div style="min-width:180px">
+            <div id="cw-meta-titulo" style="font-size:11px;color:#10b981;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">🎯 Meta Comercial Quincenal — Fornax Studios</div>
             <div id="cw-meta-detalle" style="font-size:13px;color:var(--muted)">—</div>
           </div>
-          <div style="display:flex;gap:20px;flex-wrap:wrap">
-            <div style="text-align:center">
-              <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Meta</div>
-              <div id="cw-meta-valor" style="font-size:18px;font-weight:800;color:#10b981">—</div>
-            </div>
-            <div style="text-align:center">
-              <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Avance esperado hoy</div>
-              <div id="cw-meta-avance" style="font-size:18px;font-weight:800;color:#a78bfa">—</div>
-            </div>
-            <div style="text-align:center">
-              <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Facturado período</div>
-              <div id="cw-meta-real" style="font-size:18px;font-weight:800;color:#f59e0b">—</div>
-            </div>
-            <div style="text-align:center">
-              <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Cumplimiento</div>
-              <div id="cw-meta-pct" style="font-size:18px;font-weight:800;color:#e8e8e8">—</div>
-            </div>
+          <div style="text-align:right">
+            <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Cumplimiento</div>
+            <div id="cw-meta-pct" style="font-size:30px;font-weight:900;color:#e8e8e8;line-height:1">—</div>
+          </div>
+        </div>
+        <!-- Fila 2: barra de progreso -->
+        <div style="position:relative;height:8px;background:rgba(255,255,255,.06);border-radius:99px;margin-bottom:4px;overflow:visible">
+          <div id="cw-meta-bar-fill" style="height:100%;border-radius:99px;background:linear-gradient(90deg,#f59e0b,#f97316);width:0%;max-width:100%;transition:width .4s ease"></div>
+          <div id="cw-meta-bar-marker" style="position:absolute;top:-4px;bottom:-4px;width:2px;background:rgba(167,139,250,.7);border-radius:2px;display:none"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:#6b7592;margin-bottom:12px">
+          <span>0%</span>
+          <span id="cw-meta-bar-esp-wrap" style="display:none;color:rgba(167,139,250,.75)">Esperado: <span id="cw-meta-bar-esp-val">—</span></span>
+          <span>100%</span>
+        </div>
+        <!-- Fila 3: KPIs -->
+        <div style="display:flex;gap:0;flex-wrap:wrap;align-items:flex-end">
+          <div style="text-align:center;flex:1;min-width:70px;padding:0 8px;border-right:1px solid rgba(255,255,255,.05)">
+            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Meta</div>
+            <div id="cw-meta-valor" style="font-size:18px;font-weight:800;color:#10b981">—</div>
+          </div>
+          <div id="cw-meta-avance-wrap" style="text-align:center;flex:1;min-width:70px;padding:0 8px;border-right:1px solid rgba(255,255,255,.05)">
+            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Avance esperado</div>
+            <div id="cw-meta-avance" style="font-size:18px;font-weight:800;color:#a78bfa">—</div>
+          </div>
+          <div style="text-align:center;flex:1;min-width:70px;padding:0 8px;border-right:1px solid rgba(255,255,255,.05)">
+            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Real acumulado</div>
+            <div id="cw-meta-real" style="font-size:18px;font-weight:800;color:#f59e0b">—</div>
+          </div>
+          <div id="cw-meta-faltante-wrap" style="text-align:center;display:none;flex:1;min-width:70px;padding:0 8px;border-right:1px solid rgba(255,255,255,.05)">
+            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Faltante</div>
+            <div id="cw-meta-faltante" style="font-size:18px;font-weight:800;color:#ef4444">—</div>
+          </div>
+          <div id="cw-meta-excedente-wrap" style="text-align:center;display:none;flex:1;min-width:70px;padding:0 8px;border-right:1px solid rgba(255,255,255,.05)">
+            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Excedente</div>
+            <div id="cw-meta-excedente" style="font-size:18px;font-weight:800;color:#10b981">—</div>
+          </div>
+          <div id="cw-meta-debeser-wrap" style="text-align:center;display:none;flex:1;min-width:70px;padding:0 8px;border-right:1px solid rgba(255,255,255,.05)">
+            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Debería ir al</div>
+            <div id="cw-meta-debeser" style="font-size:18px;font-weight:800;color:#a78bfa">—</div>
+          </div>
+          <div id="cw-meta-xdia-wrap" style="text-align:center;display:none;flex:1;min-width:70px;padding:0 8px;border-right:1px solid rgba(255,255,255,.05)">
+            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Meta/día</div>
+            <div id="cw-meta-xdia" style="font-size:18px;font-weight:800;color:var(--muted)">—</div>
+          </div>
+          <div id="cw-meta-xdiacierre-wrap" style="text-align:center;display:none;flex:1;min-width:70px;padding:0 8px">
+            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px">Hacer/día al cierre</div>
+            <div id="cw-meta-xdiacierre" style="font-size:18px;font-weight:800;color:#f59e0b">—</div>
           </div>
         </div>
       </div>
@@ -99963,6 +100401,8 @@ function _m3dPoblarFiltros(){
   }
   /* Modelos activos de Fornax — carga asíncrona desde Supabase */
   _m3dCargarModelosFornaxActivos();
+  /* Construir selector de períodos históricos */
+  _m3dBuildHistorialSel();
 }
 
 /* ── CARGA MODELOS ACTIVOS DE FORNAX ──────────────────────────────────────
@@ -100123,6 +100563,48 @@ function _m3dOnPeriodoCardChange(){
   var sa=document.getElementById('m3d-f-ano'); if(sa) sa.value=curAno;
   var sm=document.getElementById('m3d-f-mes'); if(sm) sm.value='0';
   var sq=document.getElementById('m3d-f-q');   if(sq) sq.value='0';
+}
+
+/* ── Construir selector de períodos anteriores — Monitor Dashboard ── */
+function _m3dBuildHistorialSel(){
+  var sel=document.getElementById('m3d-f-historial');
+  if(!sel) return;
+  var now=new Date(),y=now.getFullYear(),curM=now.getMonth()+1;
+  var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var html='<option value="">— Historial —</option>';
+  for(var i=1;i<=12;i++){
+    var pm=curM-i; var py=y;
+    if(pm<=0){ pm+=12; py--; }
+    var ld=new Date(py,pm,0).getDate();
+    var mm=pm<10?'0'+pm:String(pm);
+    var ldd=ld<10?'0'+ld:String(ld);
+    var q1v=py+'-'+mm+'-01|'+py+'-'+mm+'-15';
+    var q2v=py+'-'+mm+'-16|'+py+'-'+mm+'-'+ldd;
+    var mesv=py+'-'+mm+'-01|'+py+'-'+mm+'-'+ldd;
+    html+='<optgroup label="'+meses[pm-1]+' '+py+'">';
+    html+='<option value="'+q1v+'">📅 Q1 '+meses[pm-1]+' — 1 al 15</option>';
+    html+='<option value="'+q2v+'">📅 Q2 '+meses[pm-1]+' — 16 al '+ld+'</option>';
+    html+='<option value="'+mesv+'" style="color:#8b5cf6">🗓 '+meses[pm-1]+' — Mes completo</option>';
+    html+='</optgroup>';
+  }
+  sel.innerHTML=html;
+}
+/* ── Aplicar período histórico — Monitor Dashboard ── */
+function _m3dOnHistorialChange(){
+  var val=(document.getElementById('m3d-f-historial')?.value||'');
+  if(!val) return;
+  var pts=val.split('|');
+  var dEl=document.getElementById('m3d-f-desde');
+  var hEl=document.getElementById('m3d-f-hasta');
+  if(dEl&&pts[0]) dEl.value=pts[0];
+  if(hEl&&pts[1]) hEl.value=pts[1];
+  /* Resetear año/mes/q para que _m3dRangoFechas use los date pickers */
+  var sa=document.getElementById('m3d-f-ano'); if(sa) sa.value=new Date().getFullYear();
+  var sm=document.getElementById('m3d-f-mes'); if(sm) sm.value='0';
+  var sq=document.getElementById('m3d-f-q');   if(sq) sq.value='0';
+  /* Resetear el selector de período actual */
+  var pSel=document.getElementById('m3d-f-periodo-card'); if(pSel) pSel.value='';
+  _m3dAplicarFiltros();
 }
 
 function _m3dLeerFiltros(){
@@ -100870,7 +101352,7 @@ async function _m3dCargar(){
        verificar si el campo datos_extra.estudioId (camelCase) está configurado.
        Esto confirma si el criterio B de exclusión puede excluirla. */
     try{
-      var _diagRes=await _supaDb.from('modelos').select('nombre,estudio_id,empresa,datos_extra')
+      var _diagRes=await _supaDb.from('modelos').select('nombre,estudio_id,datos_extra') /* empresa vive en datos_extra */
         .or('nombre.ilike.%ana maria guzman%');
       var _diagArr=_diagRes.data||[];
       if(_diagArr.length){
@@ -101377,18 +101859,46 @@ function _cwComision(cr){
 function _cwInit(){
   var now=new Date();
   _cwState.ano=now.getFullYear();
-  /* Construir selector de quincenas */
+  /* Construir selector de quincenas (mes actual) */
   _cwBuildQuincenaSel();
+  /* Construir selector de historial (meses anteriores) */
+  _cwBuildHistorialSel();
   /* Solo en primera carga: copiar la quincena pre-seleccionada a los date pickers y consultar */
   if(!_cwState.loaded){
     var qSel=document.getElementById('cw-quincena-sel');
     if(qSel&&qSel.value){
       var parts=qSel.value.split('|');
-      var dEl=document.getElementById('cw-f-desde'); var hEl=document.getElementById('cw-f-hasta');
-      if(dEl&&parts[0]) dEl.value=parts[0];
-      if(hEl&&parts[1]) hEl.value=parts[1];
+      /* v6.62: actualizar AMBOS paneles (exec + monitor) */
+      document.querySelectorAll('[id="cw-f-desde"]').forEach(function(e){ if(parts[0]) e.value=parts[0]; });
+      document.querySelectorAll('[id="cw-f-hasta"]').forEach(function(e){ if(parts[1]) e.value=parts[1]; });
     }
     _cwCargar();
+    /* v6.64: Auto-consultar Stats Report con el período del selector de quincena.
+       cw-quincena-sel ya tiene Q1/Q2 correcto (día≤15 → Q1, día>15 → Q2).
+       Se leen las fechas directamente y se preselecciona el período visualmente. */
+    var _cwQ2=document.getElementById('cw-quincena-sel');
+    var _cwQv=_cwQ2?_cwQ2.value:'';
+    var _cwDiaHoy=now.getDate();
+    var _cwPCurr=_cwDiaHoy<=15?'q1':'q2';
+    if(_cwQv){
+      var _cwQp=_cwQv.split('|');
+      /* Exec Stats Report — setear dates + preseleccionar período en el selector */
+      var _cwDE=document.getElementById('efac3d-f-desde');
+      var _cwHE=document.getElementById('efac3d-f-hasta');
+      var _cwPCSel=document.getElementById('efac3d-f-periodo-card');
+      if(_cwDE&&_cwQp[0]) _cwDE.value=_cwQp[0];
+      if(_cwHE&&_cwQp[1]) _cwHE.value=_cwQp[1];
+      if(_cwPCSel) _cwPCSel.value=_cwPCurr;
+      if(typeof _e3dAplicarFiltros==='function') _e3dAplicarFiltros();
+      /* Monitor Stats Report */
+      var _cwMDE=document.getElementById('m3d-f-desde');
+      var _cwMHE=document.getElementById('m3d-f-hasta');
+      var _cwMPCSel=document.getElementById('m3d-f-periodo-card');
+      if(_cwMDE&&_cwQp[0]) _cwMDE.value=_cwQp[0];
+      if(_cwMHE&&_cwQp[1]) _cwMHE.value=_cwQp[1];
+      if(_cwMPCSel) _cwMPCSel.value=_cwPCurr;
+      setTimeout(function(){ if(typeof _m3dAplicarFiltros==='function') _m3dAplicarFiltros(); },300);
+    }
   }
 }
 
@@ -101405,31 +101915,68 @@ function _cwSetQ(q){
   });
 }
 
-/* ── Construir selector de quincenas del año ── */
+/* ── Construir selector de quincenas — solo mes actual ── */
+/* v6.62: usa querySelectorAll para poblar AMBOS paneles (exec + monitor) */
 function _cwBuildQuincenaSel(){
-  var sel=document.getElementById('cw-quincena-sel');
-  if(!sel) return;
   var now=new Date(),y=now.getFullYear(),curM=now.getMonth()+1,curD=now.getDate();
   var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var ld=new Date(y,curM,0).getDate();
+  var mm=curM<10?'0'+curM:String(curM);
+  var ldd=ld<10?'0'+ld:String(ld);
+  var q1v=y+'-'+mm+'-01|'+y+'-'+mm+'-15';
+  var q2v=y+'-'+mm+'-16|'+y+'-'+mm+'-'+ldd;
+  var mesv=y+'-'+mm+'-01|'+y+'-'+mm+'-'+ldd;
+  var s1=curD<=15?' selected':'';
+  var s2=curD>15?' selected':'';
   var html='<option value="">— Período personalizado —</option>';
-  for(var m=1;m<=12;m++){
-    var ld=new Date(y,m,0).getDate();
-    var mm=m<10?'0'+m:String(m);
-    var ldd=ld<10?'0'+ld:String(ld);
-    var q1v=y+'-'+mm+'-01|'+y+'-'+mm+'-15';
-    var q2v=y+'-'+mm+'-16|'+y+'-'+mm+'-'+ldd;
-    var s1=(m===curM&&curD<=15)?' selected':'';
-    var s2=(m===curM&&curD>15)?' selected':'';
-    html+='<option value="'+q1v+'"'+s1+'>Q1 '+meses[m-1]+' — 1 al 15</option>';
-    html+='<option value="'+q2v+'"'+s2+'>Q2 '+meses[m-1]+' — 16 al '+ld+'</option>';
-  }
-  sel.innerHTML=html;
+  html+='<option value="'+q1v+'"'+s1+'>📅 Q1 '+meses[curM-1]+' — 1 al 15</option>';
+  html+='<option value="'+q2v+'"'+s2+'>📅 Q2 '+meses[curM-1]+' — 16 al '+ld+'</option>';
+  html+='<option value="'+mesv+'" style="color:#8b5cf6">🗓 '+meses[curM-1]+' — Mes completo</option>';
+  document.querySelectorAll('[id="cw-quincena-sel"]').forEach(function(sel){ sel.innerHTML=html; });
 }
 
-/* ── Aplicar período rápido a los date pickers ── */
-function _cwOnPeriodoRapido(){
-  var val=(document.getElementById('cw-periodo-rapido')?.value||'');
+/* ── Construir selector de períodos anteriores (historial) ── */
+/* v6.62: usa querySelectorAll para poblar AMBOS paneles (exec + monitor) */
+function _cwBuildHistorialSel(){
+  var now=new Date(),y=now.getFullYear(),curM=now.getMonth()+1;
+  var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var html='<option value="">— Historial —</option>';
+  /* Construir últimos 12 meses anteriores al actual */
+  for(var i=1;i<=12;i++){
+    var pm=curM-i; var py=y;
+    if(pm<=0){ pm+=12; py--; }
+    var ld=new Date(py,pm,0).getDate();
+    var mm=pm<10?'0'+pm:String(pm);
+    var ldd=ld<10?'0'+ld:String(ld);
+    var q1v=py+'-'+mm+'-01|'+py+'-'+mm+'-15';
+    var q2v=py+'-'+mm+'-16|'+py+'-'+mm+'-'+ldd;
+    var mesv=py+'-'+mm+'-01|'+py+'-'+mm+'-'+ldd;
+    html+='<optgroup label="'+meses[pm-1]+' '+py+'">';
+    html+='<option value="'+q1v+'">📅 Q1 '+meses[pm-1]+' — 1 al 15</option>';
+    html+='<option value="'+q2v+'">📅 Q2 '+meses[pm-1]+' — 16 al '+ld+'</option>';
+    html+='<option value="'+mesv+'" style="color:#8b5cf6">🗓 '+meses[pm-1]+' — Mes completo</option>';
+    html+='</optgroup>';
+  }
+  document.querySelectorAll('[id="cw-periodo-rapido"]').forEach(function(sel){ sel.innerHTML=html; });
+}
+
+/* ── Aplicar período rápido / histórico a los date pickers ── */
+/* v6.62: acepta selEl (this del dropdown cambiado), usa querySelectorAll para
+   actualizar AMBOS paneles (exec + monitor) y limpia _fbfCache para forzar
+   nueva consulta a Supabase al cambiar de período. */
+function _cwOnPeriodoRapido(selEl){
+  var val=((selEl||document.getElementById('cw-periodo-rapido'))?.value||'');
   if(!val) return;
+  /* Limpiar caché de facturación para que el nuevo período consulte Supabase fresco */
+  _fbfCache={};
+  /* Si el valor tiene formato fecha|fecha (historial), aplicarlo directamente */
+  if(val.indexOf('|')>=0){
+    var pts=val.split('|');
+    document.querySelectorAll('[id="cw-f-desde"]').forEach(function(e){ if(pts[0]) e.value=pts[0]; });
+    document.querySelectorAll('[id="cw-f-hasta"]').forEach(function(e){ if(pts[1]) e.value=pts[1]; });
+    document.querySelectorAll('[id="cw-quincena-sel"]').forEach(function(e){ e.value=''; });
+    return;
+  }
   var now=new Date(),y=now.getFullYear(),m=now.getMonth()+1,d=now.getDate();
   function fmt(dt){ return dt.toISOString().split('T')[0]; }
   var desde,hasta;
@@ -101461,21 +102008,23 @@ function _cwOnPeriodoRapido(){
   else if(val==='anio'){ desde=y+'-01-01'; hasta=y+'-12-31'; }
   else if(val==='anio_ant'){ desde=(y-1)+'-01-01'; hasta=(y-1)+'-12-31'; }
   if(desde&&hasta){
-    var dEl=document.getElementById('cw-f-desde'); var hEl=document.getElementById('cw-f-hasta');
-    if(dEl) dEl.value=desde; if(hEl) hEl.value=hasta;
-    var qSel=document.getElementById('cw-quincena-sel'); if(qSel) qSel.value='';
+    document.querySelectorAll('[id="cw-f-desde"]').forEach(function(e){ e.value=desde; });
+    document.querySelectorAll('[id="cw-f-hasta"]').forEach(function(e){ e.value=hasta; });
+    document.querySelectorAll('[id="cw-quincena-sel"]').forEach(function(e){ e.value=''; });
   }
 }
 
 /* ── Aplicar quincena específica a los date pickers ── */
-function _cwOnQuincenaSel(){
-  var sel=document.getElementById('cw-quincena-sel');
+/* v6.62: acepta selEl (this), usa querySelectorAll para actualizar AMBOS paneles y limpia caché */
+function _cwOnQuincenaSel(selEl){
+  var sel=(selEl||document.getElementById('cw-quincena-sel'));
   if(!sel||!sel.value) return;
   var parts=sel.value.split('|');
   if(parts.length!==2) return;
-  var dEl=document.getElementById('cw-f-desde'); var hEl=document.getElementById('cw-f-hasta');
-  if(dEl) dEl.value=parts[0]; if(hEl) hEl.value=parts[1];
-  var prSel=document.getElementById('cw-periodo-rapido'); if(prSel) prSel.value='';
+  _fbfCache={}; /* Limpiar caché de facturación al cambiar quincena */
+  document.querySelectorAll('[id="cw-f-desde"]').forEach(function(e){ e.value=parts[0]; });
+  document.querySelectorAll('[id="cw-f-hasta"]').forEach(function(e){ e.value=parts[1]; });
+  document.querySelectorAll('[id="cw-periodo-rapido"]').forEach(function(e){ e.value=''; });
 }
 
 /* ── Rango de fechas según pickers de fecha ── */
@@ -101543,7 +102092,7 @@ async function _cwCargar(){
     /* 1 — Modelos de Fornax Studios desde Supabase (v6.60: caché 5 min) */
     var _cwModCache=window._cwModCache;
     if(!_cwModCache||!_cwModCache.data||(Date.now()-_cwModCache.ts>_fbfCacheTTL)){
-      var rMods = await _supaDb.from('modelos').select('id,nombre,empresa,estado,monitor,reto_estrella,retoEstrella,estudio_id,nivel,datos_extra');
+      var rMods = await _supaDb.from('modelos').select('id,nombre,estado,monitor,reto_estrella,estudio_id,nivel,datos_extra'); /* empresa y retoEstrella viven en datos_extra, no son columnas top-level */
       if(rMods.error) throw rMods.error;
       window._cwModCache={ ts:Date.now(), data:rMods.data };
     }
@@ -101638,6 +102187,20 @@ async function _cwCargar(){
       rango.ini, rango.fin, modelosNombres,
       { select: 'fecha,modelo_nombre,estudio_nombre,plataforma,valor,modelo_id' }
     );
+    console.log('[CW] Billing fetch: ' + allRows.length + ' filas | período: ' + rango.ini + ' → ' + rango.fin + ' | modelos consultados: ' + modelosNombres.length);
+
+    /* v6.62: Diagnóstico automático cuando no hay datos — consulta Supabase directamente */
+    if(allRows.length===0){
+      try{
+        var _diagTotal=await _supaDb.from('facturacion_diaria').select('id',{count:'exact',head:true}).gte('fecha',rango.ini).lte('fecha',rango.fin).gt('valor',0);
+        var _diagFornax=await _supaDb.from('facturacion_diaria').select('id',{count:'exact',head:true}).ilike('estudio_nombre','%fornax%').gte('fecha',rango.ini).lte('fecha',rango.fin).gt('valor',0);
+        console.warn('[CW DIAG] Registros totales en período (sin filtro): '+(_diagTotal.count||0)+' | Error: '+(_diagTotal.error?.message||'ninguno'));
+        console.warn('[CW DIAG] Registros Fornax en período (estudio_nombre ilike %fornax%): '+(_diagFornax.count||0)+' | Error: '+(_diagFornax.error?.message||'ninguno'));
+        if((_diagFornax.count||0)===0){
+          console.warn('[CW DIAG] ⚠️ No hay datos en facturacion_diaria para Fornax en '+rango.ini+' → '+rango.fin+'. Verifica que estén cargados en Supabase.');
+        }
+      }catch(_eDiag){ console.warn('[CW DIAG] Error en diagnóstico:',_eDiag); }
+    }
 
     /* 5 — Deduplicar (misma clave fecha|modelo|plataforma|valor) */
     var seenKeys = new Set();
@@ -101648,6 +102211,21 @@ async function _cwCargar(){
       seenKeys.add(key);
       rowsLimpios.push(r);
     });
+
+    /* v5.80: Excluir Lucia Brown >= 2026-09-01 — alineado con _e3CargarMes y _e3dCargarMes.
+       Root cause del descuadre: Facturación excluye su billing post-traslado, Cómo Vamos no lo hacía. */
+    (function(){
+      var _cwLB_desde='2026-09-01';
+      var _antes=rowsLimpios.length;
+      rowsLimpios=rowsLimpios.filter(function(r){
+        var _f=(r.fecha||''); if(!_f||_f<_cwLB_desde) return true;
+        var _m=(r.modelo_nombre||'').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+        return !(_m.indexOf('lucia')!==-1&&_m.indexOf('brow')!==-1);
+      });
+      if(rowsLimpios.length!==_antes){
+        console.warn('[CW v5.80] Lucia Brown excluida (>= 2026-09-01):',(_antes-rowsLimpios.length),'filas');
+      }
+    })();
 
     /* 6 — Agregar producción por modelo y por día */
     var byModelo = {};   // nombre → {total, byPlat, byDia}
@@ -101691,7 +102269,7 @@ async function _cwCargar(){
           }
         }
       }
-      var val = _e3valCr(r.plataforma||'', r.valor); // Streamate: USD ÷ 0.05
+      var val = _e3valCr(r.plataforma||'', r.valor); // v5.80: restaurado _e3valCr — idéntico a Facturación tab (Streamate/LiveJasmin USD→créditos)
       if(!byModelo[nom]) byModelo[nom]={total:0, byPlat:{}, byDia:{}};
       byModelo[nom].total += val;
       byModelo[nom].byPlat[r.plataforma||'']=(byModelo[nom].byPlat[r.plataforma||'']||0)+val;
@@ -101756,7 +102334,7 @@ async function _cwCargar(){
   }
 }
 
-/* ── Render gráfica de barras diaria ── */
+/* ── Render gráfica de barras diaria — v6.68 Opción 8: Barras + Meta Line ── */
 function _cwRenderChart(byDia, rango){
   var secChart = document.getElementById('cw-sec-chart');
   var canvas   = document.getElementById('cw-chart-canvas');
@@ -101770,30 +102348,106 @@ function _cwRenderChart(byDia, rango){
   if(!dias.length){ secChart.style.display='none'; return; }
   secChart.style.display='';
 
+  /* Título dinámico según período */
+  var titEl = secChart.querySelector('.efac3d-sec-tit');
+  if(titEl && rango && rango.ini && rango.fin){
+    var d1=parseInt(rango.ini.slice(8,10)), d2=parseInt(rango.fin.slice(8,10));
+    var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    var mesNom=meses[parseInt(rango.ini.slice(5,7))-1]||'';
+    var label = d1===1&&d2===15 ? '📅 Q1 '+mesNom+' — Producción Diaria (1–15)'
+              : d1===16         ? '📅 Q2 '+mesNom+' — Producción Diaria (16–'+d2+')'
+              :                   '🗓 '+mesNom+' — Producción Diaria ('+d1+'–'+d2+')';
+    titEl.textContent = label;
+  }
+
   var totalPeriodo = dias.reduce(function(s,d){ return s+(byDia[d]||0); },0);
   if(totEl) totEl.textContent='Total: '+_cwFmt(totalPeriodo)+' cr.';
 
   if(typeof Chart==='undefined') return;
+
+  /* v6.68 — Calcular meta/día para coloreo condicional */
+  var metaDia = 0;
+  try{
+    /* Fuente 1: _e3d.metaInfo (global, cargado por el sistema de monitores) */
+    if(typeof _e3d!=='undefined' && _e3d && _e3d.metaInfo && !_e3d.metaInfo.sinMeta &&
+       _e3d.metaInfo.metaValor && _e3d.metaInfo.totalDias){
+      metaDia = Math.round(_e3d.metaInfo.metaValor / _e3d.metaInfo.totalDias);
+    }
+    /* Fuente 2: meta fija 700.000 cr / días del rango (fallback cuando metaInfo no está disponible) */
+    if(!metaDia && rango && rango.ini && rango.fin){
+      var totalDiasRango = Math.round((new Date(rango.fin) - new Date(rango.ini)) / 86400000) + 1;
+      if(totalDiasRango > 0) metaDia = Math.round(700000 / totalDiasRango);
+    }
+  }catch(_){}
+
+  /* Datos de barras */
+  var data = dias.map(function(d){ return Math.round(byDia[d]||0); });
+
+  /* Colores condicionales: verde ≥ meta/día · rojo < meta/día · morado si sin meta */
+  var barBg = data.map(function(v){
+    if(!metaDia) return 'rgba(99,102,241,.55)';
+    return v >= metaDia ? 'rgba(82,201,122,.70)' : 'rgba(224,82,82,.70)';
+  });
+  var barBd = data.map(function(v){
+    if(!metaDia) return '#6366f1';
+    return v >= metaDia ? '#52C97A' : '#E05252';
+  });
+
+  /* Datasets: barras + línea de meta */
+  var datasets = [{
+    label: 'Producción diaria',
+    type: 'bar',
+    data: data,
+    backgroundColor: barBg,
+    borderColor: barBd,
+    borderWidth: 1.5,
+    borderRadius: 4,
+    order: 2
+  }];
+  if(metaDia > 0){
+    datasets.push({
+      label: 'Meta/día (' + _cwFmt(metaDia) + ' cr.)',
+      type: 'line',
+      data: data.map(function(){ return metaDia; }),
+      borderColor: 'rgba(245,158,11,.9)',
+      borderWidth: 1.5,
+      borderDash: [5,4],
+      pointRadius: 0,
+      fill: false,
+      tension: 0,
+      order: 1
+    });
+  }
+
   try{
     _cwState.chart = new Chart(canvas,{
-      type:'bar',
+      type: 'bar',
       data:{
         labels: dias.map(function(d){ return 'D'+parseInt(d.slice(8,10)); }),
-        datasets:[{
-          label:'Créditos',
-          data: dias.map(function(d){ return Math.round(byDia[d]||0); }),
-          backgroundColor:'rgba(99,102,241,.55)',
-          borderColor:'#6366f1',
-          borderWidth:1,
-          borderRadius:4
-        }]
+        datasets: datasets
       },
       options:{
-        responsive:true,
-        maintainAspectRatio:false,
+        responsive: true,
+        maintainAspectRatio: false,
         plugins:{
-          legend:{display:false},
-          tooltip:{callbacks:{label:function(ctx2){ return ' '+_cwFmt(ctx2.raw)+' cr.'; }}}
+          legend:{
+            display: metaDia > 0,
+            labels:{
+              color: 'rgba(138,143,168,.85)',
+              font: {size:10},
+              boxWidth: 14,
+              padding: 10,
+              filter: function(item){ return item.datasetIndex > 0; }
+            }
+          },
+          tooltip:{
+            callbacks:{
+              label: function(ctx2){
+                if(ctx2.datasetIndex===0) return ' '+_cwFmt(ctx2.raw)+' cr.';
+                return ' Meta/día: '+_cwFmt(ctx2.raw)+' cr.';
+              }
+            }
+          }
         },
         scales:{
           x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#9ba3bf',font:{size:9}}},
@@ -101938,47 +102592,215 @@ function _cwRenderCards(grupos, byModelo){
     html+='</div>'; /* /card monitor */
   });
 
-  cardsEl.innerHTML=html;
+  if(!html){
+    cardsEl.innerHTML='<div class="efac3d-loading-msg" style="text-align:center;padding:48px 24px;color:#64748b">'
+      +'📭 No se encontró facturación registrada para este período.<br>'
+      +'<span style="font-size:12px;opacity:.7">Verifica que existan registros en el historial para las fechas seleccionadas.</span>'
+      +'</div>';
+  } else {
+    cardsEl.innerHTML=html;
+  }
 }
 
 /* ── Banner meta quincenal Fornax en Cómo Vamos ─────────────── */
+/* ── v6.61: Banner meta — soporta períodos históricos (Q1/Q2/mes completo)
+   USA querySelectorAll para actualizar AMBOS paneles (exec + monitor)
+   ya que ambos comparten los mismos IDs pero solo uno es visible a la vez. ── */
 async function _cwRenderMetaBanner(byModelo) {
-  var banner  = document.getElementById('cw-meta-banner');
-  if (!banner) return;
-
-  // Calcular total real facturado en el período (suma de todos los modelos en byModelo)
-  var totalReal = 0;
-  Object.values(byModelo||{}).forEach(function(m){ totalReal += (m.total||0); });
-
-  // Obtener meta quincenal vigente de Fornax
-  var meta = null;
-  try { meta = await mcGetMeta('fornax', 'quincenal'); } catch(e) {}
-
-  if (!meta) {
-    // Si no hay meta, ocultar banner
-    banner.style.display = 'none';
-    return;
+  /* Helper: actualiza TODOS los elementos con ese id */
+  function _cwAllTxt(id, txt){
+    document.querySelectorAll('[id="'+id+'"]').forEach(function(e){ e.textContent=txt; });
+  }
+  function _cwAllStyle(id, prop, val){
+    document.querySelectorAll('[id="'+id+'"]').forEach(function(e){ e.style[prop]=val; });
+  }
+  function _cwAllDisplay(id, show){
+    document.querySelectorAll('[id="'+id+'"]').forEach(function(e){ e.style.display=show?'':'none'; });
   }
 
-  // Renderizar valores
-  var elMeta   = document.getElementById('cw-meta-valor');
-  var elAvance = document.getElementById('cw-meta-avance');
-  var elReal   = document.getElementById('cw-meta-real');
-  var elPct    = document.getElementById('cw-meta-pct');
-  var elDet    = document.getElementById('cw-meta-detalle');
+  /* Total real facturado en el período seleccionado */
+  var totalReal = 0;
+  Object.values(byModelo||{}).forEach(function(m){ totalReal += (m.total||0); });
+  totalReal = Math.round(totalReal);
 
-  var pctCump  = meta.valor > 0 ? Math.round(totalReal / meta.valor * 100) : 0;
-  var colorPct = pctCump >= 100 ? '#10b981' : pctCump >= (meta.pct_dias_transcurridos||0) ? '#f59e0b' : '#ef4444';
+  /* Parsear rango actual de los date pickers */
+  var rango = _cwRango();
+  var iniParts = (rango.ini||'').split('-');
+  var finParts = (rango.fin||'').split('-');
+  if(iniParts.length < 3 || finParts.length < 3){ _cwAllDisplay('cw-meta-banner',false); return; }
+  var iniYear = parseInt(iniParts[0],10), iniMes = parseInt(iniParts[1],10), iniDia = parseInt(iniParts[2],10);
+  var finYear = parseInt(finParts[0],10), finMes = parseInt(finParts[1],10), finDia = parseInt(finParts[2],10);
+  var lastDayOfMes = new Date(finYear, finMes, 0).getDate();
 
-  if (elMeta)   elMeta.textContent   = _mcFmt(meta.valor) + ' cr.';
-  if (elAvance) elAvance.textContent = _mcFmt(Math.round(meta.avance_esperado_lineal||0)) + ' cr.';
-  if (elReal)   { elReal.textContent = _mcFmt(Math.round(totalReal)) + ' cr.'; elReal.style.color = colorPct; }
-  if (elPct)    { elPct.textContent  = pctCump + '%'; elPct.style.color = colorPct; }
-  if (elDet)    elDet.textContent    = meta.periodo_codigo + ' · ' + _mcFmtFecha(meta.fecha_inicio) + ' → ' + _mcFmtFecha(meta.fecha_fin)
-    + ' · Días transcurridos: ' + (meta.dias_transcurridos||0) + '/' + (meta.dias_total||0)
-    + ' (' + (meta.pct_dias_transcurridos||0) + '%)';
+  /* Detectar tipo de período */
+  var isSameMes = (iniYear === finYear && iniMes === finMes);
+  var isQ1      = isSameMes && iniDia === 1  && finDia === 15;
+  var isQ2      = isSameMes && iniDia === 16 && finDia === lastDayOfMes;
+  var isFullMes = isSameMes && iniDia === 1  && finDia === lastDayOfMes;
 
-  banner.style.display = 'block';
+  /* ¿El período ya terminó? */
+  var today = new Date(); today.setHours(0,0,0,0);
+  var finDateObj = new Date(finYear, finMes-1, finDia);
+  var esHistorico = finDateObj < today;
+
+  var MESES_N = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                 'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var metaValor    = 0;
+  var periodoLabel = '';
+  var metaDetalle  = '';
+  var avanceLineal = 0;
+  var avancePct    = 0;
+  var totalDias    = 0;
+  var diasRestantes= 0;
+
+  if (isSameMes) {
+    /* ── Consulta directa a mon_meta_equipo para el año/mes exacto ── */
+    var mmRow = null;
+    try {
+      var mmRes = await _supaDb.from('mon_meta_equipo')
+        .select('meta_mensual,meta_q1,meta_q2')
+        .eq('empresa', 'fornax')
+        .eq('anio',    iniYear)
+        .eq('mes',     iniMes)
+        .eq('vigente', true)
+        .maybeSingle();
+      if (!mmRes.error) mmRow = mmRes.data;
+    } catch(e) { console.warn('[CW meta banner]', e); }
+
+    if (!mmRow) {
+      console.warn('[CW meta banner] Sin registro en mon_meta_equipo para', iniYear, iniMes);
+      _cwAllDisplay('cw-meta-banner', false);
+      return;
+    }
+
+    var metaMensual = Math.round(parseFloat(mmRow.meta_mensual || 0));
+    var metaQ1      = Math.round(parseFloat(mmRow.meta_q1 != null ? mmRow.meta_q1 : Math.floor(metaMensual/2)));
+    var metaQ2      = Math.round(parseFloat(mmRow.meta_q2 != null ? mmRow.meta_q2 : (metaMensual - Math.floor(metaMensual/2))));
+    var mm_str      = (iniMes < 10 ? '0' : '') + iniMes;
+    var mes_lbl     = MESES_N[iniMes] + ' ' + iniYear;
+
+    var mes_lower = MESES_N[iniMes].toLowerCase();
+    if (isQ1) {
+      metaValor    = metaQ1;
+      periodoLabel = 'Período del 1 al 15 de ' + mes_lower + ' de ' + iniYear;
+      metaDetalle  = '';
+    } else if (isQ2) {
+      metaValor    = metaQ2;
+      periodoLabel = 'Período del 16 al ' + lastDayOfMes + ' de ' + mes_lower + ' de ' + iniYear;
+      metaDetalle  = '';
+    } else if (isFullMes) {
+      metaValor    = metaMensual || (metaQ1 + metaQ2);
+      periodoLabel = '🗓 Mes completo · ' + MESES_N[iniMes] + ' ' + iniYear;
+      metaDetalle  = 'Q1: ' + _cwFmt(metaQ1) + ' cr. + Q2: ' + _cwFmt(metaQ2) + ' cr.';
+    } else {
+      metaValor    = 0;
+      periodoLabel = rango.ini + ' → ' + rango.fin;
+      metaDetalle  = 'Rango personalizado';
+    }
+    metaValor = Math.round(metaValor);
+
+    /* Avance esperado lineal (solo para período en curso) */
+    if (!esHistorico && metaValor > 0) {
+      var dIni2 = new Date(iniYear, iniMes-1, iniDia);
+      var dFin2 = new Date(finYear, finMes-1, finDia);
+      var ayer2 = new Date(today); ayer2.setDate(ayer2.getDate()-1);
+      var totalDias2 = Math.round((dFin2-dIni2)/86400000)+1;
+      var diasTransc2;
+      if(ayer2 > dFin2)       diasTransc2 = totalDias2;
+      else if(ayer2 < dIni2)  diasTransc2 = 0;
+      else diasTransc2 = Math.round((ayer2-dIni2)/86400000)+1;
+      avancePct    = totalDias2 > 0 ? diasTransc2/totalDias2*100 : 0;
+      avanceLineal = Math.round(metaValor * avancePct / 100);
+      /* v6.68 — exponer totalDias y diasRestantes para KPIs adicionales */
+      totalDias = totalDias2;
+      var todayMs = today.getTime(), finMs = dFin2.getTime();
+      diasRestantes = todayMs <= finMs ? Math.round((finMs - todayMs)/86400000) + 1 : 0;
+    } else if (esHistorico && metaValor > 0) {
+      var _dIniH = new Date(iniYear, iniMes-1, iniDia);
+      var _dFinH = new Date(finYear, finMes-1, finDia);
+      totalDias = Math.round((_dFinH - _dIniH)/86400000) + 1;
+      diasRestantes = 0;
+    }
+    console.log('[CW meta banner v6.61]', periodoLabel, '→ meta:', metaValor, '| real:', totalReal, '| histórico:', esHistorico);
+
+  } else {
+    /* Rango multi-mes: usar mcGetMeta */
+    var metaObj = null;
+    try { metaObj = await mcGetMeta('fornax', 'quincenal'); } catch(e) {}
+    if (!metaObj) { _cwAllDisplay('cw-meta-banner', false); return; }
+    metaValor    = Math.round(metaObj.valor || 0);
+    periodoLabel = metaObj.periodo_codigo || '';
+    metaDetalle  = (_mcFmtFecha ? _mcFmtFecha(metaObj.fecha_inicio) : metaObj.fecha_inicio)
+      + ' → ' + (_mcFmtFecha ? _mcFmtFecha(metaObj.fecha_fin) : metaObj.fecha_fin)
+      + ' · Días: ' + (metaObj.dias_transcurridos||0) + '/' + (metaObj.dias_total||0);
+    avanceLineal = Math.round(metaObj.avance_esperado_lineal || 0);
+    avancePct    = metaObj.pct_dias_transcurridos || 0;
+    esHistorico  = false;
+  }
+
+  if (metaValor <= 0 && isSameMes) { _cwAllDisplay('cw-meta-banner', false); return; }
+
+  /* Calcular indicadores */
+  var pctCump  = metaValor > 0 ? Math.round(totalReal / metaValor * 100) : 0;
+  var faltante = Math.max(0, Math.round(metaValor - totalReal));
+  var excedente= Math.max(0, Math.round(totalReal - metaValor));
+  var colorPct = pctCump >= 100 ? '#10b981' : pctCump >= Math.round(avancePct) ? '#f59e0b' : '#ef4444';
+
+  /* ── Actualizar TODOS los elementos (exec + monitor) ── */
+  _cwAllTxt('cw-meta-titulo', esHistorico
+    ? '📊 Resultado Histórico — Fornax Studios'
+    : '🎯 Meta Comercial Quincenal — Fornax Studios');
+  _cwAllTxt('cw-meta-detalle', periodoLabel + (metaDetalle ? ' · ' + metaDetalle : ''));
+  _cwAllTxt('cw-meta-valor',   metaValor > 0 ? _cwFmt(metaValor) + ' cr.' : '—');
+  _cwAllTxt('cw-meta-real',    _cwFmt(totalReal) + ' cr.');
+  _cwAllStyle('cw-meta-real',  'color', colorPct);
+  _cwAllTxt('cw-meta-pct',     pctCump + ' %');
+  _cwAllStyle('cw-meta-pct',   'color', colorPct);
+
+  /* Avance esperado: solo para período activo en curso */
+  var mostrarAvance = !esHistorico && avanceLineal > 0;
+  _cwAllDisplay('cw-meta-avance-wrap', mostrarAvance);
+  _cwAllTxt('cw-meta-avance',  _cwFmt(avanceLineal) + ' cr.');
+
+  /* Faltante / Excedente */
+  _cwAllDisplay('cw-meta-faltante-wrap', metaValor > 0 && faltante > 0);
+  _cwAllTxt('cw-meta-faltante', _cwFmt(faltante) + ' cr.');
+  _cwAllDisplay('cw-meta-excedente-wrap', metaValor > 0 && excedente > 0);
+  _cwAllTxt('cw-meta-excedente', '+' + _cwFmt(excedente) + ' cr.');
+
+  /* v6.68 — KPIs adicionales: Debería ir al · Meta/día · Hacer/día al cierre */
+  /* 1. Debería ir al (% esperado) */
+  var mostrarDebeser = !esHistorico && avancePct > 0;
+  _cwAllDisplay('cw-meta-debeser-wrap', mostrarDebeser);
+  _cwAllTxt('cw-meta-debeser', Math.round(avancePct) + ' %');
+
+  /* 2. Meta/día */
+  var metaXDia = totalDias > 0 ? Math.round(metaValor / totalDias) : 0;
+  _cwAllDisplay('cw-meta-xdia-wrap', metaValor > 0 && metaXDia > 0);
+  _cwAllTxt('cw-meta-xdia', _cwFmt(metaXDia) + ' cr.');
+
+  /* 3. Hacer por día hasta el cierre */
+  var xDiaCierre = (!esHistorico && diasRestantes > 0 && faltante > 0)
+    ? Math.round(faltante / diasRestantes) : 0;
+  _cwAllDisplay('cw-meta-xdiacierre-wrap', xDiaCierre > 0);
+  _cwAllTxt('cw-meta-xdiacierre', _cwFmt(xDiaCierre) + ' cr.');
+
+  /* v6.69 Op3 — Barra de progreso dinámica */
+  var _barPct   = metaValor > 0 ? Math.min(Math.round(totalReal/metaValor*100), 100) : 0;
+  var _barColor = pctCump >= 100 ? 'linear-gradient(90deg,#10b981,#059669)'
+                : pctCump >= Math.round(avancePct) ? 'linear-gradient(90deg,#f59e0b,#f97316)'
+                : 'linear-gradient(90deg,#ef4444,#dc2626)';
+  _cwAllStyle('cw-meta-bar-fill', 'width',      _barPct + '%');
+  _cwAllStyle('cw-meta-bar-fill', 'background', _barColor);
+  var _espPct   = metaValor > 0 ? Math.min(Math.round(avanceLineal/metaValor*100), 100) : 0;
+  var _showMark = !esHistorico && _espPct > 0 && _espPct < 100;
+  _cwAllStyle('cw-meta-bar-marker',   'left',    _espPct + '%');
+  _cwAllStyle('cw-meta-bar-marker',   'display', _showMark ? 'block' : 'none');
+  _cwAllStyle('cw-meta-bar-esp-wrap', 'display', _showMark ? '' : 'none');
+  _cwAllTxt('cw-meta-bar-esp-val', Math.round(avancePct) + ' %');
+
+  /* Mostrar banner en ambos paneles */
+  _cwAllDisplay('cw-meta-banner', true);
 }
 
 /* ── Exportar CSV del informe Cómo Vamos ── */

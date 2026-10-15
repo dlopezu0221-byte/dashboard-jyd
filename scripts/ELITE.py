@@ -42,9 +42,20 @@ except ImportError:
 # ══════════════════════════════════════════════════════════════════════════════
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-GE_XLSX = os.path.join(SCRIPT_DIR, '..', 'Centro de Gestión Estratégica Grupo J&D',
+
+# ── RAIZ DEL PROYECTO ────────────────────────────────────────────────────────
+# Los scripts pueden vivir en la raiz del repo o en una subcarpeta (scripts/).
+# REPO_DIR apunta siempre a la carpeta que contiene grupo579780/, para que las
+# rutas de datos no dependan de donde este guardado este archivo.
+def _find_repo_dir(_d):
+    for _c in (_d, os.path.dirname(_d)):
+        if os.path.isdir(os.path.join(_c, 'grupo579780')):
+            return _c
+    return _d
+REPO_DIR = _find_repo_dir(SCRIPT_DIR)
+GE_XLSX = os.path.join(REPO_DIR, '..', 'Centro de Gestión Estratégica Grupo J&D',
                        'COMO VAMOS GRUPO', 'Cómo vamos Grupo Empresarial.xlsx')
-OUT_DIR = os.path.join(SCRIPT_DIR, 'elite')
+OUT_DIR = os.path.join(REPO_DIR, 'elite')
 MODELOS_PY = os.path.join(SCRIPT_DIR, 'MODELOS.py')      # de aquí se leen los PIN
 
 STR_FACTOR = 20.0        # Streamate: USD → créditos (÷ 0,05).  Igual que MODELOS.py
@@ -790,7 +801,7 @@ def guardar(compiten, todos, titulos, res, lunes, pins, solo_datos=False):
     with open(ruta_json, 'w', encoding='utf-8') as fh:
         json.dump({'resumen': res, 'titulos': titulos, 'ranking': compiten},
                   fh, ensure_ascii=False, indent=1)
-    print(f"  · {os.path.relpath(ruta_json, SCRIPT_DIR)}")
+    print(f"  · {os.path.relpath(ruta_json, REPO_DIR)}")
 
     ruta_csv = os.path.join(OUT_DIR, 'historial.csv')
     nuevo = not os.path.exists(ruta_csv)
@@ -819,7 +830,7 @@ def guardar(compiten, todos, titulos, res, lunes, pins, solo_datos=False):
         wr.writeheader()
         for r in sorted(prev + [fila], key=lambda r: r['semana']):
             wr.writerow({k: r.get(k, '') for k in cols})
-    print(f"  · {os.path.relpath(ruta_csv, SCRIPT_DIR)}")
+    print(f"  · {os.path.relpath(ruta_csv, REPO_DIR)}")
 
     if solo_datos:
         return

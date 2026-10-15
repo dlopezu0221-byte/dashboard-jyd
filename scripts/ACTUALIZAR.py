@@ -24,15 +24,26 @@ import urllib.request, urllib.error, urllib.parse
 from datetime import datetime, date, timedelta
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-CV_PATH = os.path.join(SCRIPT_DIR, '..', 'Centro de Gestión Estratégica Grupo J&D',
+
+# ── RAIZ DEL PROYECTO ────────────────────────────────────────────────────────
+# Los scripts pueden vivir en la raiz del repo o en una subcarpeta (scripts/).
+# REPO_DIR apunta siempre a la carpeta que contiene grupo579780/, para que las
+# rutas de datos no dependan de donde este guardado este archivo.
+def _find_repo_dir(_d):
+    for _c in (_d, os.path.dirname(_d)):
+        if os.path.isdir(os.path.join(_c, 'grupo579780')):
+            return _c
+    return _d
+REPO_DIR = _find_repo_dir(SCRIPT_DIR)
+CV_PATH = os.path.join(REPO_DIR, '..', 'Centro de Gestión Estratégica Grupo J&D',
                        'COMO VAMOS GRUPO', 'Cómo vamos Grupo Empresarial.xlsx')
 DASHBOARDS = {
-    'grupo':  os.path.join(SCRIPT_DIR, 'grupo579780',                     'index.html'),
-    'erika':  os.path.join(SCRIPT_DIR, 'erika868527',                     'index.html'),
-    'fabio':  os.path.join(SCRIPT_DIR, 'fabio473013',                     'index.html'),
-    'fornax': os.path.join(SCRIPT_DIR, 'estudios', 'fornax-studios345929', 'index.html'),
-    'gold':   os.path.join(SCRIPT_DIR, 'estudios', 'goldonline078939',     'index.html'),
-    'cyv':    os.path.join(SCRIPT_DIR, 'estudios', 'cyv-studios837357',    'index.html'),
+    'grupo':  os.path.join(REPO_DIR, 'grupo579780',                     'index.html'),
+    'erika':  os.path.join(REPO_DIR, 'erika868527',                     'index.html'),
+    'fabio':  os.path.join(REPO_DIR, 'fabio473013',                     'index.html'),
+    'fornax': os.path.join(REPO_DIR, 'estudios', 'fornax-studios345929', 'index.html'),
+    'gold':   os.path.join(REPO_DIR, 'estudios', 'goldonline078939',     'index.html'),
+    'cyv':    os.path.join(REPO_DIR, 'estudios', 'cyv-studios837357',    'index.html'),
 }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -46,7 +57,7 @@ SUPA_SERVICE_KEY = ''  # NO poner la clave aquí — usar secrets_local.py
 # Intenta leer la clave desde un archivo local (no se sube a GitHub)
 try:
     import importlib.util as _ilu, os as _os
-    _sp = _os.path.join(SCRIPT_DIR, 'secrets_local.py')
+    _sp = _os.path.join(REPO_DIR, 'secrets_local.py')
     if _os.path.exists(_sp):
         _spec = _ilu.spec_from_file_location('secrets_local', _sp)
         _sm   = _ilu.module_from_spec(_spec)
@@ -1059,7 +1070,7 @@ def main():
     def save_dash(path, html):
         with open(path, 'w', encoding='utf-8') as f:
             f.write(html)
-        print(f"  💾 {os.path.relpath(path, SCRIPT_DIR)}")
+        print(f"  💾 {os.path.relpath(path, REPO_DIR)}")
 
     # ════════════════════════════════════════════════════════════
     # GRUPO EMPRESARIAL

@@ -10,11 +10,22 @@ import os, sys, re, base64, json
 from datetime import date, datetime, timedelta
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-FORNAX2 = os.path.join(SCRIPT_DIR, '..', 'Centro de Gestión Estratégica Grupo J&D',
+
+# ── RAIZ DEL PROYECTO ────────────────────────────────────────────────────────
+# Los scripts pueden vivir en la raiz del repo o en una subcarpeta (scripts/).
+# REPO_DIR apunta siempre a la carpeta que contiene grupo579780/, para que las
+# rutas de datos no dependan de donde este guardado este archivo.
+def _find_repo_dir(_d):
+    for _c in (_d, os.path.dirname(_d)):
+        if os.path.isdir(os.path.join(_c, 'grupo579780')):
+            return _c
+    return _d
+REPO_DIR = _find_repo_dir(SCRIPT_DIR)
+FORNAX2 = os.path.join(REPO_DIR, '..', 'Centro de Gestión Estratégica Grupo J&D',
                         'COMO VAMOS GRUPO', 'Cómo vamos Fornax2.xlsx')
-GE_XLSX  = os.path.join(SCRIPT_DIR, '..', 'Centro de Gestión Estratégica Grupo J&D',
+GE_XLSX  = os.path.join(REPO_DIR, '..', 'Centro de Gestión Estratégica Grupo J&D',
                         'COMO VAMOS GRUPO', 'Cómo vamos Grupo Empresarial.xlsx')
-GRUPO_HTML = os.path.join(SCRIPT_DIR, 'grupo579780', 'index.html')
+GRUPO_HTML = os.path.join(REPO_DIR, 'grupo579780', 'index.html')
 STR_FACTOR = 20.0  # Streamate en Excel = USD → créditos: × 20  (÷ 0.05)
 
 MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO',
@@ -1939,7 +1950,7 @@ def main(model_targets=None):
 
         # Save
         slug = slugify(model_name)
-        out_dir = os.path.join(SCRIPT_DIR, 'modelos', slug)
+        out_dir = os.path.join(REPO_DIR, 'modelos', slug)
         os.makedirs(out_dir, exist_ok=True)
         out_path = os.path.join(out_dir, 'index.html')
         html = inject_pin(html, slug)  # protección PIN — siempre al final

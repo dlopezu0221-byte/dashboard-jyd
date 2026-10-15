@@ -13,11 +13,22 @@ from openpyxl import load_workbook
 
 # ── RUTAS ──────────────────────────────────────────────────────────────────────
 BASE  = os.path.dirname(os.path.abspath(__file__))
-CVMG  = os.path.join(os.path.dirname(BASE),
+
+# ── RAIZ DEL PROYECTO ────────────────────────────────────────────────────────
+# Los scripts pueden vivir en la raiz del repo o en una subcarpeta (scripts/).
+# REPO_DIR apunta siempre a la carpeta que contiene grupo579780/, para que las
+# rutas de datos no dependan de donde este guardado este archivo.
+def _find_repo_dir(_d):
+    for _c in (_d, os.path.dirname(_d)):
+        if os.path.isdir(os.path.join(_c, 'grupo579780')):
+            return _c
+    return _d
+REPO_BASE = _find_repo_dir(BASE)
+CVMG  = os.path.join(os.path.dirname(REPO_BASE),
     "Centro de Gestión Estratégica Grupo J&D", "COMO VAMOS GRUPO")
 EXCEL_FORNAX = os.path.join(CVMG, "Cómo vamos Fornax2.xlsx")
-GRUPO_HTML   = os.path.join(BASE, "grupo579780", "index.html")
-OUT_DIR  = os.path.join(BASE, "monitores")
+GRUPO_HTML   = os.path.join(REPO_BASE, "grupo579780", "index.html")
+OUT_DIR  = os.path.join(REPO_BASE, "monitores")
 OUT_HTML = os.path.join(OUT_DIR, "index.html")
 os.makedirs(OUT_DIR, exist_ok=True)
 

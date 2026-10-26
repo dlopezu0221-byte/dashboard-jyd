@@ -2335,15 +2335,15 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
       <div class="nav-subgroup open" style="display:block">
         <div id="nav-gestion-comercial-item" class="nav-item nav-sub" onclick="goPage('gestion-comercial');gcInit()" style="color:#f59e0b;font-weight:700;background:rgba(245,158,11,.07);border-left:2px solid rgba(245,158,11,.35);display:none"><span class="ico">💼</span>Gestión Comercial</div>
         <div class="nav-item nav-sub" onclick="goPage('mis-pendientes');misPendientesCargar()" style="color:#34d399;font-weight:700"><span class="ico">📌</span>Mis Pendientes<span class="mp-nav-badge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:900;margin-left:4px"></span></div>
-        <div class="nav-item nav-sub" onclick="goPage('exec-mis-vinculos')" style="display:none;font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes</div>
-        <div class="nav-item nav-sub" onclick="goPage('exec-sol-gestor')" style="display:none;font-weight:700"><span class="ico">🎯</span>Gestor de Solicitudes</div>
+        <div id="nav-mon-trazabilidad-item" class="nav-item nav-sub" onclick="goPage('exec-mis-vinculos')" style="display:none;font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes</div>
+        <div id="nav-mon-gestor-item" class="nav-item nav-sub" onclick="goPage('exec-sol-gestor')" style="display:none;font-weight:700"><span class="ico">🎯</span>Gestor de Solicitudes</div>
         <div class="nav-item nav-sub" onclick="goPage('monitor-multas');multasMonitorInit()" style="font-weight:700;color:#fca5a5"><span class="ico">⚠️</span>Multas de Modelos</div>
-        <div class="nav-item nav-sub" onclick="goPage('exec-sol-capacitacion')" style="display:none;color:#8b5cf6;font-weight:600"><span class="ico">🎓</span>Mis Capacitaciones</div>
+        <div id="nav-mon-capacitaciones-item" class="nav-item nav-sub" onclick="goPage('exec-sol-capacitacion')" style="display:none;color:#8b5cf6;font-weight:600"><span class="ico">🎓</span>Mis Capacitaciones</div>
       </div>
       <div class="nav-group-hdr" style="margin-top:8px;opacity:.55"><span>MIS FINANZAS</span></div>
       <div class="nav-subgroup open" style="display:block">
         <div class="nav-item nav-sub" onclick="goPage('monitor-mis-colillas');monColillasInit()" style="color:#67e8f9;font-weight:700"><span class="ico">🧾</span>Mis Colillas de Pago</div>
-        <div class="nav-item nav-sub" onclick="goPage('exec-mi-ahorro')" style="display:none"><span class="ico">🏦</span>Mi Ahorro</div>
+        <div id="nav-mon-ahorro-item" class="nav-item nav-sub" onclick="goPage('exec-mi-ahorro')" style="display:none"><span class="ico">🏦</span>Mi Ahorro</div>
       </div>
     <!-- nav-monitor-group padding -->
     <div style="height:8px"></div>
@@ -24682,7 +24682,7 @@ async function _jdLoadUserProfile(authUser) {
     var _cacheStr = sessionStorage.getItem(_profKey);
     if (_cacheStr) {
       var _cachedProf = JSON.parse(_cacheStr);
-      if (_cachedProf && _cachedProf.id === authUser.id && _cachedProf.estado !== 'inactivo') {
+      if (_cachedProf && _cachedProf.id === authUser.id && _cachedProf.estado !== 'inactivo' && _cachedProf.rol) {
         _jdCurrentUser = _cachedProf;
         if(_jdCurrentUser && !_jdCurrentUser.entidad_id && _jdCurrentUser.permisos && _jdCurrentUser.permisos.entidad_id){
           _jdCurrentUser.entidad_id = _jdCurrentUser.permisos.entidad_id;
@@ -25015,6 +25015,19 @@ function _jdApplyUserUI() {
     if(navVinc) navVinc.style.display = 'none';
   }
 
+  // Defensa: si el rol no está cargado aún (caché vacía o perfil incompleto), reintentar
+  if (!_jdCurrentUser || !_jdCurrentUser.rol) {
+    if ((window._jdApplyUIRetries||0) < 4) {
+      window._jdApplyUIRetries = (window._jdApplyUIRetries||0) + 1;
+      console.warn('[JD] _jdApplyUserUI: rol no disponible — reintentando en 1.5s (intento ' + window._jdApplyUIRetries + '/4)');
+      setTimeout(_jdApplyUserUI, 1500);
+    } else {
+      console.error('[JD] _jdApplyUserUI: rol sigue vacío tras 4 intentos — abortando.');
+    }
+    return;
+  }
+  window._jdApplyUIRetries = 0;
+
   // nav-monitor-group oculto por defecto — solo el bloque esMonitor lo vuelve visible
   // (en DEV MODE el HTML lo tiene display:block; aquí lo normalizamos para todos los roles)
   var _navMonGrpDefault = document.getElementById('nav-monitor-group');
@@ -25124,7 +25137,7 @@ function _jdApplyUserUI() {
       _navMonGrp.querySelectorAll('.nav-subgroup.open').forEach(function(el){ el.style.display='block'; });
     }
     // 2. Ocultar ítems específicos dentro de nav-monitor-group que NO deben verse para monitores
-    var _monInternalHide = ['nav-mis-capacitaciones-item'];
+    var _monInternalHide = ['nav-mon-trazabilidad-item','nav-mon-gestor-item','nav-mon-capacitaciones-item','nav-mon-ahorro-item'];
     _monInternalHide.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
     // ── Ocultar secciones WIP (dinámico) ─────────────────────────
     if(typeof _JD_WIP !== 'undefined' && Array.isArray(_JD_WIP.pages)){

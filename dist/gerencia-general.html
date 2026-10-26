@@ -626,9 +626,9 @@ body.exec-fullscreen #nav-exec-perfil-group { display: block; }
 #nav-exec-modelos-group .nav-item,
 #nav-exec-solicitudes-group .nav-item,
 #nav-exec-perfil-group .nav-item { display: flex !important; }
-/* WIP: ocultar ítems en desarrollo para ejecutivo comercial */
-#nav-exec-trazabilidad-item,
-#nav-exec-gestor-item { display: none !important; }
+/* WIP: ocultar ítems en desarrollo para ejecutivo comercial (doble ID = especificidad 200 > 110) */
+#nav-exec-solicitudes-group #nav-exec-trazabilidad-item,
+#nav-exec-solicitudes-group #nav-exec-gestor-item { display: none !important; }
 
 /* ── Barra de sesión ejecutivo ── */
 #fab-session-bar {

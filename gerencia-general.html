@@ -2435,8 +2435,8 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
     <div id="ng-exec-sol" class="nav-subgroup open">
       <div class="nav-item nav-sub" onclick="goPage('gestion-comercial');gcInit()" style="font-weight:700"><span class="ico">💼</span>Gestión Comercial</div>
       <div class="nav-item nav-sub" onclick="goPage('mis-pendientes');misPendientesCargar()" style="font-weight:700"><span class="ico">📌</span>Mis Pendientes<span class="mp-nav-badge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:900;margin-left:4px"></span></div>
-      <div class="nav-item nav-sub" onclick="goPage('exec-mis-vinculos')" style="display:none;font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes</div>
-      <div class="nav-item nav-sub" onclick="goPage('exec-sol-gestor')" style="display:none;font-weight:700"><span class="ico">🎯</span>Gestor de Solicitudes</div>
+      <div id="nav-exec-trazabilidad-item" class="nav-item nav-sub" onclick="goPage('exec-mis-vinculos')" style="display:none;font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes</div>
+      <div id="nav-exec-gestor-item" class="nav-item nav-sub" onclick="goPage('exec-sol-gestor')" style="display:none;font-weight:700"><span class="ico">🎯</span>Gestor de Solicitudes</div>
     </div>
   </div>
 
@@ -25116,6 +25116,9 @@ function _jdApplyUserUI() {
     // overflow-y:auto; width:220px; height:100vh — correcto para el ejecutivo.
     // La clase exec-fullscreen activa los grupos de nav exec vía CSS (sin overrides de overflow).
 
+    // Ocultar secciones en desarrollo (WIP) para el ejecutivo comercial
+    var _execWipHide = ['nav-exec-trazabilidad-item','nav-exec-gestor-item'];
+    _execWipHide.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
     // Cargar badge de solicitudes pendientes (propias)
     setTimeout(function(){ if(typeof execActualizarBadgeSolicitudes==='function') execActualizarBadgeSolicitudes(); }, 1500);
     return; // ← CRÍTICO: impedir que código posterior interfiera con el layout del ejecutivo

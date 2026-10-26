@@ -25137,7 +25137,7 @@ function _jdApplyUserUI() {
       _navMonGrp.querySelectorAll('.nav-subgroup.open').forEach(function(el){ el.style.display='block'; });
     }
     // 2. Ocultar ítems específicos dentro de nav-monitor-group que NO deben verse para monitores
-    var _monInternalHide = ['nav-mon-trazabilidad-item','nav-mon-gestor-item','nav-mon-capacitaciones-item','nav-mon-ahorro-item'];
+    var _monInternalHide = ['nav-mon-trazabilidad-item','nav-mon-gestor-item','nav-mon-capacitaciones-item','nav-mon-ahorro-item','nav-sol-vinc-cem-item','nav-vinculaciones-item'];
     _monInternalHide.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
     // ── Ocultar secciones WIP (dinámico) ─────────────────────────
     if(typeof _JD_WIP !== 'undefined' && Array.isArray(_JD_WIP.pages)){

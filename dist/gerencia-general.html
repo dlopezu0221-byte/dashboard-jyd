@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v6.78 -->
+<!DOCTYPE html><!-- v6.79 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -2213,13 +2213,15 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
     <div style="font-size:12px;color:#B5BACC;margin-bottom:28px">Sistema de Gestión · Acceso Seguro</div>
     <div style="margin-bottom:14px;text-align:left">
       <label style="font-size:11px;color:#C0C5D6;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">Correo electrónico</label>
-      <input id="jd-auth-email" type="email" placeholder="correo@ejemplo.com" style="width:100%;background:#1C1F2E;border:1.5px solid #5A6080;border-radius:6px;padding:10px 14px;color:#E8E8E8;font-size:14px;outline:none;font-family:Outfit,sans-serif">
+      <input id="jd-auth-email" name="email" type="email" placeholder="correo@ejemplo.com" autocomplete="email" style="width:100%;background:#1C1F2E;border:1.5px solid #5A6080;border-radius:6px;padding:10px 14px;color:#E8E8E8;font-size:14px;outline:none;font-family:Outfit,sans-serif">
     </div>
     <div style="margin-bottom:20px;text-align:left">
       <label style="font-size:11px;color:#C0C5D6;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">Contraseña</label>
-      <input id="jd-auth-pass" type="password" placeholder="••••••••" style="width:100%;background:#1C1F2E;border:1.5px solid #5A6080;border-radius:6px;padding:10px 14px;color:#E8E8E8;font-size:14px;outline:none;font-family:Outfit,sans-serif">
+      <input id="jd-auth-pass" name="password" type="password" placeholder="••••••••" autocomplete="current-password" style="width:100%;background:#1C1F2E;border:1.5px solid #5A6080;border-radius:6px;padding:10px 14px;color:#E8E8E8;font-size:14px;outline:none;font-family:Outfit,sans-serif">
     </div>
-    <button onclick="jdAuthLogin()" style="width:100%;padding:12px;background:#C8A84B;color:#111;border:none;border-radius:7px;font-size:15px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">Ingresar</button>
+    <form id="jd-auth-form" onsubmit="event.preventDefault();jdAuthLogin();" style="margin:0;padding:0">
+    <button type="submit" style="width:100%;padding:12px;background:#C8A84B;color:#111;border:none;border-radius:7px;font-size:15px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">Ingresar</button>
+    </form>
     <div id="jd-auth-err" style="color:#E05252;font-size:12px;margin-top:10px;min-height:18px"></div>
     <div id="jd-auth-loading" style="display:none;margin-top:14px;color:#C8A84B;font-size:13px">⏳ Cargando datos del sistema...</div>
   </div>
@@ -24556,6 +24558,10 @@ async function jdAuthLogin() {
     loading.style.display = 'none';
     err.textContent = '❌ ' + error.message;
     return;
+  }
+  // Ofrecer al navegador guardar las credenciales
+  if (window.PasswordCredential) {
+    try { await navigator.credentials.store(new PasswordCredential({ id: email, password: pass })); } catch(_) {}
   }
   _supaUser = data.user;
   loading.textContent = '⏳ Cargando perfil de usuario...';

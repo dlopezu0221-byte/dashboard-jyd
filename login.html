@@ -302,12 +302,12 @@
       <form id="login-form" onsubmit="doLogin(event)">
         <div class="form-group">
           <label for="email">Correo electrónico</label>
-          <input type="email" id="email" placeholder="tu@email.com" required autocomplete="email">
+          <input type="email" id="email" name="email" placeholder="tu@email.com" required autocomplete="email">
         </div>
         <div class="form-group">
           <label for="password">Contraseña</label>
           <div class="pwd-wrap">
-            <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+            <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
             <button type="button" class="pwd-toggle" onclick="togglePwd('password')" tabindex="-1">👁</button>
           </div>
         </div>
@@ -524,6 +524,13 @@
         var { data, error } = await db.auth.signInWithPassword({ email, password: pwd });
         if (error) {
           throw error;
+        }
+        // Ofrecer al navegador guardar las credenciales
+        if (window.PasswordCredential) {
+          try {
+            var cred = new PasswordCredential({ id: email, password: pwd });
+            await navigator.credentials.store(cred);
+          } catch(_) {}
         }
         showLoader('Cargando perfil...');
         await loadProfileAndRoute(data.user);

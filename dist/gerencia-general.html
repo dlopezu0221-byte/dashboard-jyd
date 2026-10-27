@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v6.76 -->
+<!DOCTYPE html><!-- v6.78 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -124641,6 +124641,8 @@ var _multasHdrs={
    conversión USD→créditos para Streamate/LiveJasmin, deduplicación por clave compuesta. */
 async function _multasGetCreditos(modeloId,modeloNombre,qId){
   var rango=_multasQRango(qId);
+  var _dbg=(modeloNombre||'').toLowerCase().indexOf('vanessa')>=0||(modeloNombre||'').toLowerCase().indexOf('foxyy')>=0;
+  if(_dbg) console.log('[MULTAS DBG] _multasGetCreditos → modeloId='+modeloId+' modeloNombre='+JSON.stringify(modeloNombre)+' qId='+qId+' rango='+JSON.stringify(rango));
   if(!rango) return 0;
   var base='https://mqafwoaghwhnvorerjha.supabase.co/rest/v1/facturacion_diaria';
   var seen=new Set();
@@ -124659,16 +124661,31 @@ async function _multasGetCreditos(modeloId,modeloNombre,qId){
       +'&estudio_nombre=ilike.*fornax*'
       +(modeloId?'&modelo_id=eq.'+modeloId:'&modelo_nombre=ilike.'+encodeURIComponent(modeloNombre||''));
     var r1=await fetch(u1,{headers:_multasHdrs}).then(function(r){return r.json();}).catch(function(){return [];});
-    (Array.isArray(r1)?r1:[]).forEach(acum);
+    var arr1=Array.isArray(r1)?r1:[];
+    arr1.forEach(acum);
+    if(_dbg) console.log('[MULTAS DBG] Q1 filas='+arr1.length+' total_parcial='+Math.round(total)+' nombres_unicos='+JSON.stringify([...new Set(arr1.map(function(r){return r.modelo_nombre;}))]));
     /* Q2 — por modelo_id (captura registros sin estudio_nombre) */
     if(modeloId){
       var u2=base+'?select=fecha,modelo_id,modelo_nombre,valor,plataforma'
         +'&fecha=gte.'+rango.desde+'&fecha=lte.'+rango.hasta
         +'&modelo_id=eq.'+modeloId;
       var r2=await fetch(u2,{headers:_multasHdrs}).then(function(r){return r.json();}).catch(function(){return [];});
-      (Array.isArray(r2)?r2:[]).forEach(acum);
+      var arr2=Array.isArray(r2)?r2:[];
+      arr2.forEach(acum);
+      if(_dbg) console.log('[MULTAS DBG] Q2 filas='+arr2.length+' total_parcial='+Math.round(total)+' nombres_unicos='+JSON.stringify([...new Set(arr2.map(function(r){return r.modelo_nombre;}))]));
+    }
+    /* Q3 — por modelo_nombre (captura registros sin modelo_id aunque tengamos el ID) */
+    if(modeloNombre){
+      var u3=base+'?select=fecha,modelo_id,modelo_nombre,valor,plataforma'
+        +'&fecha=gte.'+rango.desde+'&fecha=lte.'+rango.hasta
+        +'&modelo_nombre=ilike.'+encodeURIComponent(modeloNombre);
+      var r3=await fetch(u3,{headers:_multasHdrs}).then(function(r){return r.json();}).catch(function(){return [];});
+      var arr3=Array.isArray(r3)?r3:[];
+      arr3.forEach(acum);
+      if(_dbg) console.log('[MULTAS DBG] Q3 filas='+arr3.length+' total_parcial='+Math.round(total)+' nombres_unicos='+JSON.stringify([...new Set(arr3.map(function(r){return r.modelo_nombre;}))]));
     }
   }catch(e){console.warn('[MULTAS RE] Error obteniendo créditos:',e);}
+  if(_dbg) console.log('[MULTAS DBG] TOTAL FINAL='+Math.round(total));
   return Math.round(total);
 }
 

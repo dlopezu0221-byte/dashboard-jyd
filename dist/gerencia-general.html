@@ -2559,6 +2559,7 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
       <div class="nav-item nav-sub" onclick="rdNavOpen('semana')" style="color:#c8a84b;font-weight:700"><span class="ico">🏅</span>Modelo de la Semana</div>
       <div class="nav-item nav-sub" onclick="rdNavOpen('top20')" style="color:#c8a84b;font-weight:700"><span class="ico">🏆</span>Top 20 Grupo Empresarial</div>
       <div class="nav-item nav-sub" onclick="rdNavOpen('top3dia')" style="color:#c8a84b;font-weight:700"><span class="ico">⭐</span>Top 3 del Día</div>
+      <div id="nav-exec-concurso-item" class="nav-item nav-sub" onclick="goPage('monitor-concurso');monCncInit()" style="display:none;font-weight:700;color:#c8a84b"><span class="ico">🏆</span>Concursos Fornax</div>
     </div>
   </div>
 
@@ -25876,6 +25877,10 @@ function _jdApplyUserUI() {
     // Ocultar secciones en desarrollo (WIP) para el ejecutivo comercial
     var _execWipHide = ['nav-exec-trazabilidad-item','nav-exec-gestor-item'];
     _execWipHide.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
+    // Concursos Fornax: visible solo para Fabio Angrino
+    var _execNombreNav = ((_jdCurrentUser&&(_jdCurrentUser.nombre||_jdCurrentUser.name||''))||'').toLowerCase();
+    var _navExecCnc = document.getElementById('nav-exec-concurso-item');
+    if(_navExecCnc && _execNombreNav.indexOf('fabio')>=0){ _navExecCnc.style.display=''; }
     // Cargar badge de solicitudes pendientes (propias)
     setTimeout(function(){ if(typeof execActualizarBadgeSolicitudes==='function') execActualizarBadgeSolicitudes(); }, 1500);
     return; // ← CRÍTICO: impedir que código posterior interfiera con el layout del ejecutivo

@@ -89919,8 +89919,8 @@ async function rdExportarMensualExcel() {
       PLAT_DAY.slice(0,5).forEach(function(pl,pi){
         _cv(ws,R,dc+pi,PLAT_LBL[pl]||pl,pi===0?S.platHdrML:S.platHdr);
       });
-      _cv(ws,R,dc+5,'Horas',S.hrHdr);
-      _cv(ws,R,dc+6,PLAT_LBL['LiveJasmin'],S.platHdr);
+      _cv(ws,R,dc+5,PLAT_LBL['LiveJasmin'],S.platHdr);
+      _cv(ws,R,dc+6,'Horas',S.hrHdr);
     }
     ws.getRow(R).height = 14; R++;
 
@@ -89960,9 +89960,9 @@ async function rdExportarMensualExcel() {
           var v=Math.round(dp[pl]||0); var c=dc+pi;
           _cn(ws,R,c,v,v?sN:sZ); colT[c]=(colT[c]||0)+v;
         });
-        _cn(ws,R,dc+5,hrs,hrs?sH:sZH); colT[dc+5]=(colT[dc+5]||0)+hrs;
         var ljV=Math.round(dp['LiveJasmin']||0);
-        _cn(ws,R,dc+6,ljV,ljV?sN:sZ); colT[dc+6]=(colT[dc+6]||0)+ljV;
+        _cn(ws,R,dc+5,ljV,ljV?sN:sZ); colT[dc+5]=(colT[dc+5]||0)+ljV;
+        _cn(ws,R,dc+6,hrs,hrs?sH:sZH); colT[dc+6]=(colT[dc+6]||0)+hrs;
       }
       ws.getRow(R).height = 13.5; R++;
     });
@@ -89975,8 +89975,8 @@ async function rdExportarMensualExcel() {
     for (var d=lastDay; d>=1; d--) {
       var dc=FIX+(lastDay-d)*DAY_W+1;
       PLAT_DAY.slice(0,5).forEach(function(pl,pi){var c=dc+pi;_cn(ws,R,c,colT[c]||0,S.tot);});
-      _cn(ws,R,dc+5,colT[dc+5]||0,S.totH);
-      _cn(ws,R,dc+6,colT[dc+6]||0,S.tot);
+      _cn(ws,R,dc+5,colT[dc+5]||0,S.tot);
+      _cn(ws,R,dc+6,colT[dc+6]||0,S.totH);
     }
     R++;
 
@@ -89992,8 +89992,8 @@ async function rdExportarMensualExcel() {
       ws.getColumn(dc+2).width=11.11;  /* Chaturbate */
       ws.getColumn(dc+3).width=10.11;  /* CamSoda */
       ws.getColumn(dc+4).width=10.78;  /* Streamate */
-      ws.getColumn(dc+5).width=6.22;   /* Horas */
-      ws.getColumn(dc+6).width=8.44;   /* LiveJasmin */
+      ws.getColumn(dc+5).width=8.44;   /* LiveJasmin */
+      ws.getColumn(dc+6).width=6.22;   /* Horas */
     }
 
     /* ── Guardar ── */

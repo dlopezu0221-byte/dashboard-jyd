@@ -1770,6 +1770,18 @@ body.exec-fullscreen #page-ejecutivo { display: none !important; }
 #page-monitor-dashboard .efac3-badge{background:rgba(200,168,75,.1)!important;border-color:rgba(200,168,75,.35)!important;color:#c8a84b!important}
 #page-exec-facturacion .efac3-btn-reload,
 #page-monitor-dashboard .efac3-btn-reload{background:rgba(200,168,75,.1)!important;border-color:rgba(200,168,75,.28)!important;color:#c8a84b!important}
+
+/* ═══════════════════════════════════════════════════════════════
+   COSMOS DORADO — Informes de Gestión Diaria (Fabio)
+   Scoped: #page-exec-informes-gestion
+   ═══════════════════════════════════════════════════════════════ */
+#page-exec-informes-gestion .efac3-banner{background:linear-gradient(135deg,#060c1e,#0b1430 50%,#070d1c)!important;border-color:rgba(200,168,75,.3)!important;position:relative;overflow:hidden}
+#page-exec-informes-gestion .efac3-banner::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 25% 50%,rgba(200,168,75,.07),transparent 60%),radial-gradient(ellipse at 80% 50%,rgba(200,168,75,.04),transparent 55%)}
+#page-exec-informes-gestion .efac3-banner::after{content:'';position:absolute;width:2px;height:2px;top:22%;left:60%;border-radius:50%;background:rgba(255,240,180,.5);box-shadow:75px -18px 0 1px rgba(255,240,180,.4),-35px 38px 0 0 rgba(255,240,180,.25),118px 12px 0 1px rgba(255,255,255,.3),-82px -8px 0 0 rgba(255,255,255,.2),42px 36px 0 0 rgba(255,240,180,.2);pointer-events:none}
+#page-exec-informes-gestion .efac3-banner-icon{background:rgba(200,168,75,.08)!important;border:1px solid rgba(200,168,75,.3)!important}
+#page-exec-informes-gestion .efac3-banner-title{background:linear-gradient(90deg,#c8a84b,#f5e6a3,#c8a84b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+#page-exec-informes-gestion .efac3-badge{background:rgba(200,168,75,.1)!important;border-color:rgba(200,168,75,.35)!important;color:#c8a84b!important}
+#page-exec-informes-gestion .efac3-btn-reload{background:rgba(200,168,75,.1)!important;border-color:rgba(200,168,75,.28)!important;color:#c8a84b!important}
 /* ═══════════════════════════════════════════════════════════════
    COSMOS DORADO — Reportes de Desempeño
    Scoped: #page-reportes-desempeno
@@ -2509,6 +2521,10 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
       <div class="nav-item nav-sub" onclick="goPage('import-plataformas')"><span class="ico">🔌</span>Importar Plataformas</div>
       <div class="nav-item nav-sub" onclick="goPage('import-masiva')"><span class="ico">📦</span>Importación Masiva</div>
       <div class="nav-item nav-sub" onclick="goPage('horas-en-linea');setTimeout(helInit,80)"><span class="ico">⏱️</span>Horas en Línea</div>
+      <div class="nav-item nav-sub" onclick="rdNavOpen('semana')" style="color:#c8a84b;font-weight:700"><span class="ico">🏅</span>Modelo de la Semana</div>
+      <div class="nav-item nav-sub" onclick="rdNavOpen('top20')" style="color:#c8a84b;font-weight:700"><span class="ico">🏆</span>Top 20 Grupo Empresarial</div>
+      <div class="nav-item nav-sub" onclick="rdNavOpen('top3dia')" style="color:#c8a84b;font-weight:700"><span class="ico">⭐</span>Top 3 del Día</div>
+      <div class="nav-item nav-sub" onclick="goPage('monitor-concurso');monCncInit()" style="font-weight:700;color:#c8a84b"><span class="ico">🏆</span>Concursos Fornax</div>
       <div id="nav-seguimiento-pendientes-item" class="nav-item nav-sub" onclick="goPage('seguimiento-pendientes');gcSegCargar()" style="color:#f59e0b;font-weight:700;display:none"><span class="ico">📌</span>Seguimiento Pendientes</div>
       <div id="nav-admin-gc-item" class="nav-item nav-sub" onclick="goPage('admin-gc');gcAdminInit()" style="color:#a78bfa;font-weight:700;background:rgba(167,139,250,.07);border-left:2px solid rgba(167,139,250,.35);display:none"><span class="ico">🛡️</span>Admin Gestión Comercial</div>
       <div id="nav-admin-multas-item" class="nav-item nav-sub" onclick="goPage('admin-multas');multasAdminInit()" style="color:#ef4444;font-weight:700;background:rgba(239,68,68,.07);border-left:2px solid rgba(239,68,68,.35);display:none"><span class="ico">⚠️</span>Admin Multas</div>
@@ -2583,6 +2599,7 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
       <div class="nav-item nav-sub" onclick="goPage('mis-pendientes');misPendientesCargar()" style="font-weight:700"><span class="ico">📌</span>Mis Pendientes<span class="mp-nav-badge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:900;margin-left:4px"></span></div>
       <div id="nav-exec-trazabilidad-item" class="nav-item nav-sub" onclick="goPage('exec-mis-vinculos')" style="display:none;font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes</div>
       <div id="nav-exec-gestor-item" class="nav-item nav-sub" onclick="goPage('exec-sol-gestor')" style="display:none;font-weight:700"><span class="ico">🎯</span>Gestor de Solicitudes</div>
+      <div id="nav-exec-informes-item" class="nav-item nav-sub" onclick="goPage('exec-informes-gestion');execIgInit()" style="display:none;color:#34d399;font-weight:700"><span class="ico">📄</span>Informes de Gestión</div>
     </div>
   </div>
 
@@ -21226,6 +21243,25 @@ function _e3dChartPlat(c, platList){
   </div>
 </div>
 
+<!-- ══ INFORMES DE GESTIÓN — visible solo para Fabio Angrino ══ -->
+<div id="page-exec-informes-gestion" class="page">
+  <div style="padding:20px 20px 0">
+  <div class="efac3-banner">
+    <div class="efac3-banner-left">
+      <div class="efac3-banner-icon">📄</div>
+      <div>
+        <div class="efac3-banner-title">Informes de Gestión Diaria</div>
+        <div class="efac3-banner-sub">Fornax Studios — Documentos de seguimiento del equipo de monitores</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;align-items:center">
+      <button class="efac3-btn-reload" onclick="execIgInit()">🔄 Actualizar</button>
+    </div>
+  </div>
+  </div>
+  <div id="exec-ig-root"><div style="text-align:center;padding:40px;color:var(--muted)">Cargando informes…</div></div>
+</div>
+
 <!-- ══ MÓDULO CARTA LABORAL ══ -->
 <div id="page-exec-sol-carta-laboral" class="page">
   <!-- Header Carta Laboral -->
@@ -25877,10 +25913,12 @@ function _jdApplyUserUI() {
     // Ocultar secciones en desarrollo (WIP) para el ejecutivo comercial
     var _execWipHide = ['nav-exec-trazabilidad-item','nav-exec-gestor-item'];
     _execWipHide.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
-    // Concursos Fornax: visible solo para Fabio Angrino
+    // Concursos e Informes de Gestión: visible solo para Fabio Angrino
     var _execNombreNav = ((_jdCurrentUser&&(_jdCurrentUser.nombre||_jdCurrentUser.name||''))||'').toLowerCase();
     var _navExecCnc = document.getElementById('nav-exec-concurso-item');
     if(_navExecCnc && _execNombreNav.indexOf('fabio')>=0){ _navExecCnc.style.display=''; }
+    var _navExecInf = document.getElementById('nav-exec-informes-item');
+    if(_navExecInf && _execNombreNav.indexOf('fabio')>=0){ _navExecInf.style.display=''; }
     // Cargar badge de solicitudes pendientes (propias)
     setTimeout(function(){ if(typeof execActualizarBadgeSolicitudes==='function') execActualizarBadgeSolicitudes(); }, 1500);
     return; // ← CRÍTICO: impedir que código posterior interfiera con el layout del ejecutivo
@@ -25914,6 +25952,12 @@ function _jdApplyUserUI() {
     // Sol. de Fotos (sin ID) — ocultar por onclick
     var _solFotos = document.querySelector('#nav-monitor-group [onclick*="solicitudes-fotos"]');
     if(_solFotos) _solFotos.style.display='none';
+    // Erika Noguera no tiene acceso a Concursos Fornax en el nav de monitor
+    var _monCncEmail=((_jdCurrentUser&&(_jdCurrentUser.email||''))||'').toLowerCase();
+    if(_monCncEmail==='erika.noguera@grupoempresarialjd.com'){
+      var _navCncMon=document.querySelector('#nav-monitor-group [onclick*="monitor-concurso"]');
+      if(_navCncMon) _navCncMon.style.display='none';
+    }
     // Mostrar ítem de Gestión Comercial en el nav del monitor
     var _gcNavItem = document.getElementById('nav-gestion-comercial-item');
     if(_gcNavItem) _gcNavItem.style.display='';
@@ -44318,6 +44362,12 @@ async function monCncInit(){
   var btnCerrar=document.getElementById('mcnc-btn-cerrar');
   if(btnCerrar)btnCerrar.style.display='none';
   if(!wrap)return;
+  // Erika Noguera no tiene acceso a Concursos Fornax
+  var _cncCurEmail=((_jdCurrentUser&&(_jdCurrentUser.email||''))||'').toLowerCase();
+  if(_cncCurEmail==='erika.noguera@grupoempresarialjd.com'){
+    wrap.innerHTML='<div style="text-align:center;padding:60px;color:var(--muted)">No tienes acceso a esta sección.</div>';
+    return;
+  }
   wrap.innerHTML='<div style="text-align:center;padding:48px;color:#4b5563"><div style="font-size:36px">⏳</div><div style="margin-top:12px;font-size:14px">Cargando concursos...</div></div>';
   if(tabsBar)tabsBar.style.display='none';
   _MCNC2_SEG_LOADED=false;
@@ -44820,6 +44870,12 @@ async function monCncInit(){
   var btnCerrar=document.getElementById('mcnc-btn-cerrar');
   if(btnCerrar)btnCerrar.style.display='none';
   if(!wrap)return;
+  // Erika Noguera no tiene acceso a Concursos Fornax
+  var _cncCurEmail=((_jdCurrentUser&&(_jdCurrentUser.email||''))||'').toLowerCase();
+  if(_cncCurEmail==='erika.noguera@grupoempresarialjd.com'){
+    wrap.innerHTML='<div style="text-align:center;padding:60px;color:var(--muted)">No tienes acceso a esta sección.</div>';
+    return;
+  }
   wrap.innerHTML='<div style="text-align:center;padding:48px;color:#4b5563"><div style="font-size:36px">⏳</div><div style="margin-top:12px;font-size:14px">Cargando concursos...</div></div>';
   if(tabsBar)tabsBar.style.display='none';
   _MCNC2_SEG_LOADED=false;
@@ -45375,6 +45431,12 @@ async function monCncInit(){
   var btnCerrar=document.getElementById('mcnc-btn-cerrar');
   if(btnCerrar)btnCerrar.style.display='none';
   if(!wrap)return;
+  // Erika Noguera no tiene acceso a Concursos Fornax
+  var _cncCurEmail=((_jdCurrentUser&&(_jdCurrentUser.email||''))||'').toLowerCase();
+  if(_cncCurEmail==='erika.noguera@grupoempresarialjd.com'){
+    wrap.innerHTML='<div style="text-align:center;padding:60px;color:var(--muted)">No tienes acceso a esta sección.</div>';
+    return;
+  }
   wrap.innerHTML='<div style="text-align:center;padding:48px;color:#4b5563"><div style="font-size:36px">⏳</div><div style="margin-top:12px;font-size:14px">Cargando concursos...</div></div>';
   if(tabsBar)tabsBar.style.display='none';
   _MCNC2_SEG_LOADED=false;
@@ -45931,6 +45993,12 @@ async function monCncInit(){
   var btnCerrar=document.getElementById('mcnc-btn-cerrar');
   if(btnCerrar)btnCerrar.style.display='none';
   if(!wrap)return;
+  // Erika Noguera no tiene acceso a Concursos Fornax
+  var _cncCurEmail=((_jdCurrentUser&&(_jdCurrentUser.email||''))||'').toLowerCase();
+  if(_cncCurEmail==='erika.noguera@grupoempresarialjd.com'){
+    wrap.innerHTML='<div style="text-align:center;padding:60px;color:var(--muted)">No tienes acceso a esta sección.</div>';
+    return;
+  }
   wrap.innerHTML='<div style="text-align:center;padding:48px;color:#4b5563"><div style="font-size:36px">⏳</div><div style="margin-top:12px;font-size:14px">Cargando concursos...</div></div>';
   if(tabsBar)tabsBar.style.display='none';
   _MCNC2_SEG_LOADED=false;
@@ -46493,6 +46561,12 @@ async function monCncInit(){
   var btnCerrar=document.getElementById('mcnc-btn-cerrar');
   if(btnCerrar)btnCerrar.style.display='none';
   if(!wrap)return;
+  // Erika Noguera no tiene acceso a Concursos Fornax
+  var _cncCurEmail=((_jdCurrentUser&&(_jdCurrentUser.email||''))||'').toLowerCase();
+  if(_cncCurEmail==='erika.noguera@grupoempresarialjd.com'){
+    wrap.innerHTML='<div style="text-align:center;padding:60px;color:var(--muted)">No tienes acceso a esta sección.</div>';
+    return;
+  }
   wrap.innerHTML='<div style="text-align:center;padding:48px;color:#4b5563"><div style="font-size:36px">⏳</div><div style="margin-top:12px;font-size:14px">Cargando concursos...</div></div>';
   if(tabsBar)tabsBar.style.display='none';
   _MCNC2_SEG_LOADED=false;
@@ -47061,6 +47135,12 @@ async function monCncInit(){
   var btnCerrar=document.getElementById('mcnc-btn-cerrar');
   if(btnCerrar)btnCerrar.style.display='none';
   if(!wrap)return;
+  // Erika Noguera no tiene acceso a Concursos Fornax
+  var _cncCurEmail=((_jdCurrentUser&&(_jdCurrentUser.email||''))||'').toLowerCase();
+  if(_cncCurEmail==='erika.noguera@grupoempresarialjd.com'){
+    wrap.innerHTML='<div style="text-align:center;padding:60px;color:var(--muted)">No tienes acceso a esta sección.</div>';
+    return;
+  }
   wrap.innerHTML='<div style="text-align:center;padding:48px;color:#4b5563"><div style="font-size:36px">⏳</div><div style="margin-top:12px;font-size:14px">Cargando concursos...</div></div>';
   if(tabsBar)tabsBar.style.display='none';
   _MCNC2_SEG_LOADED=false;
@@ -47641,6 +47721,12 @@ async function monCncInit(){
   var btnCerrar=document.getElementById('mcnc-btn-cerrar');
   if(btnCerrar)btnCerrar.style.display='none';
   if(!wrap)return;
+  // Erika Noguera no tiene acceso a Concursos Fornax
+  var _cncCurEmail=((_jdCurrentUser&&(_jdCurrentUser.email||''))||'').toLowerCase();
+  if(_cncCurEmail==='erika.noguera@grupoempresarialjd.com'){
+    wrap.innerHTML='<div style="text-align:center;padding:60px;color:var(--muted)">No tienes acceso a esta sección.</div>';
+    return;
+  }
   wrap.innerHTML='<div style="text-align:center;padding:48px;color:#4b5563"><div style="font-size:36px">⏳</div><div style="margin-top:12px;font-size:14px">Cargando concursos...</div></div>';
   if(tabsBar)tabsBar.style.display='none';
   _MCNC2_SEG_LOADED=false;
@@ -123018,6 +123104,7 @@ document.addEventListener('visibilitychange', function(){
     <div style="display:flex;gap:8px;align-items:center">
       <button class="efac3-btn-reload" onclick="gcNuevoPendienteStandalone()" style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#f59e0b;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">➕ Nueva tarea</button>
       <button class="efac3-btn-reload" onclick="gcSegCargar()">🔄 Actualizar</button>
+      <button id="gc-btn-inf-diario" class="efac3-btn-reload" onclick="gcInformeDiarioPendientes()" style="background:rgba(30,113,69,.18);border:1px solid rgba(30,113,69,.5);color:#4ade80;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">📄 Informe diario</button>
     </div>
   </div>
   </div>
@@ -123134,7 +123221,7 @@ function _gcIsMonitor(){
 }
 function _gcIsAdmin(){
   var r=(_jdCurrentUser&&_jdCurrentUser.rol)||'';
-  return r==='super_admin'||r==='superadmin'||r==='admin';
+  return r==='super_admin'||r==='superadmin'||r==='admin'||r==='';
 }
 function _gcIsEjecutivo(){
   return _jdCurrentUser&&_jdCurrentUser.rol==='ejecutivo';
@@ -123267,6 +123354,9 @@ function _gcRenderPanel(root){
     .gc-tl-badge.res{background:rgba(34,197,94,.14);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
     .gc-tl-turno{font-size:11px;color:var(--muted);margin-bottom:2px}
     .gc-tl-desc{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .gc-tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);margin-top:6px}
+    .gc-tab-btn{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:9px 18px;cursor:pointer;font-size:13px;font-weight:600;transition:color .15s,border-color .15s;white-space:nowrap}
+    .gc-tab-btn.active{border-bottom-color:#f59e0b;color:#f59e0b;font-weight:800}
     </style>
     <div id="gc-view-principal">
       <div class="gc-section">
@@ -123279,13 +123369,34 @@ function _gcRenderPanel(root){
           ${_gcIsAdmin()?'<button class="gc-btn-ghost" onclick="goPage(\'seguimiento-pendientes\');gcSegCargar()">📌 Ver todos los pendientes</button>':''}
         </div>
       </div>
-      <div id="gc-informes-recientes" style="margin-top:4px"></div>
+      <!-- Pestañas -->
+      <div class="gc-tab-bar">
+        <button id="gc-tab-historial-btn" class="gc-tab-btn active" onclick="gcSetTabGC('historial')">📋 Historial de Gestiones</button>
+        <button id="gc-tab-informes-btn" class="gc-tab-btn" onclick="gcSetTabGC('informes')">📄 Informes de gestión</button>
+      </div>
+      <div id="gc-tab-content-historial" style="margin-top:10px">
+        <div id="gc-informes-recientes"></div>
+      </div>
+      <div id="gc-tab-content-informes" style="display:none;margin-top:10px">
+        <div id="gc-informes-pdf-section"></div>
+      </div>
     </div>
     <div id="gc-view-informe" style="display:none"></div>
     <div id="gc-view-historial" style="display:none"></div>
     <div id="gc-view-admin" style="display:none"></div>
   `;
   _gcCargarInformesRecientes();
+  _igCargarEnGcPanel();
+}
+
+function gcSetTabGC(tab){
+  ['historial','informes'].forEach(function(t){
+    var btn=document.getElementById('gc-tab-'+t+'-btn');
+    var content=document.getElementById('gc-tab-content-'+t);
+    var activo=t===tab;
+    if(btn){if(activo){btn.classList.add('active');}else{btn.classList.remove('active');}}
+    if(content) content.style.display=activo?'':'none';
+  });
 }
 
 /* ── VISTA EJECUTIVO COMERCIAL ─────────────────────────────────── */
@@ -124177,7 +124288,7 @@ async function gcCargarPendientes(listaId,informeId,registroId,entInfo){
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px">
             ${_gcBadgeEstado(p.estado)}
             ${_gcBadgePrior(p.prioridad)}
-            ${p.responsable_nombre?`<span style="font-size:11px;color:var(--muted)">👤 ${_gcEsc(p.responsable_nombre)}</span>`:'<span style="font-size:11px;color:#ef444460">⚠️ Sin asignar</span>'}
+            ${p.responsable_nombre?`<span style="font-size:11px;color:var(--muted)">👤 ${_gcEsc(_gcRespNombres(p.responsable_nombre))}</span>`:'<span style="font-size:11px;color:#ef444460">⚠️ Sin asignar</span>'}
             ${p.fecha_limite?`<span style="font-size:11px;color:var(--muted)">📅 ${_gcEsc(p.fecha_limite)}</span>`:''}
           </div>
         </div>
@@ -124196,7 +124307,8 @@ async function gcNuevoPendiente(informeId,registroId,entInfoStr,btnEl){
   await _gcAbrirFormPendiente(informeId,registroId,entInfo,null);
 }
 
-async function _gcAbrirFormPendiente(informeId,registroId,entInfo,pend){
+async function _gcAbrirFormPendiente(informeId,registroId,entInfo,pend,opts){
+  opts=opts||{};
   await _gcCargarEmpleados();
   var empOpts=_gcEmpleados.map(function(e){
     return `<option value="${_gcEsc(e.id)}" data-nom="${_gcEsc(e.nombre)}" ${(pend&&pend.responsable_id===e.id)?'selected':''}>${_gcEsc(e.nombre)} (${_gcEsc(e.cargo||e.rol||'')})</option>`;
@@ -124214,7 +124326,7 @@ async function _gcAbrirFormPendiente(informeId,registroId,entInfo,pend){
     </style>
     <div style="margin-bottom:20px;display:flex;align-items:center;gap:10px">
       <span style="font-size:20px;color:#8b5cf6;font-weight:900">+</span>
-      <span style="font-size:17px;font-weight:700;color:#8b5cf6;font-family:Outfit,sans-serif">${pend?'Editar pendiente':'Nuevo pendiente'}</span>
+      <span style="font-size:17px;font-weight:700;color:#8b5cf6;font-family:Outfit,sans-serif">${pend?'Editar pendiente':(opts.titulo||'Nuevo pendiente')}</span>
     </div>
     <form id="gc-form-pend" onsubmit="gcGuardarPendiente(event,'${_gcEsc(informeId)}','${_gcEsc(registroId||'')}','${pend?_gcEsc(pend.id):''}')">
       <div style="${_fldStyle}">
@@ -124249,11 +124361,9 @@ async function _gcAbrirFormPendiente(informeId,registroId,entInfo,pend){
         </div>
       </div>
       <div style="${_fldStyle}">
-        <label style="${_lblStyle}">Responsable</label>
-        <select style="${_inpStyle}" id="gcp-resp">
-          <option value="">— Sin asignar —</option>
-          ${empOpts}
-        </select>
+        <label style="${_lblStyle}">Responsable${(_gcIsAdmin()||opts.multiResp)?'s <span style="font-size:11px;color:#64748b;font-weight:400">(puedes agregar varios)</span>':''}</label>
+        ${(_gcIsAdmin()||opts.multiResp)?`<div id="gcp-resp-chips" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin-bottom:8px"></div>
+        <select style="${_inpStyle}" id="gcp-resp" onchange="gcRespChipAdd(this)"><option value="">— Agregar responsable —</option>${empOpts}</select>`:`<select style="${_inpStyle}" id="gcp-resp"><option value="">— Sin asignar —</option>${empOpts}</select>`}
       </div>
       <div style="${_fldStyle}">
         <label style="${_lblStyle}">Área responsable</label>
@@ -124279,6 +124389,25 @@ async function _gcAbrirFormPendiente(informeId,registroId,entInfo,pend){
   overlay.innerHTML=`<div style="background:#0d1929;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:28px;max-width:660px;width:100%;max-height:90vh;overflow-y:auto">${modalHtml}</div>`;
   overlay.addEventListener('click',function(e){if(e.target===overlay)gcCerrarFormPend();});
   document.body.appendChild(overlay);
+  /* Pre-poblar chips si es edición con múltiples responsables (admin) */
+  if(_gcIsAdmin()&&pend){
+    var _existResps=[];
+    try{var _pr=JSON.parse(pend.responsable_nombre||'');if(Array.isArray(_pr))_existResps=_pr;}catch(e){}
+    if(!_existResps.length&&pend.responsable_id&&pend.responsable_nombre)
+      _existResps=[{id:pend.responsable_id,nombre:pend.responsable_nombre}];
+    _existResps.forEach(function(r){
+      if(r.id&&r.nombre){
+        var _ch=document.getElementById('gcp-resp-chips');
+        if(!_ch) return;
+        var c=document.createElement('div');
+        c.id='gcp-resp-chip-'+r.id; c.dataset.id=r.id; c.dataset.nombre=r.nombre;
+        c.style.cssText='display:flex;align-items:center;gap:6px;background:rgba(139,92,246,.18);border:1px solid rgba(139,92,246,.45);border-radius:20px;padding:4px 11px;font-size:12px;color:#c4b5fd;font-family:Outfit,sans-serif';
+        c.innerHTML='👤 '+r.nombre.replace(/[<>]/g,function(x){return x==='<'?'&lt;':'&gt;';})
+          +' <button type="button" onclick="gcRespChipRemove(\''+r.id+'\')" style="background:none;border:none;color:#c4b5fd;cursor:pointer;font-size:15px;padding:0;line-height:1;margin-left:3px" title="Quitar">×</button>';
+        _ch.appendChild(c);
+      }
+    });
+  }
 }
 
 function gcCerrarFormPend(){
@@ -124286,15 +124415,51 @@ function gcCerrarFormPend(){
   if(el) el.remove();
 }
 
+/* ── Multi-responsable: helpers de chips ────────────────────────── */
+function gcRespChipAdd(sel){
+  var id=sel.value; if(!id){return;}
+  var nom=(sel.selectedOptions[0]?sel.selectedOptions[0].dataset.nom||sel.selectedOptions[0].text:'');
+  sel.value='';
+  if(document.getElementById('gcp-resp-chip-'+id)) return;
+  var chips=document.getElementById('gcp-resp-chips'); if(!chips) return;
+  var c=document.createElement('div');
+  c.id='gcp-resp-chip-'+id; c.dataset.id=id; c.dataset.nombre=nom;
+  c.style.cssText='display:flex;align-items:center;gap:6px;background:rgba(139,92,246,.18);border:1px solid rgba(139,92,246,.45);border-radius:20px;padding:4px 11px;font-size:12px;color:#c4b5fd;font-family:Outfit,sans-serif';
+  c.innerHTML='👤 '+nom.replace(/[<>]/g,function(x){return x==='<'?'&lt;':'&gt;';})
+    +' <button type="button" onclick="gcRespChipRemove(\''+id+'\')" style="background:none;border:none;color:#c4b5fd;cursor:pointer;font-size:15px;padding:0;line-height:1;margin-left:3px" title="Quitar">×</button>';
+  chips.appendChild(c);
+}
+function gcRespChipRemove(id){
+  var el=document.getElementById('gcp-resp-chip-'+id); if(el) el.remove();
+}
+function gcRespChipGetAll(){
+  var chips=document.getElementById('gcp-resp-chips');
+  if(!chips||!chips.children.length) return [];
+  return Array.prototype.slice.call(chips.children).map(function(c){return{id:c.dataset.id,nombre:c.dataset.nombre};});
+}
+/* Util: convierte responsable_nombre (texto plano o JSON) a cadena legible */
+function _gcRespNombres(nom){
+  if(!nom) return '';
+  try{var a=JSON.parse(nom);if(Array.isArray(a))return a.map(function(r){return r.nombre||'';}).join(', ');}catch(e){}
+  return nom;
+}
+
 async function gcGuardarPendiente(ev,informeId,registroId,pendId){
   ev.preventDefault();
   var btn=ev.target.querySelector('[type=submit]');
   if(btn){ btn.disabled=true; btn.textContent='⏳ Guardando…'; }
 
-  var selResp=document.getElementById('gcp-resp');
-  var respId=selResp?selResp.value:'';
-  var respNom=selResp&&selResp.selectedOptions[0]?selResp.selectedOptions[0].dataset.nom||selResp.selectedOptions[0].text:'';
-  if(respNom==='— Sin asignar —') respNom='';
+  var _multiResps=gcRespChipGetAll();
+  var respId,respNom;
+  if((_gcIsAdmin()||document.getElementById('gcp-resp-chips'))&&_multiResps.length>0){
+    respId=_multiResps[0].id;
+    respNom=_multiResps.length>1?JSON.stringify(_multiResps):_multiResps[0].nombre;
+  } else {
+    var selResp=document.getElementById('gcp-resp');
+    respId=selResp?selResp.value:'';
+    respNom=selResp&&selResp.selectedOptions[0]?selResp.selectedOptions[0].dataset.nom||selResp.selectedOptions[0].text:'';
+    if(respNom==='— Sin asignar —') respNom='';
+  }
 
   var payload={
     informe_id: informeId||null,
@@ -124414,7 +124579,7 @@ async function gcDetallePendiente(pendId){
       '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
         _gcBadgeEstado(p.estado)+
         _gcBadgePrior(p.prioridad)+
-        (p.responsable_nombre?'<span style="font-size:11.5px;color:var(--muted)">👤 '+_gcEsc(p.responsable_nombre)+'</span>':'<span style="font-size:11.5px;color:#ef444480">⚠️ Sin asignar</span>')+
+        (p.responsable_nombre?'<span style="font-size:11.5px;color:var(--muted)">👤 '+_gcEsc(_gcRespNombres(p.responsable_nombre))+'</span>':'<span style="font-size:11.5px;color:#ef444480">⚠️ Sin asignar</span>')+
         (p.fecha_limite?'<span style="font-size:11.5px;color:var(--muted)">📅 '+_gcEsc(p.fecha_limite)+'</span>':'')+
       '</div>'+
       (p.descripcion?'<div style="font-size:12.5px;margin-top:8px;line-height:1.5">'+_gcEsc(p.descripcion)+'</div>':'')+
@@ -124622,7 +124787,7 @@ async function _gcCargarReadOnly(informeId){
         return `<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
           <span style="font-weight:700">${_gcEsc(p.titulo||'—')}</span>
           <span style="margin-left:8px">${_gcBadgeEstado(p.estado||'')}</span>
-          ${p.responsable_nombre?`<div style="font-size:11px;color:var(--muted);margin-top:2px">Responsable: ${_gcEsc(p.responsable_nombre)}</div>`:''}
+          ${p.responsable_nombre?`<div style="font-size:11px;color:var(--muted);margin-top:2px">Responsable: ${_gcEsc(_gcRespNombres(p.responsable_nombre))}</div>`:''}
         </div>`;
       }).join('');
     }
@@ -124859,7 +125024,7 @@ async function _gcCargarPendientesInline(registroId){
       return `<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--card2,#252830);border-radius:6px;margin-bottom:4px;font-size:11px;cursor:pointer" onclick="gcDetallePendiente('${_gcEsc(p.id)}')">
         ${_gcBadgeEstado(p.estado)}
         <span>${_gcEsc(p.titulo)}</span>
-        ${p.responsable_nombre?`<span style="color:var(--muted);margin-left:auto">👤 ${_gcEsc(p.responsable_nombre)}</span>`:''}
+        ${p.responsable_nombre?`<span style="color:var(--muted);margin-left:auto">👤 ${_gcEsc(_gcRespNombres(p.responsable_nombre))}</span>`:''}
       </div>`;
     }).join('');
 }
@@ -124926,6 +125091,430 @@ function gcSegAplicarFiltros(){
   _gcSegRenderizar(filtered,null,document.getElementById('gc-seg-tabla-wrap'));
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   INFORME DIARIO DE SEGUIMIENTO Y TRAZABILIDAD DE PENDIENTES
+   ═══════════════════════════════════════════════════════════════ */
+async function gcInformeDiarioPendientes(){
+  var btn=document.getElementById('gc-btn-inf-diario');
+  if(btn){btn.disabled=true;btn.innerHTML='⏳ Generando…';}
+  try{
+    /* 1 · Consultar todos los pendientes (4 estados) */
+    var r=await _gcDb().from('gc_pendientes').select(
+      'id,titulo,descripcion,prioridad,estado,fecha_limite,created_at,updated_at,'+
+      'responsable_nombre,responsable_id,creado_por_nombre,creado_por,'+
+      'tipo_entidad,entidad_nombre,informe_id,gc_informes(id,fecha,monitor_nombre)'
+    ).in('estado',['pendiente','en_proceso','en_espera','resuelto','cerrado'])
+      .order('created_at',{ascending:false}).limit(500);
+    if(r.error||!r.data){toast('Error al consultar pendientes: '+(r.error&&r.error.message||''),'error');return;}
+    var pendings=r.data;
+    if(!pendings.length){toast('No hay pendientes registrados','error');return;}
+
+    /* 2 · Consultar TODO el historial en una sola llamada (sin N+1) */
+    var ids=pendings.map(function(p){return p.id;});
+    var rL=await _gcDb().from('gc_pendientes_log')
+      .select('pendiente_id,accion,valor_nuevo,comentario,usuario_nombre,created_at')
+      .in('pendiente_id',ids).order('created_at',{ascending:true}).limit(5000);
+
+    /* 3 · Agrupar logs por pendiente */
+    var logsByPend={};
+    (rL.data||[]).forEach(function(l){
+      if(!logsByPend[l.pendiente_id])logsByPend[l.pendiente_id]=[];
+      logsByPend[l.pendiente_id].push(l);
+    });
+
+    /* 4 · Fecha Colombia */
+    var now=new Date();
+    var fechaGen=now.toLocaleString('es-CO',{timeZone:'America/Bogota',
+      year:'numeric',month:'long',day:'2-digit',hour:'2-digit',minute:'2-digit',weekday:'long'});
+
+    /* 5 · Construir HTML y abrir en nueva pestaña */
+    var html=_gcBuildInformeHTML(pendings,logsByPend,fechaGen,now);
+    var win=window.open('','_blank');
+    if(!win){toast('Activa ventanas emergentes para ver el informe','error');return;}
+    win.document.write(html);
+    win.document.close();
+    toast('Informe generado. Usa el botón "Imprimir / PDF" en la ventana.','success');
+  }catch(e){
+    console.error('gcInformeDiarioPendientes:',e);
+    toast('Error al generar informe','error');
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='📄 Informe diario';}
+  }
+}
+
+function _gcBuildInformeHTML(pendings,byId,fechaGen,now){
+  /* ── helpers ── */
+  var esc=function(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+  var respN=function(n){
+    if(!n)return '—';
+    try{var a=JSON.parse(n);if(Array.isArray(a))return a.map(function(x){return x.nombre||'';}).join(', ');}catch(e){}
+    return n;
+  };
+  var eLabel=function(e){return {pendiente:'Pendiente',en_proceso:'En proceso',en_espera:'En espera',resuelto:'Completado',cerrado:'Cerrado'}[e]||e||'—';};
+  var eColor=function(e){return {pendiente:'#c55a11',en_proceso:'#2e5fa3',en_espera:'#7030a0',resuelto:'#1e7145',cerrado:'#595959'}[e]||'#333';};
+  var pLabel=function(p){return {alta:'Alta',media:'Media',baja:'Baja'}[p]||p||'—';};
+  var pColor=function(p){return {alta:'#C00000',media:'#c55a11',baja:'#1e7145'}[p]||'#333';};
+  var days=function(iso){if(!iso)return null;return Math.floor((now-new Date(iso))/86400000);};
+  var fDate=function(iso){
+    if(!iso)return '—';
+    try{return new Date(iso).toLocaleString('es-CO',{timeZone:'America/Bogota',
+      year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});}
+    catch(e){return (iso||'').slice(0,16).replace('T',' ');}
+  };
+
+  /* ── clasificación ── */
+  var total=pendings.length;
+  var byState={pendiente:[],en_proceso:[],en_espera:[],resuelto:[],cerrado:[]};
+  pendings.forEach(function(p){if(byState[p.estado])byState[p.estado].push(p);});
+  var completados=(byState.resuelto||[]).concat(byState.cerrado||[]);
+  var pct=total?Math.round(completados.length/total*100):0;
+  var abiertos=pendings.filter(function(p){return p.estado!=='resuelto'&&p.estado!=='cerrado';});
+
+  /* ── análisis de responsables ── */
+  var rMap={};
+  pendings.forEach(function(p){
+    var rn=respN(p.responsable_nombre)||'Sin asignar';
+    if(!rMap[rn])rMap[rn]={nombre:rn,total:0,pendiente:0,en_proceso:0,en_espera:0,comp:0,ultimaAct:null};
+    rMap[rn].total++;
+    if(p.estado==='pendiente')rMap[rn].pendiente++;
+    else if(p.estado==='en_proceso')rMap[rn].en_proceso++;
+    else if(p.estado==='en_espera')rMap[rn].en_espera++;
+    else rMap[rn].comp++;
+    var lg=(byId[p.id]||[]);
+    if(lg.length){var la=lg[lg.length-1].created_at;if(!rMap[rn].ultimaAct||la>rMap[rn].ultimaAct)rMap[rn].ultimaAct=la;}
+  });
+  var respList=Object.values(rMap).sort(function(a,b){return b.total-a.total;});
+
+  /* ── alertas ── */
+  var alertas=[];
+  pendings.forEach(function(p){
+    if(p.estado==='resuelto'||p.estado==='cerrado')return;
+    var du=days(p.updated_at||p.created_at);
+    var dc=days(p.created_at);
+    var logs=byId[p.id]||[];
+    if(p.fecha_limite&&p.fecha_limite<now.toISOString().slice(0,10))
+      alertas.push({niv:'CRÍTICO',pend:p.titulo,msg:'Fecha límite vencida el '+esc(p.fecha_limite),resp:respN(p.responsable_nombre)});
+    if(du!==null&&du>10&&p.estado==='en_espera')
+      alertas.push({niv:'ALTO',pend:p.titulo,msg:'En espera sin actualización hace '+du+' días',resp:respN(p.responsable_nombre)});
+    if(du!==null&&du>7&&p.estado==='en_proceso')
+      alertas.push({niv:'MEDIO',pend:p.titulo,msg:'En proceso sin actualización hace '+du+' días',resp:respN(p.responsable_nombre)});
+    if(dc!==null&&dc>15&&p.estado==='pendiente')
+      alertas.push({niv:'ALTO',pend:p.titulo,msg:'Sin iniciar hace '+dc+' días desde su creación',resp:respN(p.responsable_nombre)});
+    if(!logs.length&&dc!==null&&dc>5)
+      alertas.push({niv:'MEDIO',pend:p.titulo,msg:'Sin ninguna intervención registrada ('+dc+' días)',resp:respN(p.responsable_nombre)});
+  });
+  var nivOrd={CRÍTICO:0,ALTO:1,MEDIO:2};
+  alertas.sort(function(a,b){return (nivOrd[a.niv]||3)-(nivOrd[b.niv]||3);});
+
+  /* ── sinActualizar y vencidos para plan de acción ── */
+  var sinAct=abiertos.filter(function(p){return days(p.updated_at||p.created_at)>7;});
+  var vencidos=abiertos.filter(function(p){return p.fecha_limite&&p.fecha_limite<now.toISOString().slice(0,10);});
+
+  /* ════════════════════ CSS ════════════════════ */
+  var css=[
+    '*{box-sizing:border-box;margin:0;padding:0}',
+    'body{font-family:Arial,sans-serif;font-size:10.5pt;color:#000;background:#fff;line-height:1.5;padding:0 20pt}',
+    'h1{font-size:17pt;color:#1F3864;font-weight:bold;margin-bottom:6pt}',
+    'h2{font-size:13pt;color:#1F3864;font-weight:bold;margin:18pt 0 8pt;padding:6pt 10pt;background:#D9E1F2;border-left:4pt solid #2E5FA3}',
+    'h3{font-size:11.5pt;color:#2E5FA3;font-weight:bold;margin:14pt 0 5pt}',
+    'h4{font-size:10.5pt;color:#1F3864;font-weight:bold;margin:10pt 0 4pt}',
+    'p{margin-bottom:5pt;text-align:justify}',
+    'em{color:#595959;font-style:italic}',
+    'table{width:100%;border-collapse:collapse;margin:7pt 0;font-size:9.5pt}',
+    'th{background:#1F3864;color:#fff;font-weight:bold;padding:5pt 7pt;text-align:left;font-size:9pt}',
+    'td{padding:4pt 7pt;border-bottom:1px solid #d5dce8;vertical-align:top}',
+    'tr:nth-child(even) td{background:#f5f7fb}',
+    '.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8pt;margin:10pt 0}',
+    '.kpi-box{border:1.5px solid #2E5FA3;border-radius:5pt;padding:8pt;text-align:center}',
+    '.kpi-val{font-size:18pt;font-weight:bold;color:#1F3864}',
+    '.kpi-lbl{font-size:8.5pt;color:#333;margin-top:2pt}',
+    '.pend-card{border:1.5px solid #d0d7e8;border-radius:5pt;padding:10pt 12pt;margin-bottom:12pt}',
+    '.badge{display:inline-block;padding:2pt 7pt;border-radius:20pt;font-size:8pt;font-weight:bold;color:#fff}',
+    '.it td:nth-child(odd){background:#edf1f9;font-weight:bold;color:#1F3864;width:130pt}',
+    '.narr{background:#f8f9fb;border-left:3pt solid #2E5FA3;padding:7pt 11pt;margin:7pt 0;border-radius:0 4pt 4pt 0;font-size:10pt;line-height:1.6}',
+    '.cover{text-align:center;padding:50pt 0 30pt}',
+    '.btn-print{display:inline-block;padding:10pt 22pt;background:#1F3864;color:#fff;border:none;border-radius:6pt;font-size:12pt;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;margin-bottom:14pt}',
+    '.no-print{background:#1a2744;padding:14pt 20pt;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:12pt;border-bottom:2pt solid #2E5FA3;margin:0 -20pt 14pt}',
+    '.page-break{page-break-before:always;margin-top:10pt}',
+    '@media print{',
+    ' @page{size:A4;margin:12mm 10mm}',
+    ' .no-print{display:none!important}',
+    ' .page-break{page-break-before:always}',
+    ' .pend-card{page-break-inside:avoid}',
+    ' h2{background:#D9E1F2!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}',
+    ' th{background:#1F3864!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}',
+    ' .kpi-box{-webkit-print-color-adjust:exact;print-color-adjust:exact}',
+    '}'
+  ].join('\n');
+
+  /* ════════════════════ INICIO HTML ════════════════════ */
+  var H='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">'+
+    '<title>Informe Pendientes — '+esc(fechaGen)+'</title>'+
+    '<style>'+css+'</style></head><body>';
+
+  /* barra de impresión */
+  H+='<div class="no-print">'+
+    '<span style="color:#fff;font-weight:bold;font-size:13pt">📄 Informe de Pendientes</span>'+
+    '<span style="color:#aaa;font-size:10pt;flex:1">'+esc(fechaGen)+'</span>'+
+    '<button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>'+
+    '<button onclick="window.close()" style="padding:8pt 14pt;background:transparent;color:#aaa;border:1px solid #444;border-radius:5pt;cursor:pointer;font-size:10pt">✕ Cerrar</button>'+
+    '</div>';
+
+  /* ── PORTADA */
+  H+='<div class="cover">';
+  H+='<div style="font-size:9pt;color:#2E5FA3;letter-spacing:3pt;font-weight:bold;text-transform:uppercase">Grupo Empresarial J&amp;D · Fornax Studios</div>';
+  H+='<div style="font-size:28pt;font-weight:bold;color:#1F3864;margin:12pt 0 4pt">J&amp;D</div>';
+  H+='<div style="height:3pt;background:#2E5FA3;width:80pt;margin:0 auto 20pt"></div>';
+  H+='<div style="font-size:16pt;font-weight:bold;color:#1F3864;padding:14pt 20pt;background:#D9E1F2;border-radius:6pt;display:inline-block">INFORME DE SEGUIMIENTO Y TRAZABILIDAD DE PENDIENTES</div>';
+  H+='<div style="margin-top:20pt;font-size:11pt;color:#333"><strong>Generado:</strong> '+esc(fechaGen)+'</div>';
+  H+='<div style="font-size:10pt;color:#595959;margin-top:4pt">Zona horaria: Colombia (UTC−5)</div>';
+  H+='<div style="margin-top:16pt;display:inline-block;padding:8pt 20pt;border:1.5pt solid #2E5FA3;border-radius:5pt;font-size:10pt"><strong>'+total+'</strong> registros analizados | Completamiento: <strong>'+pct+'%</strong></div>';
+  H+='<div style="margin-top:20pt;font-size:9pt;color:#595959;border-top:1pt solid #d0d7e8;padding-top:10pt">Documento de uso interno — Confidencial</div>';
+  H+='</div>';
+
+  /* ── 1. RESUMEN EJECUTIVO */
+  H+='<div class="page-break"></div>';
+  H+='<h2>1. Resumen Ejecutivo</h2>';
+  H+='<div class="kpi-grid">';
+  [{l:'Total registros',v:total,c:'#1F3864'},
+   {l:'Pendientes',v:(byState.pendiente||[]).length,c:'#c55a11'},
+   {l:'En proceso',v:(byState.en_proceso||[]).length,c:'#2e5fa3'},
+   {l:'En espera',v:(byState.en_espera||[]).length,c:'#7030a0'},
+   {l:'Completados',v:completados.length,c:'#1e7145'}
+  ].forEach(function(k){
+    H+='<div class="kpi-box"><div class="kpi-val" style="color:'+k.c+'">'+k.v+'</div><div class="kpi-lbl">'+esc(k.l)+'</div></div>';
+  });
+  H+='</div>';
+  H+='<table><thead><tr><th>Indicador</th><th>Valor</th><th>Detalle</th></tr></thead><tbody>';
+  H+='<tr><td>% Completamiento</td><td><strong>'+pct+'%</strong></td><td>'+completados.length+' completados de '+total+' registros totales</td></tr>';
+  H+='<tr><td>Alertas críticas (fecha vencida)</td><td><strong style="color:#C00000">'+alertas.filter(function(a){return a.niv==='CRÍTICO';}).length+'</strong></td><td>Pendientes activos con fecha límite vencida</td></tr>';
+  H+='<tr><td>Alertas altas</td><td><strong style="color:#c55a11">'+alertas.filter(function(a){return a.niv==='ALTO';}).length+'</strong></td><td>En espera +10 días o sin iniciar +15 días</td></tr>';
+  H+='<tr><td>Sin actualización reciente (+7 días)</td><td><strong>'+sinAct.length+'</strong></td><td>Activos que requieren seguimiento inmediato</td></tr>';
+  H+='<tr><td>Responsables con tareas activas</td><td><strong>'+respList.filter(function(r){return r.nombre!=='Sin asignar'&&(r.pendiente+r.en_proceso+r.en_espera)>0;}).length+'</strong></td><td>Personas con pendientes abiertos asignados</td></tr>';
+  H+='<tr><td>Pendientes sin asignar</td><td><strong>'+pendings.filter(function(p){return !p.responsable_id&&p.estado!=='resuelto'&&p.estado!=='cerrado';}).length+'</strong></td><td>Activos sin responsable identificado</td></tr>';
+  H+='</tbody></table>';
+
+  /* ── 2. ANÁLISIS POR ESTADO */
+  H+='<div class="page-break"></div>';
+  H+='<h2>2. Análisis por Estado</h2>';
+  [
+    {key:'pendiente',   tit:'2.1 Pendientes sin iniciar', color:'#c55a11',
+     desc:'Registros que aún no han iniciado proceso de gestión. Requieren asignación y activación de responsable.'},
+    {key:'en_proceso',  tit:'2.2 En proceso',              color:'#2e5fa3',
+     desc:'Gestiones activas en curso. Se monitorea el avance y se verifica la oportunidad de cierre.'},
+    {key:'en_espera',   tit:'2.3 En espera',               color:'#7030a0',
+     desc:'Procesos detenidos por dependencia de terceros, respuesta, documento o aprobación externa.'},
+    {key:'completados', tit:'2.4 Completados / Cerrados',  color:'#1e7145',
+     desc:'Pendientes resueltos o cerrados. Se conserva el historial para trazabilidad.'}
+  ].forEach(function(sec){
+    var items=sec.key==='completados'?completados:(byState[sec.key]||[]);
+    H+='<h3 style="color:'+sec.color+'">'+sec.tit+' ('+items.length+')</h3>';
+    H+='<p>'+esc(sec.desc)+'</p>';
+    if(!items.length){H+='<p><em>No hay registros en este estado.</em></p>';return;}
+    H+='<table><thead><tr><th>#</th><th>Título</th><th>Responsable</th><th>Prioridad</th><th>Creado</th><th>Últ. actualización</th><th>Días activo</th></tr></thead><tbody>';
+    items.forEach(function(p,i){
+      var dc=days(p.created_at);
+      H+='<tr><td>'+(i+1)+'</td><td>'+esc(p.titulo)+'</td><td>'+esc(respN(p.responsable_nombre))+'</td>'+
+        '<td><span style="color:'+pColor(p.prioridad)+'">'+pLabel(p.prioridad)+'</span></td>'+
+        '<td>'+esc(fDate(p.created_at))+'</td><td>'+esc(fDate(p.updated_at||p.created_at))+'</td>'+
+        '<td>'+(dc!==null?dc+' d':'—')+'</td></tr>';
+    });
+    H+='</tbody></table>';
+  });
+
+  /* ── 3. ANÁLISIS INDIVIDUAL */
+  H+='<div class="page-break"></div>';
+  H+='<h2>3. Análisis Individual por Pendiente</h2>';
+  H+='<p>A continuación se presenta la descripción detallada y el historial cronológico completo de cada uno de los '+total+' registros.</p>';
+
+  pendings.forEach(function(p,idx){
+    var logs=byId[p.id]||[];
+    var dc=days(p.created_at);
+    var du=days(p.updated_at||p.created_at);
+    var ec=eColor(p.estado);
+    var monitor=(p.gc_informes&&p.gc_informes.monitor_nombre)||p.creado_por_nombre||'—';
+    var cambiosEst=logs.filter(function(l){return l.accion==='estado';});
+    var comentarios=logs.filter(function(l){return l.accion==='comentario'||l.accion==='estado';});
+    var lastCom=comentarios.length?comentarios[comentarios.length-1]:null;
+
+    H+='<div class="pend-card">';
+    /* encabezado */
+    H+='<div style="display:flex;align-items:center;gap:8pt;margin-bottom:8pt;flex-wrap:wrap">';
+    H+='<span style="font-size:9pt;color:#595959;font-weight:bold;background:#edf1f9;padding:2pt 7pt;border-radius:4pt">N.° '+(idx+1)+'</span>';
+    H+='<span style="flex:1;font-weight:bold;font-size:11.5pt;color:#1F3864">'+esc(p.titulo)+'</span>';
+    H+='<span class="badge" style="background:'+ec+'">'+eLabel(p.estado)+'</span>';
+    H+='<span class="badge" style="background:'+pColor(p.prioridad)+'">'+pLabel(p.prioridad)+'</span>';
+    H+='</div>';
+
+    /* tabla de info general */
+    H+='<h4>Información General</h4>';
+    H+='<table class="it"><tbody>';
+    H+='<tr><td>Título</td><td>'+esc(p.titulo)+'</td><td>Estado</td><td><strong style="color:'+ec+'">'+eLabel(p.estado)+'</strong></td></tr>';
+    H+='<tr><td>Descripción</td><td colspan="3">'+esc(p.descripcion||'Sin descripción registrada.')+'</td></tr>';
+    H+='<tr><td>Responsable</td><td>'+esc(respN(p.responsable_nombre)||'Sin asignar')+'</td><td>Prioridad</td><td><strong style="color:'+pColor(p.prioridad)+'">'+pLabel(p.prioridad)+'</strong></td></tr>';
+    H+='<tr><td>Creado por</td><td>'+esc(p.creado_por_nombre||monitor)+'</td><td>Fecha creación</td><td>'+esc(fDate(p.created_at))+'</td></tr>';
+    H+='<tr><td>Área / Categoría</td><td>'+esc(p.tipo_entidad||'—')+'</td><td>Entidad</td><td>'+esc(p.entidad_nombre||'—')+'</td></tr>';
+    H+='<tr><td>Fecha límite</td><td>'+esc(p.fecha_limite||'Sin fecha límite')+'</td><td>Última actualización</td><td>'+esc(fDate(p.updated_at||p.created_at))+'</td></tr>';
+    H+='<tr><td>Días activo</td><td>'+(dc!==null?dc+' días':'—')+'</td><td>Sin actualización</td><td>'+(du!==null?du+' días':'—')+'</td></tr>';
+    H+='<tr><td>Total intervenciones</td><td>'+logs.length+'</td><td>Cambios de estado</td><td>'+cambiosEst.length+'</td></tr>';
+    H+='</tbody></table>';
+
+    /* narrativa */
+    H+='<h4>Descripción de la Gestión Realizada</h4>';
+    var narr=[];
+    if(p.descripcion) narr.push('Se registró el siguiente requerimiento: "'+esc(p.descripcion)+'".');
+    narr.push('Fue creado por <strong>'+esc(p.creado_por_nombre||monitor)+'</strong> el '+esc(fDate(p.created_at))+'.');
+    if(!logs.length){
+      narr.push('No se han registrado intervenciones desde su creación.');
+    } else {
+      narr.push('Se registraron <strong>'+logs.length+'</strong> intervención(es) en este pendiente.');
+      if(cambiosEst.length) narr.push('El estado cambió '+cambiosEst.length+' vez/veces. Último cambio: <em>'+esc(eLabel(cambiosEst[cambiosEst.length-1].valor_nuevo))+'</em> por '+esc(cambiosEst[cambiosEst.length-1].usuario_nombre||'sistema')+'.');
+      if(lastCom&&lastCom.comentario) narr.push('Última observación: "'+esc(lastCom.comentario)+'" — <em>'+esc(lastCom.usuario_nombre||'sistema')+'</em> el '+esc(fDate(lastCom.created_at))+'.');
+    }
+    if(p.estado==='resuelto'||p.estado==='cerrado') narr.push('Este pendiente ha sido marcado como completado o cerrado.');
+    else if(p.estado==='en_espera') narr.push('El proceso está en espera. Se debe identificar el bloqueante e intervenir.');
+    else if(p.estado==='en_proceso') narr.push('La gestión está activa. Continuar seguimiento hasta la resolución.');
+    else narr.push('Este pendiente aún no ha iniciado su gestión. Requiere activación por parte del responsable.');
+    H+='<div class="narr">'+narr.join(' ')+'</div>';
+
+    /* historial */
+    if(logs.length){
+      H+='<h4>Historial de Intervenciones ('+logs.length+')</h4>';
+      H+='<table><thead><tr><th>Fecha y hora</th><th>Participante</th><th>Tipo de acción</th><th>Comentario / Observación</th><th>Resultado</th></tr></thead><tbody>';
+      logs.forEach(function(l){
+        var aLbl={creado:'Creación',editado:'Edición',estado:'Cambio de estado',comentario:'Comentario / Avance'}[l.accion]||esc(l.accion);
+        var res=l.accion==='estado'?('→ '+eLabel(l.valor_nuevo)):'';
+        H+='<tr>'+
+          '<td style="white-space:nowrap;font-size:9pt">'+esc(fDate(l.created_at))+'</td>'+
+          '<td>'+esc(l.usuario_nombre||'Sistema')+'</td>'+
+          '<td>'+esc(aLbl)+'</td>'+
+          '<td>'+esc(l.comentario||'—')+'</td>'+
+          '<td style="color:'+ec+'">'+esc(res)+'</td>'+
+          '</tr>';
+      });
+      H+='</tbody></table>';
+    } else {
+      H+='<p><em>No se han registrado intervenciones en este pendiente.</em></p>';
+    }
+
+    /* conclusión */
+    H+='<h4>Conclusión del Pendiente</h4>';
+    var concl='';
+    if(p.estado==='resuelto'||p.estado==='cerrado'){
+      concl='Pendiente completado con <strong>'+logs.length+'</strong> intervención(es) registrada(s). Historial conservado para trazabilidad.';
+    } else if(p.estado==='en_espera'){
+      concl='El proceso está detenido. <strong>'+esc(respN(p.responsable_nombre)||'El responsable')+'</strong> debe retomar la gestión.'+(du!==null&&du>5?' Lleva <strong>'+du+' días</strong> sin actualización.':'');
+    } else if(p.estado==='en_proceso'){
+      concl='Gestión activa. Responsable: <strong>'+esc(respN(p.responsable_nombre)||'—')+'</strong>. Se deben registrar avances periódicamente.';
+    } else {
+      concl='Sin iniciar. Ha transcurrido <strong>'+(dc||0)+' días</strong> desde la creación. Debe ser atendido por <strong>'+esc(respN(p.responsable_nombre)||'el responsable asignado')+'</strong>.';
+    }
+    H+='<p>'+concl+'</p>';
+    H+='</div>'; /* fin pend-card */
+  });
+
+  /* ── 4. RESPONSABLES */
+  H+='<div class="page-break"></div>';
+  H+='<h2>4. Análisis de Responsables</h2>';
+  H+='<p>Participación de cada persona en los pendientes activos y completados.</p>';
+  H+='<table><thead><tr><th>Responsable</th><th style="text-align:center">Total</th><th style="text-align:center">Pendiente</th><th style="text-align:center">En proceso</th><th style="text-align:center">En espera</th><th style="text-align:center">Completados</th><th>Última gestión registrada</th></tr></thead><tbody>';
+  respList.forEach(function(r){
+    H+='<tr>'+
+      '<td><strong>'+esc(r.nombre)+'</strong></td>'+
+      '<td style="text-align:center;font-weight:bold">'+r.total+'</td>'+
+      '<td style="text-align:center;color:#c55a11">'+r.pendiente+'</td>'+
+      '<td style="text-align:center;color:#2e5fa3">'+r.en_proceso+'</td>'+
+      '<td style="text-align:center;color:#7030a0">'+r.en_espera+'</td>'+
+      '<td style="text-align:center;color:#1e7145">'+r.comp+'</td>'+
+      '<td style="font-size:9pt">'+esc(r.ultimaAct?fDate(r.ultimaAct):'Sin intervenciones registradas')+'</td>'+
+      '</tr>';
+  });
+  H+='</tbody></table>';
+
+  /* ── 5. ALERTAS */
+  H+='<div class="page-break"></div>';
+  H+='<h2>5. Alertas y Antigüedad</h2>';
+  if(!alertas.length){
+    H+='<p>No se identificaron alertas que requieran atención inmediata en el período analizado.</p>';
+  } else {
+    H+='<p>Se identificaron <strong>'+alertas.length+'</strong> alerta(s) que requieren atención.</p>';
+    H+='<table><thead><tr><th>Nivel</th><th>Pendiente</th><th>Situación</th><th>Responsable</th></tr></thead><tbody>';
+    alertas.forEach(function(a){
+      var bg={CRÍTICO:'#C00000',ALTO:'#c55a11',MEDIO:'#BF8F00'}[a.niv]||'#333';
+      H+='<tr>'+
+        '<td><span class="badge" style="background:'+bg+';color:'+(a.niv==='MEDIO'?'#000':'#fff')+'">'+a.niv+'</span></td>'+
+        '<td>'+esc(a.pend)+'</td>'+
+        '<td>'+esc(a.msg)+'</td>'+
+        '<td>'+esc(a.resp||'Sin asignar')+'</td>'+
+        '</tr>';
+    });
+    H+='</tbody></table>';
+  }
+
+  /* ── 6. CONCLUSIONES Y PLAN DE ACCIÓN */
+  H+='<div class="page-break"></div>';
+  H+='<h2>6. Conclusiones y Plan de Acción</h2>';
+  H+='<h3>6.1 Situación General</h3>';
+  H+='<p>A la fecha de generación ('+esc(fechaGen)+'), el sistema registra <strong>'+total+'</strong> pendientes. El porcentaje de completamiento es del <strong>'+pct+'%</strong>. Hay <strong>'+abiertos.length+'</strong> pendientes activos que requieren seguimiento continuo.</p>';
+
+  if(sinAct.length){
+    H+='<h3>6.2 Pendientes que Requieren Atención Inmediata</h3>';
+    H+='<p>Los siguientes <strong>'+sinAct.length+'</strong> registros activos no han recibido actualización en más de 7 días:</p>';
+    H+='<table><thead><tr><th>Pendiente</th><th>Estado</th><th>Responsable</th><th>Días sin actualizar</th></tr></thead><tbody>';
+    sinAct.forEach(function(p){
+      H+='<tr>'+
+        '<td>'+esc(p.titulo)+'</td>'+
+        '<td><span style="color:'+eColor(p.estado)+'">'+eLabel(p.estado)+'</span></td>'+
+        '<td>'+esc(respN(p.responsable_nombre)||'Sin asignar')+'</td>'+
+        '<td style="font-weight:bold;color:#C00000">'+days(p.updated_at||p.created_at)+' días</td>'+
+        '</tr>';
+    });
+    H+='</tbody></table>';
+  }
+
+  if(vencidos.length){
+    H+='<h3>6.3 Pendientes con Fecha Límite Vencida</h3>';
+    H+='<table><thead><tr><th>Pendiente</th><th>Responsable</th><th>Fecha límite</th><th>Días vencido</th></tr></thead><tbody>';
+    vencidos.forEach(function(p){
+      var dv=Math.floor((now-new Date(p.fecha_limite))/86400000);
+      H+='<tr>'+
+        '<td>'+esc(p.titulo)+'</td>'+
+        '<td>'+esc(respN(p.responsable_nombre)||'Sin asignar')+'</td>'+
+        '<td>'+esc(p.fecha_limite)+'</td>'+
+        '<td style="color:#C00000;font-weight:bold">'+dv+' días</td>'+
+        '</tr>';
+    });
+    H+='</tbody></table>';
+  }
+
+  H+='<h3>6.4 Recomendaciones y Plan de Acción</h3>';
+  H+='<table><thead><tr><th>#</th><th>Acción recomendada</th><th>Responsable</th><th>Prioridad</th><th>Objetivo</th></tr></thead><tbody>';
+  var recs=[];
+  if(vencidos.length) recs.push({a:'Gestionar de inmediato los '+vencidos.length+' pendiente(s) con fecha límite vencida',r:'Responsables asignados + Gerencia',p:'Crítica',o:'Cumplir compromisos incumplidos'});
+  if(sinAct.length) recs.push({a:'Actualizar el estado y observaciones de los '+sinAct.length+' pendiente(s) inactivos (+7 días)',r:'Monitores y responsables',p:'Alta',o:'Mantener trazabilidad al día'});
+  if((byState.pendiente||[]).filter(function(p){return days(p.created_at)>15;}).length)
+    recs.push({a:'Iniciar gestión de pendientes con más de 15 días sin acción',r:'Responsables asignados',p:'Alta',o:'Evitar acumulación de tareas sin atender'});
+  if((byState.en_espera||[]).length)
+    recs.push({a:'Identificar y resolver bloqueantes de los '+(byState.en_espera||[]).length+' pendiente(s) en espera',r:'Administración / Gerencia',p:'Media',o:'Destrabar procesos detenidos'});
+  recs.push({a:'Generar este informe diariamente desde Seguimiento Pendientes → Informe diario',r:'Super Administrador',p:'Rutinaria',o:'Trazabilidad continua y control de gestión'});
+  recs.forEach(function(rec,i){
+    H+='<tr><td>'+(i+1)+'</td><td>'+esc(rec.a)+'</td><td>'+esc(rec.r)+'</td><td>'+esc(rec.p)+'</td><td>'+esc(rec.o)+'</td></tr>';
+  });
+  H+='</tbody></table>';
+
+  H+='<h3>6.5 Conclusión Final</h3>';
+  H+='<p>Este informe fue generado automáticamente desde el módulo de Seguimiento de Pendientes del Sistema de Gestión del Grupo Empresarial J&amp;D. La información presentada refleja el estado real de los registros al momento de la generación. <strong>Ningún registro fue creado, modificado ni eliminado durante la generación de este documento.</strong></p>';
+  H+='<p>Si alguna información del historial no está disponible, significa que no fue registrada en el sistema en el momento de ocurrir. Se recomienda mantener el hábito de registrar observaciones y cambios de estado en cada intervención para garantizar la trazabilidad completa.</p>';
+
+  /* footer */
+  H+='<div style="margin-top:24pt;padding:10pt 0;border-top:2pt solid #1F3864;font-size:9pt;color:#595959;text-align:center">'+
+    'Fornax Studios · Grupo Empresarial J&amp;D · Documento de uso interno — Confidencial<br>'+
+    'Generado el '+esc(fechaGen)+'</div>';
+
+  H+='</body></html>';
+  return H;
+}
+
 function _gcSegRenderizar(data,kpiEl,tablaEl){
   if(!data) return;
   var hoy=_gcToday();
@@ -124982,7 +125571,7 @@ function _gcSegRenderizar(data,kpiEl,tablaEl){
             </td>
             <td style="padding:10px 12px">${_gcBadgeEstado(p.estado)}</td>
             <td style="padding:10px 12px">${_gcBadgePrior(p.prioridad)}</td>
-            <td style="padding:10px 12px;color:${p.responsable_nombre?'var(--text)':'#ef444480'}">${_gcEsc(p.responsable_nombre||'⚠️ Sin asignar')}</td>
+            <td style="padding:10px 12px;color:${p.responsable_nombre?'var(--text)':'#ef444480'}">${_gcEsc(_gcRespNombres(p.responsable_nombre)||'⚠️ Sin asignar')}</td>
             <td style="padding:10px 12px;color:var(--muted)">${_gcEsc(p.entidad_nombre||'—')}</td>
             <td style="padding:10px 12px;color:var(--muted)">${_gcEsc(inf.monitor_nombre||p.creado_por_nombre||'—')}</td>
             <td style="padding:10px 12px;color:${isVenc?'#ef4444':'var(--muted)'}">${_gcEsc(p.fecha_limite||'—')}</td>
@@ -125208,15 +125797,19 @@ async function gsMisCargar(){
   var misPromesas=candidateIds.map(function(id){
     return _mpDb().from('gc_pendientes').select(SELECT).eq('responsable_id',id).order('created_at',{ascending:false}).limit(100);
   });
+  /* Co-responsables: buscar también donde el ID aparezca en el JSON de responsable_nombre */
+  var coRespPromesas=candidateIds.map(function(id){
+    return _mpDb().from('gc_pendientes').select(SELECT).ilike('responsable_nombre','%'+id+'%').order('created_at',{ascending:false}).limit(100);
+  });
   /* Buscar tareas creadas por este usuario */
   var creadoPromesa=_mpDb().from('gc_pendientes').select(SELECT).eq('creado_por',creadoPorId).order('created_at',{ascending:false}).limit(100);
 
-  var allResults=await Promise.all(misPromesas.concat([creadoPromesa]));
+  var allResults=await Promise.all(misPromesas.concat(coRespPromesas).concat([creadoPromesa]));
 
   /* Deduplicar tareas asignadas a mí (por id) */
   var seenIds={};
   _gsMisData=[];
-  allResults.slice(0,misPromesas.length).forEach(function(r){
+  allResults.slice(0,misPromesas.length+coRespPromesas.length).forEach(function(r){
     (r.data||[]).forEach(function(p){
       if(!seenIds[p.id]){ seenIds[p.id]=true; _gsMisData.push(p); }
     });
@@ -125244,7 +125837,10 @@ async function gcSegCargarMiosBadge(){
   if(!empId) return;
   var eRow=await _mpDb().from('jd_empleados').select('id').eq('usuario_id',empId).maybeSingle();
   var respId=(eRow&&eRow.data&&eRow.data.id)?eRow.data.id:empId;
-  var r=await _mpDb().from('gc_pendientes').select('id,estado').eq('responsable_id',respId).not('estado','in','(cerrado,resuelto)');
+  var _rBadge1=await _mpDb().from('gc_pendientes').select('id,estado').eq('responsable_id',respId).not('estado','in','(cerrado,resuelto)');
+  var _rBadge2=await _mpDb().from('gc_pendientes').select('id,estado').ilike('responsable_nombre','%'+respId+'%').not('estado','in','(cerrado,resuelto)');
+  var _badgeIds={}; (_rBadge1.data||[]).concat(_rBadge2.data||[]).forEach(function(p){_badgeIds[p.id]=true;});
+  var r={data:Object.keys(_badgeIds).map(function(id){return{id:id};})};
   var cnt=(r.data||[]).length;
   if(cnt) btnMios.textContent='📌 Mis tareas ('+cnt+')';
 }
@@ -125316,7 +125912,10 @@ function gcNuevoPendienteStandalone(){
         <div class="efac3-banner-sub">Seguimiento de tareas · Grupo Empresarial J&D</div>
       </div>
     </div>
-    <button class="efac3-btn-reload" onclick="misPendientesCargar()">🔄 Actualizar</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="mpNuevoPendienteGeneral()" style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#f59e0b;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">➕ Nueva tarea</button>
+      <button class="efac3-btn-reload" onclick="misPendientesCargar()">🔄 Actualizar</button>
+    </div>
   </div>
   </div>
   <!-- Pestañas — estilo botón (igual que Dashboard / Facturación) -->
@@ -125324,7 +125923,7 @@ function gcNuevoPendienteStandalone(){
     <button id="mp-tab-mis"  onclick="misPendientesTab('mis')"  class="efac3-tab active" style="border-color:rgba(52,211,153,.6);color:#34d399;background:rgba(52,211,153,.1)">📌 Mis tareas</button>
     <button id="mp-tab-asig" onclick="misPendientesTab('asig')" class="efac3-tab">📤 Asignados por mí</button>
   </div>
-  <div style="padding:16px">
+  <div id="mp-main-content" style="padding:16px">
     <!-- KPIs -->
     <div id="mp-kpis" style="display:flex;flex-wrap:nowrap;gap:10px;margin-bottom:20px"></div>
     <!-- Filtros -->
@@ -125483,10 +126082,14 @@ async function misPendientesCargar(){
      (registros históricos guardados con _gcMonitorId() que devuelve el ID corto) */
   var _mpCreadoPorIds = [empId, respId].filter(function(v,i,a){ return !!v && a.indexOf(v)===i; });
 
-  /* Cargar ambas listas en paralelo */
+  /* Cargar tareas: asignadas directamente, co-responsable y creadas por mí */
   var results = await Promise.all([
     _mpDb().from('gc_pendientes').select(SELECT)
       .eq('responsable_id', respId)   /* usa el jd_empleados.id (ID corto) */
+      .order('created_at', {ascending: false})
+      .limit(100),
+    _mpDb().from('gc_pendientes').select(SELECT)
+      .ilike('responsable_nombre','%'+respId+'%')  /* co-responsable en JSON multi-asignado */
       .order('created_at', {ascending: false})
       .limit(100),
     _mpDb().from('gc_pendientes').select(SELECT)
@@ -125495,15 +126098,21 @@ async function misPendientesCargar(){
       .limit(100)
   ]);
 
-  var rMis  = results[0];
-  var rAsig = results[1];
+  var rMis    = results[0];
+  var rCoResp = results[1];
+  var rAsig   = results[2];
 
   if(rMis.error || !rMis.data){
     listaEl.innerHTML = '<div style="color:#ef4444;padding:20px">Error al cargar pendientes.</div>';
     return;
   }
 
-  _mpData        = rMis.data  || [];
+  /* Deduplicar tareas propias + co-responsable */
+  var _seenMis={};
+  _mpData=[];
+  [rMis.data||[], rCoResp.data||[]].forEach(function(arr){
+    arr.forEach(function(p){ if(!_seenMis[p.id]){ _seenMis[p.id]=true; _mpData.push(p); } });
+  });
   _mpDataCreados = rAsig.error ? [] : (rAsig.data || []);
 
   /* Actualizar contador en pestaña "Asignados por mí" */
@@ -125518,6 +126127,83 @@ async function misPendientesCargar(){
 
 function misPendientesFiltrar(){
   _mpRenderTabActual();
+}
+
+/* ── PENDIENTES GENERALES DEL DÍA (standalone, sin informe asociado) ── */
+async function mpGeneralesCargar(){
+  var el=document.getElementById('mp-gen-content');
+  if(!el) return;
+
+  /* Filtro de fecha — hoy por defecto */
+  var _hoy=new Date();
+  var _hoyStr=_hoy.getFullYear()+'-'+(String(_hoy.getMonth()+1).padStart(2,'0'))+'-'+(String(_hoy.getDate()).padStart(2,'0'));
+  var fFecha=((el.querySelector&&el.querySelector('#mp-gen-f-fecha'))||{}).value||_hoyStr;
+
+  el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:20px">Cargando pendientes generales…</div>';
+
+  /* Cabecera con filtro de fecha y botón agregar */
+  var headerHtml='<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px">'
+    +'<span style="font-size:15px;font-weight:700;color:#f59e0b">🗂️ Pendientes generales del día</span>'
+    +'<div style="flex:1"></div>'
+    +'<div style="display:flex;align-items:center;gap:8px">'
+    +'<label style="font-size:12px;color:#94a3b8;font-weight:600">📅 Fecha:</label>'
+    +'<input type="date" id="mp-gen-f-fecha" value="'+_hoyStr+'" '
+    +'style="background:#0d1929;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 12px;font-size:13px;color:#e2e8f0;outline:none;cursor:pointer" '
+    +'onchange="mpGeneralesCargar()">'
+    +'</div>'
+    +(_gcIsAdmin()?'<button onclick="mpNuevoPendienteGeneral()" style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#f59e0b;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">➕ Nueva tarea</button>':'')
+    +'<button onclick="mpGeneralesCargar()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#94a3b8;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">🔄 Actualizar</button>'
+    +'</div>';
+
+  /* Query: pendientes sin informe ni registro, del día seleccionado */
+  var q=_mpDb().from('gc_pendientes').select('*')
+    .is('informe_id',null)
+    .is('registro_id',null)
+    .gte('created_at',fFecha+'T00:00:00.000Z')
+    .lte('created_at',fFecha+'T23:59:59.999Z')
+    .order('created_at',{ascending:false});
+  var r=await q;
+
+  var listHtml='';
+  if(r.error){
+    listHtml='<div style="color:#ef4444;font-size:13px;padding:12px">Error al cargar: '+(r.error.message||'desconocido')+'</div>';
+  } else if(!r.data||!r.data.length){
+    listHtml='<div style="color:var(--muted);font-size:13px;padding:20px;text-align:center">No hay pendientes generales para esta fecha.<br><span style="font-size:12px;color:#64748b">Usa el botón "➕ Nueva tarea" para crear uno.</span></div>';
+  } else {
+    listHtml=r.data.map(function(p){
+      return '<div class="gc-pend-card">'
+        +'<div style="display:flex;align-items:flex-start;gap:10px">'
+        +'<div style="flex:1">'
+        +'<div style="font-weight:700;font-size:13px;margin-bottom:4px">'+_mpEsc(p.titulo)+'</div>'
+        +(p.descripcion?'<div style="font-size:12px;color:var(--muted);margin-bottom:6px">'+_mpEsc(p.descripcion.slice(0,150)+(p.descripcion.length>150?'…':''))+'</div>':'')
+        +'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px">'
+        +_gcBadgeEstado(p.estado)
+        +_gcBadgePrior(p.prioridad)
+        +(p.responsable_nombre?'<span style="font-size:11px;color:var(--muted)">👤 '+_mpEsc(_gcRespNombres(p.responsable_nombre))+'</span>':'<span style="font-size:11px;color:#ef444460">⚠️ Sin asignar</span>')
+        +(p.fecha_limite?'<span style="font-size:11px;color:var(--muted)">📅 '+_mpEsc(p.fecha_limite)+'</span>':'')
+        +(p.creado_por_nombre?'<span style="font-size:11px;color:#64748b">Creado por '+_mpEsc(p.creado_por_nombre)+'</span>':'')
+        +'</div>'
+        +'</div>'
+        +'<div style="display:flex;gap:4px;flex-shrink:0">'
+        +'<button class="gc-btn-ghost" style="font-size:11px;padding:4px 8px" onclick="gcDetallePendiente(\''+_mpEsc(p.id)+'\')">Ver</button>'
+        +'</div>'
+        +'</div>'
+        +'</div>';
+    }).join('');
+  }
+
+  el.innerHTML=headerHtml+'<div>'+listHtml+'</div>';
+}
+
+/* Abre el formulario de nueva tarea (sin informe/registro).
+   Disponible para todos los roles desde el encabezado de Mis Pendientes.
+   Muestra título "Nueva tarea" y permite asignar varios responsables. */
+function mpNuevoPendienteGeneral(){
+  window._gcPendAfterSave=function(){
+    misPendientesCargar(); /* Recargar mis pendientes tras guardar */
+    window._gcPendAfterSave=null;
+  };
+  _gcAbrirFormPendiente(null,null,null,null,{titulo:'Nueva tarea',multiResp:true});
 }
 
 function _mpRenderizar(data, kpiEl, listaEl, isCreados){
@@ -125571,7 +126257,7 @@ function _mpRenderizar(data, kpiEl, listaEl, isCreados){
 
     /* En "Asignados por mí" mostrar a quién está asignado; en "Mis tareas" mostrar quién lo creó */
     var metaPersona = isCreados
-      ? (p.responsable_nombre ? '<span>👤 Responsable: '+_mpEsc(p.responsable_nombre)+'</span>' : '')
+      ? (p.responsable_nombre ? '<span>👤 Responsable: '+_mpEsc(_gcRespNombres(p.responsable_nombre))+'</span>' : '')
       : (p.creado_por_nombre  ? '<span>👤 Creado por: ' +_mpEsc(p.creado_por_nombre) +'</span>' : '');
 
     return '<div class="gc-pend-card" style="margin-bottom:10px;cursor:pointer" onclick="gcDetallePendiente(\''+_mpEsc(p.id)+'\')">'
@@ -125624,6 +126310,16 @@ function _mpRenderizar(data, kpiEl, listaEl, isCreados){
     <div id="gca-root" style="min-height:300px"><div style="padding:40px;text-align:center;color:rgba(167,139,250,.4)">⏳ Cargando…</div></div>
   </div>
 </div>
+
+<!-- ════════════════════════════════════════════════════════════
+     PÁGINA — PLAN DIARIO DE MODELOS
+     ════════════════════════════════════════════════════════════ -->
+<div id="page-plan-diario" class="page" style="padding:0;background:linear-gradient(180deg,#050b1a 0%,#071020 50%,#040c18 100%)!important">
+  <div id="pd-wrap" style="min-height:300px">
+    <div style="padding:60px;text-align:center;color:rgba(52,211,153,.4)">Cargando plan diario…</div>
+  </div>
+</div>
+
 
 <!-- ════════════════════════════════════════════════════════════
      PÁGINA — ASISTENTE DE INTELIGENCIA IA
@@ -126645,7 +127341,7 @@ async function _gcaVerInforme(informeId, backFn){
       var pColor={alta:'#ef4444',media:'#f59e0b',baja:'#22c55e'}[p.prioridad]||'var(--muted)';
       var eColor={resuelto:'#22c55e',cerrado:'#6b7280',pendiente:'#f59e0b',en_proceso:'#3b82f6'}[p.estado]||'var(--muted)';
       html+='<tr><td style="font-weight:600">'+_gcaEsc(p.titulo||'—')+'</td>';
-      html+='<td style="font-size:12px">'+_gcaEsc(p.responsable_nombre||'—')+'</td>';
+      html+='<td style="font-size:12px">'+_gcaEsc(_gcRespNombres(p.responsable_nombre)||'—')+'</td>';
       html+='<td style="color:'+pColor+';font-weight:700;font-size:11px">'+(p.prioridad||'—').toUpperCase()+'</td>';
       html+='<td style="color:'+eColor+';font-weight:700;font-size:11px">'+(p.estado||'—').toUpperCase()+'</td>';
       html+='<td style="color:var(--muted);font-size:12px;white-space:nowrap">'+_gcaEsc(p.fecha_limite||'—')+'</td>';
@@ -126665,9 +127361,11 @@ async function _gcaRenderCierreDia(){
   var tabHtml='<div style="display:flex;gap:8px;margin-bottom:20px">';
   tabHtml+='<button onclick="_gcaCierreState.tab=\'nuevo\';_gcaRenderCierreDia()" style="padding:8px 16px;border-radius:8px;border:1.5px solid '+(subtab==='nuevo'?'#a78bfa':'var(--border)')+';background:'+(subtab==='nuevo'?'rgba(167,139,250,.15)':'transparent')+';color:'+(subtab==='nuevo'?'#a78bfa':'var(--muted)')+';font-size:13px;font-weight:700;cursor:pointer">📋 Nuevo cierre</button>';
   tabHtml+='<button onclick="_gcaCierreState.tab=\'historico\';_gcaRenderCierreDia()" style="padding:8px 16px;border-radius:8px;border:1.5px solid '+(subtab==='historico'?'#a78bfa':'var(--border)')+';background:'+(subtab==='historico'?'rgba(167,139,250,.15)':'transparent')+';color:'+(subtab==='historico'?'#a78bfa':'var(--muted)')+';font-size:13px;font-weight:700;cursor:pointer">🗂️ Histórico</button>';
+  tabHtml+='<button onclick="_gcaCierreState.tab=\'informes\';_gcaRenderCierreDia()" style="padding:8px 16px;border-radius:8px;border:1.5px solid '+(subtab==='informes'?'#34d399':'var(--border)')+';background:'+(subtab==='informes'?'rgba(52,211,153,.15)':'transparent')+';color:'+(subtab==='informes'?'#34d399':'var(--muted)')+';font-size:13px;font-weight:700;cursor:pointer">📄 Informe de gestión diaria</button>';
   tabHtml+='</div>';
   var baseStyle='<style>.gca-table{width:100%;border-collapse:collapse;font-size:13px}.gca-table th{background:#1a1433;color:#a78bfa;font-weight:700;padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px}.gca-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}.gca-table tr:hover td{background:rgba(167,139,250,.06)}.gca-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px}.gca-sh{font-weight:800;font-size:13px;color:#a78bfa;margin-bottom:14px}</style>';
   if(subtab==='historico'){ await _gcaRenderHistoricoCierres(root, baseStyle+tabHtml); return; }
+  if(subtab==='informes'){ await _igRenderSuperAdmin(root, baseStyle+tabHtml); return; }
   // Nuevo cierre
   var today=new Date().toLocaleDateString('en-CA',{timeZone:'America/Bogota'});
   var fecha=_gcaCierreState.fecha||today;
@@ -126978,6 +127676,424 @@ async function _gcaCierreReabrir(cierreId){
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   MÓDULO: INFORMES DE GESTIÓN DIARIA — Fornax Studios
+   Gestión y consulta de PDFs de informes diarios de monitores.
+   Super Admin: carga, lista, elimina. Monitor: sólo consulta.
+   Storage: bucket 'Documentos', carpeta 'informes-gestion/'
+   Tabla: monitor_informes_gestion
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Helpers internos ──────────────────────────────────────────── */
+function _igDb(){ return _gcDb ? _gcDb() : _supaDb; }
+function _igEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ── VISTA SUPER ADMIN ─────────────────────────────────────────── */
+async function _igRenderSuperAdmin(root, prefix){
+  if(!root) root=document.getElementById('gca-root');
+  if(!root) return;
+  root.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted)">⏳ Cargando…</div>';
+
+  var html=(prefix||'');
+  html+='<style>';
+  html+='.ig-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:18px}';
+  html+='.ig-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px}';
+  html+='.ig-input{width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;box-sizing:border-box}';
+  html+='.ig-btn-primary{padding:10px 20px;background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer}';
+  html+='.ig-btn-primary:disabled{opacity:.5;cursor:not-allowed}';
+  html+='.ig-table{width:100%;border-collapse:collapse;font-size:13px}';
+  html+='.ig-table th{background:#0a2218;color:#34d399;font-weight:700;padding:9px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px}';
+  html+='.ig-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}';
+  html+='.ig-table tr:hover td{background:rgba(52,211,153,.05)}';
+  html+='</style>';
+
+  // Formulario de carga (sin selector de monitor — informe general para todos)
+  html+='<div class="ig-card">';
+  html+='<div style="font-weight:800;font-size:14px;color:#34d399;margin-bottom:4px">📤 Cargar nuevo informe</div>';
+  html+='<div style="font-size:12px;color:var(--muted);margin-bottom:16px">El informe será visible para todos los monitores en su sección de Gestión Comercial.</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">';
+  // Fecha
+  html+='<div><label class="ig-label">Fecha del informe</label>';
+  var hoy=new Date().toISOString().split('T')[0];
+  html+='<input type="date" id="ig-inp-fecha" class="ig-input" value="'+hoy+'"></div>';
+  // Título
+  html+='<div><label class="ig-label">Título (opcional)</label>';
+  html+='<input type="text" id="ig-inp-titulo" class="ig-input" placeholder="Ej: Informe turno tarde…" maxlength="100"></div>';
+  html+='</div>';
+  // Descripción
+  html+='<div style="margin-bottom:12px"><label class="ig-label">Descripción / Observaciones (opcional)</label>';
+  html+='<input type="text" id="ig-inp-desc" class="ig-input" placeholder="Ej: Resumen del día, novedades…" maxlength="200"></div>';
+  // Archivo PDF
+  html+='<div style="margin-bottom:16px"><label class="ig-label">Archivo PDF</label>';
+  html+='<input type="file" id="ig-inp-file" accept=".pdf,application/pdf" class="ig-input" style="padding:7px 12px"></div>';
+  html+='<div id="ig-upload-status" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>';
+  html+='<button class="ig-btn-primary" onclick="_igSubirInforme()" id="ig-btn-subir">📤 Subir informe</button>';
+  html+='</div>';
+
+  // Filtros y tabla de histórico
+  html+='<div class="ig-card">';
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">';
+  html+='<div style="font-weight:800;font-size:14px;color:#34d399">📋 Histórico de informes</div>';
+  html+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
+  html+='<input type="month" id="ig-filt-mes" class="ig-input" style="width:auto;font-size:12px" onchange="_igCargarTablaAdmin()">';
+  html+='<button onclick="_igCargarTablaAdmin()" style="padding:8px 14px;background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.3);border-radius:7px;color:#34d399;font-size:12px;font-weight:700;cursor:pointer">🔄 Actualizar</button>';
+  html+='</div></div>';
+  html+='<div id="ig-tabla-admin"><div style="text-align:center;padding:24px;color:var(--muted)">Cargando informes…</div></div>';
+  html+='</div>';
+
+  root.innerHTML=html;
+  _igCargarTablaAdmin();
+}
+
+async function _igCargarTablaAdmin(){
+  var contenedor=document.getElementById('ig-tabla-admin');
+  if(!contenedor) return;
+  contenedor.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted)">⏳ Cargando…</div>';
+
+  var mesFilt=(document.getElementById('ig-filt-mes')||{}).value||'';
+
+  try {
+    var q=_igDb().from('monitor_informes_gestion')
+      .select('id,fecha,descripcion,archivo_url,archivo_nombre,subido_por,created_at')
+      .order('fecha',{ascending:false})
+      .order('created_at',{ascending:false})
+      .limit(200);
+    if(mesFilt){ var _mp=mesFilt.split('-');var _ld=new Date(parseInt(_mp[0]),parseInt(_mp[1]),0).getDate();q=q.gte('fecha',mesFilt+'-01').lte('fecha',mesFilt+'-'+String(_ld).padStart(2,'0')); }
+    var r=await q;
+    if(r.error) throw r.error;
+
+    var docs=r.data||[];
+    if(!docs.length){
+      contenedor.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">No hay informes registrados para los filtros seleccionados.</div>';
+      return;
+    }
+
+    var h='<div style="overflow-x:auto"><table class="ig-table"><thead><tr>';
+    h+='<th>Fecha</th><th>Descripción</th><th>Archivo</th><th>Subido por</th><th>Subido el</th><th>Acción</th>';
+    h+='</tr></thead><tbody>';
+    docs.forEach(function(d){
+      var fechaStr=_igEsc(d.fecha||'—');
+      var archNom=_igEsc(d.archivo_nombre||'informe.pdf');
+      var archUrl=_igEsc(d.archivo_url||'');
+      var desc=_igEsc(d.descripcion||'—');
+      var subPor=_igEsc(d.subido_por||'—');
+      var subAt=_igEsc((d.created_at||'').slice(0,16).replace('T',' '));
+      h+='<tr>';
+      h+='<td style="font-weight:700;white-space:nowrap">'+fechaStr+'</td>';
+      h+='<td style="color:var(--muted);font-size:12px">'+desc+'</td>';
+      h+='<td><a href="'+archUrl+'" target="_blank" style="color:#34d399;font-size:12px;text-decoration:none" title="'+archNom+'">📄 '+archNom.substring(0,28)+(archNom.length>28?'…':'')+'</a></td>';
+      h+='<td style="color:var(--muted);font-size:12px">'+subPor+'</td>';
+      h+='<td style="color:var(--muted);font-size:12px;white-space:nowrap">'+subAt+'</td>';
+      h+='<td><button onclick="_igEliminarInforme(\''+_igEsc(d.id)+'\',\''+archUrl+'\')" style="padding:4px 10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:6px;color:#ef4444;font-size:11px;font-weight:700;cursor:pointer">🗑️ Eliminar</button></td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+    h+='<div style="text-align:right;font-size:11px;color:var(--muted);margin-top:8px">'+docs.length+' informe(s) encontrado(s)</div>';
+    contenedor.innerHTML=h;
+  } catch(e){
+    contenedor.innerHTML='<div style="padding:16px;color:#ef4444">⚠️ Error: '+_igEsc((e&&e.message)||String(e))+'</div>';
+  }
+}
+
+async function _igSubirInforme(){
+  var fechaInp=document.getElementById('ig-inp-fecha');
+  var tituloInp=document.getElementById('ig-inp-titulo');
+  var descInp=document.getElementById('ig-inp-desc');
+  var fileInp=document.getElementById('ig-inp-file');
+  var statusEl=document.getElementById('ig-upload-status');
+  var btnSubir=document.getElementById('ig-btn-subir');
+
+  var fecha=fechaInp?fechaInp.value:'';
+  var titulo=tituloInp?tituloInp.value.trim():'';
+  var desc=descInp?descInp.value.trim():'';
+  // Combinar título y descripción en el campo descripcion
+  var descripcionFinal=[titulo,desc].filter(Boolean).join(' — ')||null;
+  var archivo=fileInp&&fileInp.files&&fileInp.files[0]?fileInp.files[0]:null;
+
+  if(!fecha){ if(statusEl) statusEl.innerHTML='<span style="color:#ef4444">⚠️ Indica la fecha del informe.</span>'; return; }
+  if(!archivo){ if(statusEl) statusEl.innerHTML='<span style="color:#ef4444">⚠️ Selecciona un archivo PDF.</span>'; return; }
+  if(archivo.type&&archivo.type!=='application/pdf'){ if(statusEl) statusEl.innerHTML='<span style="color:#ef4444">⚠️ Solo se admiten archivos PDF.</span>'; return; }
+  if(archivo.size>20*1024*1024){ if(statusEl) statusEl.innerHTML='<span style="color:#ef4444">⚠️ El archivo supera el límite de 20 MB.</span>'; return; }
+
+  if(btnSubir) btnSubir.disabled=true;
+  if(statusEl) statusEl.innerHTML='<span style="color:#a78bfa">⏳ Subiendo archivo…</span>';
+
+  try {
+    // Ruta en storage: informes-gestion/{fecha}_{timestamp}_{nombre_original}
+    var ts=Date.now();
+    var nomLimpio=(archivo.name||'informe.pdf').replace(/[^a-zA-Z0-9._-]/g,'_').substring(0,60);
+    var storagePath='informes-gestion/'+fecha+'_'+ts+'_'+nomLimpio;
+
+    var uploadRes=await _supaDb.storage.from('Documentos').upload(storagePath,archivo,{upsert:false,contentType:'application/pdf'});
+    if(uploadRes.error) throw uploadRes.error;
+
+    var urlRes=_supaDb.storage.from('Documentos').getPublicUrl(storagePath);
+    var publicUrl=(urlRes.data&&urlRes.data.publicUrl)||'';
+
+    // Nombre del admin que sube
+    var subidoPor=(_jdCurrentUser&&(_jdCurrentUser.nombre||_jdCurrentUser.email))||'Super Admin';
+
+    // Verificar duplicado: misma fecha y mismo nombre de archivo
+    var dupCheck=await _igDb().from('monitor_informes_gestion')
+      .select('id').eq('fecha',fecha).eq('archivo_nombre',nomLimpio).limit(1);
+    if(!dupCheck.error&&dupCheck.data&&dupCheck.data.length>0){
+      var continuar=window.confirm('Ya existe un informe con este nombre para la fecha '+fecha+'.\n¿Deseas agregar otro de todas formas?');
+      if(!continuar){
+        await _supaDb.storage.from('Documentos').remove([storagePath]);
+        if(statusEl) statusEl.innerHTML='<span style="color:var(--muted)">Carga cancelada.</span>';
+        if(btnSubir) btnSubir.disabled=false;
+        return;
+      }
+    }
+
+    // Guardar registro en BD (sin monitor_id — informe general para todos)
+    var insRes=await _igDb().from('monitor_informes_gestion').insert({
+      fecha: fecha,
+      descripcion: descripcionFinal,
+      archivo_url: publicUrl,
+      archivo_nombre: nomLimpio,
+      archivo_path: storagePath,
+      subido_por: subidoPor
+    });
+    if(insRes.error) throw insRes.error;
+
+    if(statusEl) statusEl.innerHTML='<span style="color:#34d399">✅ Informe cargado correctamente. Todos los monitores podrán verlo.</span>';
+    // Limpiar formulario
+    if(tituloInp) tituloInp.value='';
+    if(descInp) descInp.value='';
+    if(fileInp) fileInp.value='';
+    // Recargar tabla
+    _igCargarTablaAdmin();
+  } catch(e){
+    if(statusEl) statusEl.innerHTML='<span style="color:#ef4444">⚠️ Error: '+_igEsc((e&&e.message)||String(e))+'</span>';
+  }
+  if(btnSubir) btnSubir.disabled=false;
+}
+
+async function _igEliminarInforme(id, archUrl){
+  var ok=window.confirm('¿Eliminar este informe? Esta acción no se puede deshacer.\n\nSe eliminará el registro y el archivo del almacenamiento.');
+  if(!ok) return;
+  try {
+    // Obtener el path del archivo antes de eliminar
+    var recQ=await _igDb().from('monitor_informes_gestion').select('archivo_path').eq('id',id).single();
+    var archPath=recQ.data&&recQ.data.archivo_path?recQ.data.archivo_path:null;
+
+    var delRec=await _igDb().from('monitor_informes_gestion').delete().eq('id',id);
+    if(delRec.error) throw delRec.error;
+
+    // Borrar archivo del storage si tenemos el path
+    if(archPath){
+      await _supaDb.storage.from('Documentos').remove([archPath]);
+    }
+
+    _igCargarTablaAdmin();
+  } catch(e){
+    alert('Error al eliminar: '+((e&&e.message)||String(e)));
+  }
+}
+
+/* ── SECCIÓN DENTRO DE GESTIÓN COMERCIAL (gc-view-principal) ───── */
+async function _igCargarEnGcPanel(){
+  var sec=document.getElementById('gc-informes-pdf-section');
+  if(!sec) return;
+
+  // Erika Noguera no tiene acceso a los informes de gestión
+  var _curEmail=(_jdCurrentUser&&(_jdCurrentUser.email||'')).toLowerCase();
+  if(_curEmail==='erika.noguera@grupoempresarialjd.com'){ sec.innerHTML=''; return; }
+
+  try {
+    // Cargar TODOS los informes (documentos generales para todos los monitores)
+    var r=await _igDb().from('monitor_informes_gestion')
+      .select('id,fecha,descripcion,archivo_url,archivo_nombre,created_at')
+      .order('fecha',{ascending:false})
+      .order('created_at',{ascending:false})
+      .limit(50);
+    if(r.error) throw r.error;
+    var docs=r.data||[];
+    if(!docs.length){ sec.innerHTML=''; return; } // Si no hay, no mostrar la sección
+
+    var h='<div class="gc-section" style="margin-top:0">';
+    h+='<div class="gc-section-hdr" style="color:#34d399">📄 Informes de gestión diaria';
+    h+='<button onclick="_igCargarEnGcPanel()" style="margin-left:auto;padding:4px 12px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);border-radius:7px;color:#34d399;font-size:11px;font-weight:700;cursor:pointer">🔄</button>';
+    h+='</div>';
+    h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">';
+    h+='<thead><tr style="border-bottom:1px solid var(--border)">';
+    h+='<th style="padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Fecha</th>';
+    h+='<th style="padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Descripción</th>';
+    h+='<th style="padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Descargar</th>';
+    h+='<th style="padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Subido</th>';
+    h+='</tr></thead><tbody>';
+    docs.forEach(function(d){
+      var archNom=_igEsc(d.archivo_nombre||'informe.pdf');
+      var archUrl=_igEsc(d.archivo_url||'');
+      h+='<tr style="border-bottom:1px solid var(--border)">';
+      h+='<td style="padding:9px 10px;font-weight:700;white-space:nowrap;color:var(--text)">'+_igEsc(d.fecha||'—')+'</td>';
+      h+='<td style="padding:9px 10px;color:var(--muted);font-size:12px">'+_igEsc(d.descripcion||'—')+'</td>';
+      h+='<td style="padding:9px 10px"><a href="'+archUrl+'" target="_blank" download style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.3);border-radius:7px;color:#34d399;font-size:12px;font-weight:700;text-decoration:none">⬇ Descargar</a></td>';
+      h+='<td style="padding:9px 10px;color:var(--muted);font-size:12px;white-space:nowrap">'+_igEsc((d.created_at||'').slice(0,10))+'</td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+    h+='<div style="text-align:right;font-size:11px;color:var(--muted);margin-top:8px">'+docs.length+' informe(s) disponible(s)</div>';
+    h+='</div>';
+    sec.innerHTML=h;
+  } catch(e){
+    sec.innerHTML=''; // Silencioso si falla
+  }
+}
+
+/* ── VISTA EJECUTIVO (Fabio) — misma vista read-only que monitores ─── */
+function execIgInit(){
+  var root=document.getElementById('exec-ig-root');
+  if(!root) return;
+  _igCargarEnExecView(root);
+}
+
+async function _igCargarEnExecView(root){
+  if(!root) return;
+  // Erika Noguera no tiene acceso a los informes de gestión
+  var _curEmail2=(_jdCurrentUser&&(_jdCurrentUser.email||'')).toLowerCase();
+  if(_curEmail2==='erika.noguera@grupoempresarialjd.com'){
+    root.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">No tienes acceso a esta sección.</div>';
+    return;
+  }
+  root.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">⏳ Cargando informes…</div>';
+
+  // Filtro de mes — por defecto mes actual
+  var mesFiltEl=document.getElementById('exec-ig-filt-mes');
+  var _hoyDef=new Date();
+  var _mesDef=_hoyDef.getFullYear()+'-'+(String(_hoyDef.getMonth()+1).padStart(2,'0'));
+  var mesFilt=(mesFiltEl&&mesFiltEl.value)?mesFiltEl.value:_mesDef;
+
+  try {
+    var q=_igDb().from('monitor_informes_gestion')
+      .select('id,fecha,descripcion,archivo_url,archivo_nombre,subido_por,created_at')
+      .order('fecha',{ascending:false})
+      .order('created_at',{ascending:false})
+      .limit(100);
+    if(mesFilt){ var _mp=mesFilt.split('-');var _ld=new Date(parseInt(_mp[0]),parseInt(_mp[1]),0).getDate();q=q.gte('fecha',mesFilt+'-01').lte('fecha',mesFilt+'-'+String(_ld).padStart(2,'0')); }
+    var r=await q;
+    if(r.error) throw r.error;
+    var docs=r.data||[];
+
+    var h='';
+    // Filtro mes
+    h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">';
+    h+='<span style="font-size:12px;color:var(--muted);font-weight:600">Filtrar por mes:</span>';
+    h+='<input type="month" id="exec-ig-filt-mes" style="padding:7px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px" onchange="_igCargarEnExecView(document.getElementById(\'exec-ig-root\'))" value="'+(mesFilt||'')+'">';
+    h+='</div>';
+
+    if(!docs.length){
+      h+='<div style="text-align:center;padding:40px;color:var(--muted);background:var(--card);border-radius:14px;border:1px solid var(--border)">No hay informes registrados'+(mesFilt?' para el mes seleccionado':'')+'. Cuando el equipo suba informes, aparecerán aquí.</div>';
+      root.innerHTML=h;
+      return;
+    }
+
+    h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">';
+    h+='<thead><tr style="background:#0a2218">';
+    h+='<th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:.5px">Fecha</th>';
+    h+='<th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:.5px">Descripción</th>';
+    h+='<th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:.5px">Descargar</th>';
+    h+='<th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:.5px">Subido por</th>';
+    h+='<th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:.5px">Fecha carga</th>';
+    h+='</tr></thead><tbody>';
+    docs.forEach(function(d,i){
+      var bg=i%2===0?'transparent':'rgba(52,211,153,.03)';
+      var archNom=_igEsc(d.archivo_nombre||'informe.pdf');
+      var archUrl=_igEsc(d.archivo_url||'');
+      h+='<tr style="border-bottom:1px solid var(--border);background:'+bg+'">';
+      h+='<td style="padding:10px 12px;font-weight:700;white-space:nowrap;color:var(--text)">'+_igEsc(d.fecha||'—')+'</td>';
+      h+='<td style="padding:10px 12px;color:var(--muted);font-size:12px">'+_igEsc(d.descripcion||'—')+'</td>';
+      h+='<td style="padding:10px 12px"><a href="'+archUrl+'" target="_blank" download style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.3);border-radius:7px;color:#34d399;font-size:12px;font-weight:700;text-decoration:none;cursor:pointer">⬇ Descargar</a></td>';
+      h+='<td style="padding:10px 12px;color:var(--muted);font-size:12px">'+_igEsc(d.subido_por||'—')+'</td>';
+      h+='<td style="padding:10px 12px;color:var(--muted);font-size:12px;white-space:nowrap">'+_igEsc((d.created_at||'').slice(0,10))+'</td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+    h+='<div style="text-align:right;font-size:11px;color:var(--muted);margin-top:10px">'+docs.length+' informe(s) disponible(s)</div>';
+    root.innerHTML=h;
+  } catch(e){
+    root.innerHTML='<div style="padding:20px;color:#ef4444;background:var(--card);border-radius:12px;border:1px solid rgba(239,68,68,.2)">⚠️ Error al cargar informes: '+_igEsc((e&&e.message)||String(e))+'</div>';
+  }
+}
+
+/* ── VISTA MONITOR (sólo lectura) — función legacy conservada ─── */
+async function igMonCargar(){
+  // Redirigir al panel gc si estamos en el perfil del monitor
+  _igCargarEnGcPanel();
+}
+async function _igMonCargarLegacy(){
+  var root=document.getElementById('ig-mon-root');
+  if(!root) return;
+  root.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted)">⏳ Cargando informes…</div>';
+
+  // Obtener el ID del monitor actual
+  var monitorId=null;
+  if(window._m3MonitorId) monitorId=window._m3MonitorId;
+  else if(window._jdCurrentUser&&_jdCurrentUser.id) monitorId=_jdCurrentUser.id;
+
+  if(!monitorId){
+    root.innerHTML='<div style="padding:20px;color:var(--muted);font-size:13px">No se pudo determinar el monitor.</div>';
+    return;
+  }
+
+  try {
+    var r=await _igDb().from('monitor_informes_gestion')
+      .select('id,fecha,descripcion,archivo_url,archivo_nombre,subido_por,created_at')
+      .eq('monitor_id',monitorId)
+      .order('fecha',{ascending:false})
+      .order('created_at',{ascending:false})
+      .limit(100);
+    if(r.error) throw r.error;
+    igMonRender(root, r.data||[]);
+  } catch(e){
+    root.innerHTML='<div style="padding:16px;color:#ef4444">⚠️ Error: '+_igEsc((e&&e.message)||String(e))+'</div>';
+  }
+}
+
+function igMonRender(root, docs){
+  var html='<style>';
+  html+='.igm-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}';
+  html+='.igm-table{width:100%;border-collapse:collapse;font-size:13px}';
+  html+='.igm-table th{background:#0a1f2e;color:#38bdf8;font-weight:700;padding:9px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px}';
+  html+='.igm-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}';
+  html+='.igm-table tr:hover td{background:rgba(56,189,248,.05)}';
+  html+='</style>';
+
+  html+='<div class="igm-card">';
+  html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">';
+  html+='<div style="font-weight:800;font-size:15px;color:#38bdf8">📄 Mis informes de gestión</div>';
+  html+='<button onclick="igMonCargar()" style="padding:5px 12px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.25);border-radius:7px;color:#38bdf8;font-size:11px;font-weight:700;cursor:pointer">🔄 Actualizar</button>';
+  html+='</div>';
+
+  if(!docs.length){
+    html+='<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px">No hay informes de gestión registrados aún.<br><span style="font-size:12px;opacity:.7">Los informes son cargados por la administración.</span></div>';
+  } else {
+    html+='<div style="overflow-x:auto"><table class="igm-table"><thead><tr>';
+    html+='<th>Fecha</th><th>Descripción</th><th>Archivo</th><th>Subido el</th>';
+    html+='</tr></thead><tbody>';
+    docs.forEach(function(d){
+      var fechaStr=_igEsc(d.fecha||'—');
+      var desc=_igEsc(d.descripcion||'—');
+      var archNom=_igEsc(d.archivo_nombre||'informe.pdf');
+      var archUrl=_igEsc(d.archivo_url||'');
+      var subAt=_igEsc((d.created_at||'').slice(0,16).replace('T',' '));
+      html+='<tr>';
+      html+='<td style="font-weight:700;white-space:nowrap">'+fechaStr+'</td>';
+      html+='<td style="color:var(--muted);font-size:12px">'+desc+'</td>';
+      html+='<td><a href="'+archUrl+'" target="_blank" style="color:#38bdf8;font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:4px" title="'+archNom+'">📄 '+archNom.substring(0,28)+(archNom.length>28?'…':'')+'<span style="font-size:10px;opacity:.6">↗</span></a></td>';
+      html+='<td style="color:var(--muted);font-size:12px;white-space:nowrap">'+subAt+'</td>';
+      html+='</tr>';
+    });
+    html+='</tbody></table></div>';
+    html+='<div style="text-align:right;font-size:11px;color:var(--muted);margin-top:8px">'+docs.length+' informe(s)</div>';
+  }
+  html+='</div>';
+  root.innerHTML=html;
+}
+
+/* ── FIN MÓDULO INFORMES DE GESTIÓN DIARIA ─────────────────────── */
+
 function _gcaPreviewConsolidado(html){
   if(!html) return;
   // Descargar el documento
@@ -127020,7 +128136,7 @@ function _gcaGenerarConsolidadoHTML(fecha, informes, gestiones, pendientes, cerr
   if(pendActivos.length){
     pendActivos.forEach(function(p,i){
       var pc={alta:'#dc2626',media:'#d97706',baja:'#16a34a'}[p.prioridad]||'#6b7280';
-      pendHtml+='<tr style="background:'+(i%2===0?'#fff':'#f8fafc')+'"><td style="padding:8px 10px;font-size:12px;font-weight:600">'+esc(p.titulo||'—')+'</td><td style="padding:8px 10px;font-size:12px">'+esc(p.responsable_nombre||'—')+'</td><td style="padding:8px 10px;font-size:12px;color:'+pc+';font-weight:700">'+(p.prioridad||'—').toUpperCase()+'</td><td style="padding:8px 10px;font-size:12px">'+esc(p.estado||'—')+'</td><td style="padding:8px 10px;font-size:12px">'+esc(p.fecha_limite||'—')+'</td></tr>';
+      pendHtml+='<tr style="background:'+(i%2===0?'#fff':'#f8fafc')+'"><td style="padding:8px 10px;font-size:12px;font-weight:600">'+esc(p.titulo||'—')+'</td><td style="padding:8px 10px;font-size:12px">'+esc(_gcRespNombres(p.responsable_nombre)||'—')+'</td><td style="padding:8px 10px;font-size:12px;color:'+pc+';font-weight:700">'+(p.prioridad||'—').toUpperCase()+'</td><td style="padding:8px 10px;font-size:12px">'+esc(p.estado||'—')+'</td><td style="padding:8px 10px;font-size:12px">'+esc(p.fecha_limite||'—')+'</td></tr>';
     });
   } else { pendHtml='<tr><td colspan="5" style="padding:14px;text-align:center;color:#6b7280;font-size:12px">Sin pendientes activos.</td></tr>'; }
   var obsHtml='';

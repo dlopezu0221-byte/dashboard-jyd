@@ -689,6 +689,8 @@ body.exec-fullscreen #nav-exec-perfil-group { display: block; }
 /* WIP: ocultar ítems en desarrollo para ejecutivo comercial (doble ID = especificidad 200 > 110) */
 #nav-exec-solicitudes-group #nav-exec-trazabilidad-item,
 #nav-exec-solicitudes-group #nav-exec-gestor-item { display: none !important; }
+/* Mi Agenda oculta en exec section (módulo en construcción) */
+#nav-exec-solicitudes-group .nav-item[onclick*="mi-agenda"] { display: none !important; }
 
 /* ── Barra de sesión ejecutivo ── */
 #fab-session-bar {
@@ -26479,6 +26481,9 @@ function _jdApplyUserUI() {
     // Sol. de Fotos (sin ID) — ocultar por onclick
     var _solFotos = document.querySelector('#nav-monitor-group [onclick*="solicitudes-fotos"]');
     if(_solFotos) _solFotos.style.display='none';
+    // Mi Agenda oculta (módulo en construcción) — ítem monitor sin ID, ocultar por onclick
+    var _miAgendaMon = document.querySelector('#nav-monitor-group [onclick*="mi-agenda"]');
+    if(_miAgendaMon) _miAgendaMon.style.display='none';
     // Erika Noguera no tiene acceso a Concursos Fornax en el nav de monitor
     var _monCncEmail=((_jdCurrentUser&&(_jdCurrentUser.email||''))||'').toLowerCase();
     if(_monCncEmail==='erika.noguera@grupoempresarialjd.com'){

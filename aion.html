@@ -22589,6 +22589,7 @@ function _e3dChartPlat(c, platList){
       <button class="btn btn-ghost btn-sm" onclick="adminCargarSolicitudes()">🔄 Actualizar</button>
       <button onclick="adminRepararRegistrosLegacy()" style="padding:7px 14px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.35);border-radius:7px;color:#60a5fa;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap">🔧 Reparar Legacy</button>
       <button onclick="emailMostrarConfigPanel()" style="padding:7px 14px;background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.3);border-radius:6px;color:#c8a84b;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap">⚙️ Email</button>
+      <button onclick="waMostrarConfigPanel()" style="padding:7px 14px;background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.3);border-radius:6px;color:#25d366;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap">💬 WhatsApp</button>
       <button onclick="adminBorrarTodasSolicitudes()" style="padding:7px 14px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:6px;color:#f87171;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap">🗑️ Limpiar</button>
     </div>
   </div>
@@ -26054,6 +26055,7 @@ async function _jdLoadUserProfile(authUser) {
       }
       // Actualizar último acceso (fire-and-forget)
       _supaDb.from('jd_usuarios').update({ ultimo_acceso: new Date().toISOString() }).eq('email', authUser.email).then(function(){});
+      try{ if(typeof _waCargarConfigSistema==='function') _waCargarConfigSistema(); }catch(e){}
       // Cargar ID de jd_empleados con timeout de 5s
       // modelos.ejecutivo_id almacena IDs de jd_empleados (ej: 'mtu6o1vtqx7'), NO el UUID de jd_usuarios.
       try {
@@ -26107,6 +26109,7 @@ async function _jdRefreshProfileBg(authUser, profKey, empKey) {
       }
       try { sessionStorage.setItem(profKey, JSON.stringify(_r.data)); } catch(_) {}
       _supaDb.from('jd_usuarios').update({ ultimo_acceso: new Date().toISOString() }).eq('id', authUser.id).then(function(){});
+      try{ if(typeof _waCargarConfigSistema==='function') _waCargarConfigSistema(); }catch(e){}
       console.log('[JD bg-refresh] Perfil actualizado OK:', _r.data.email);
       // Refrescar empleado_id si faltaba
       if (!_jdCurrentEmpleadoId) {
@@ -31457,6 +31460,7 @@ function _emailNotificarCreacion(sol){
       if(targets.length) await _emailEnviar(targets, '🔔 Nueva solicitud: '+(_emailTiposLabel[sol.tipo]||sol.tipo)+' — '+(sol.ejecutivo_nombre||''), _emailHtmlAdminNueva(sol), sol.id||null);
       var execEmail = (typeof _jdCurrentUser!=='undefined' && _jdCurrentUser && _jdCurrentUser.email) ? _jdCurrentUser.email : cfg.execEmail||'';
       if(execEmail) await _emailEnviar([execEmail], '✅ Solicitud recibida — '+(_emailTiposLabel[sol.tipo]||sol.tipo), _emailHtmlExecConfirmacion(sol), sol.id||null);
+      try{ if(typeof _waNotificarCreacion==='function') _waNotificarCreacion(sol); }catch(e){}
     }catch(e){ console.warn('[JD-Email] Error en notificarCreacion:', e); }
   })();
 }
@@ -31476,6 +31480,7 @@ function _emailNotificarEstado(sol, nuevoEstado, notasAdmin){
         if(emp) execEmail = emp.email||'';
       }
       if(execEmail) await _emailEnviar([execEmail], 'Actualización de tu solicitud — '+(_emailTiposLabel[sol.tipo]||sol.tipo), _emailHtmlCambioEstado(sol, nuevoEstado, notasAdmin), sol.id||null);
+      try{ if(typeof _waNotificarEstado==='function') _waNotificarEstado(sol, nuevoEstado, notasAdmin); }catch(e){}
       /* También notificar al admin en ciertos estados */
       if((nuevoEstado==='aprobado'||nuevoEstado==='rechazado') && cfg.adminEmail){
         await _emailEnviar([cfg.adminEmail], '📋 Solicitud '+nuevoEstado.toUpperCase()+' — '+(_emailTiposLabel[sol.tipo]||sol.tipo)+' — '+(sol.ejecutivo_nombre||''), _emailHtmlCambioEstado(sol, nuevoEstado, notasAdmin), null);
@@ -31577,6 +31582,190 @@ async function emailProbarConexion(){
   var ok = await _emailEnviar([to], '🧪 Prueba de Conexión — Grupo J&D',
     _emailBase('Prueba de Email', '<div style="text-align:center;padding:20px"><div style="font-size:48px;margin-bottom:16px">✅</div><div style="font-size:22px;font-weight:800;color:#f1f5f9">¡Conexión exitosa!</div><div style="font-size:14px;color:#94a3b8;margin-top:10px">El sistema de notificaciones por correo está correctamente configurado para el Grupo J&D.</div></div>'), null);
   if(typeof toast==='function') toast(ok ? '✅ Email de prueba enviado a '+to : '❌ Error enviando correo — verifique las credenciales', ok?'ok':'error');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   WHATSAPP — UltraMsg · Config en Supabase · Teléfono por usuario
+   ════════════════════════════════════════════════════════════════ */
+var _waSistemaCfg = null; /* {enabled, instanceId, token} cargado desde jd_configuracion */
+
+async function _waCargarConfigSistema(){
+  if(!_supaDb) return;
+  try{
+    var {data} = await _supaDb.from('jd_configuracion').select('clave,valor').in('clave',['wa_enabled','wa_instance_id','wa_token']);
+    if(data){
+      var cfg = {enabled:false, instanceId:'', token:''};
+      data.forEach(function(r){
+        if(r.clave==='wa_enabled') cfg.enabled = r.valor==='true'||r.valor===true;
+        if(r.clave==='wa_instance_id') cfg.instanceId = r.valor||'';
+        if(r.clave==='wa_token') cfg.token = r.valor||'';
+      });
+      _waSistemaCfg = cfg;
+    }
+  }catch(e){ console.warn('[JD-WA] Error cargando config sistema:', e); }
+}
+function _waGetMiTelefono(){
+  if(!_jdCurrentUser) return '';
+  var de = _jdCurrentUser.datos_extra||{};
+  return de.whatsapp||_jdCurrentUser.telefono||'';
+}
+async function _waGuardarMiTelefono(tel){
+  if(!_supaDb||!_jdCurrentUser) return;
+  var de = Object.assign({}, _jdCurrentUser.datos_extra||{});
+  de.whatsapp = tel;
+  _jdCurrentUser.datos_extra = de;
+  await _supaDb.from('jd_usuarios').update({datos_extra: de}).eq('id', _jdCurrentUser.id);
+}
+async function _waGuardarConfigSistema(cfg){
+  if(!_supaDb) return false;
+  try{
+    await _supaDb.from('jd_configuracion').upsert([
+      {clave:'wa_enabled', valor: cfg.enabled?'true':'false'},
+      {clave:'wa_instance_id', valor: cfg.instanceId},
+      {clave:'wa_token', valor: cfg.token}
+    ], {onConflict:'clave'});
+    _waSistemaCfg = Object.assign({}, cfg);
+    return true;
+  }catch(e){ console.warn('[JD-WA] Error guardando config sistema:', e); return false; }
+}
+async function _waEnviar(toPhone, message){
+  var cfg = _waSistemaCfg;
+  if(!cfg||!cfg.enabled||!cfg.instanceId||!cfg.token||!toPhone) return false;
+  var phone = (toPhone||'').replace(/[^0-9]/g,'');
+  if(phone.length < 7) return false;
+  try{
+    var resp = await fetch('https://api.ultramsg.com/'+cfg.instanceId+'/messages/chat', {
+      method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:'token='+encodeURIComponent(cfg.token)+'&to='+encodeURIComponent(phone)+'&body='+encodeURIComponent(message)
+    });
+    var data = await resp.json();
+    if(data && (data.sent==='true'||data.sent===true)) return true;
+    console.warn('[JD-WA] Respuesta UltraMsg:', data);
+    return false;
+  }catch(e){ console.warn('[JD-WA] Error enviando WA:', e); return false; }
+}
+async function _waNotificarAdmins(mensaje){
+  if(!_supaDb||!_waSistemaCfg||!_waSistemaCfg.enabled) return;
+  try{
+    var {data:admins} = await _supaDb.from('jd_usuarios').select('nombre,datos_extra,telefono').in('rol',['admin','super_admin']).eq('estado','activo');
+    if(!admins) return;
+    for(var a of admins){
+      var phone = (a.datos_extra&&a.datos_extra.whatsapp) || a.telefono || '';
+      if(phone) _waEnviar(phone, mensaje);
+    }
+  }catch(e){ console.warn('[JD-WA] Error notificando admins:', e); }
+}
+function _waTipoLabel(tipo){
+  var m={prestamo:'Préstamo',ahorro:'Ahorro',ahorro_retiro:'Retiro de Ahorro',instalaciones:'Instalación',implementos:'Implementos',paginas:'Páginas',carta_laboral:'Carta Laboral',sexshop:'Compra Sex Shop',fotos:'Sesión Fotográfica',capacitacion:'Capacitación',otro:'Otro'};
+  return m[tipo]||tipo||'Solicitud';
+}
+function _waNotificarCreacion(sol){
+  if(!_waSistemaCfg||!_waSistemaCfg.enabled) return;
+  (async function(){
+    var tipo   = _waTipoLabel(sol.tipo);
+    var nombre = sol.ejecutivo_nombre||'Sin nombre';
+    var fecha  = sol.fecha_solicitud||new Date().toISOString().slice(0,10);
+    var monto  = sol.monto ? ' | Monto: $'+Number(sol.monto).toLocaleString('es-CO') : '';
+    var desc   = sol.descripcion ? '\n📝 '+sol.descripcion.substring(0,80) : '';
+    _waNotificarAdmins('🔔 *Nueva Solicitud — Fornax Studios*\n\n'+'👤 '+nombre+'\n'+'📋 Tipo: '+tipo+monto+'\n'+'📅 Fecha: '+fecha+desc+'\n\n'+'Estado: ⏳ Pendiente');
+    var execPhone = (typeof _jdCurrentUser!=='undefined'&&_jdCurrentUser&&_jdCurrentUser.telefono)?_jdCurrentUser.telefono:sol.ejecutivo_telefono||'';
+    if(execPhone){ _waEnviar(execPhone,'✅ *Solicitud Recibida — Fornax Studios*\n\nTu solicitud de *'+tipo+'* fue recibida correctamente.\n📅 Fecha: '+fecha+monto+desc+'\n\nTe notificaremos cuando haya una respuesta. ⏳'); }
+  })().catch(function(e){ console.warn('[JD-WA] Error notificando creación:', e); });
+}
+function _waNotificarEstado(sol, nuevoEstado, notasAdmin){
+  if(!_waSistemaCfg||!_waSistemaCfg.enabled) return;
+  (async function(){
+    var tipo   = _waTipoLabel(sol.tipo);
+    var nombre = sol.ejecutivo_nombre||'Sin nombre';
+    var eicons = {pendiente:'⏳',revision:'🔍',aprobado:'✅',rechazado:'❌',proceso:'🔧',completado:'🎉',en_proceso:'🔄',cerrado:'🔒'};
+    var ei = eicons[nuevoEstado]||'📋';
+    var notas  = notasAdmin ? '\n💬 '+notasAdmin.substring(0,100) : '';
+    _waNotificarAdmins(ei+' *Solicitud '+nuevoEstado.toUpperCase()+'*\n\n'+'👤 '+nombre+'\n'+'📋 Tipo: '+tipo+notas);
+    var execPhone = sol.ejecutivo_telefono||'';
+    if(!execPhone){ try{ var emps=JSON.parse(localStorage.getItem('jd_empleados')||'[]'); var emp=emps.find(function(e){ return e.nombre&&sol.ejecutivo_nombre&&e.nombre.toLowerCase()===sol.ejecutivo_nombre.toLowerCase(); }); if(emp) execPhone=emp.telefono||''; }catch(e){} }
+    if(execPhone){ _waEnviar(execPhone, ei+' *Actualización de Solicitud — Fornax Studios*\n\nTu solicitud de *'+tipo+'* fue actualizada.\n📌 Estado: *'+nuevoEstado.toUpperCase()+'*'+notas); }
+  })().catch(function(e){ console.warn('[JD-WA] Error notificando estado:', e); });
+}
+function waMostrarConfigPanel(){
+  var esSuperAdmin = typeof jdIsSuperAdmin==='function' && jdIsSuperAdmin();
+  var esAdmin = _jdCurrentUser && (_jdCurrentUser.rol==='admin'||_jdCurrentUser.rol==='super_admin');
+  if(!esAdmin) return;
+  var existing = document.getElementById('jd-wa-cfg-modal');
+  if(existing){ existing.remove(); return; }
+  var cfg = _waSistemaCfg || {enabled:false, instanceId:'', token:''};
+  var miTel = _waGetMiTelefono();
+  var htmlInstance = esSuperAdmin ? (
+    '<div style="display:flex;flex-direction:column;gap:14px;margin-bottom:16px">'+
+    '<div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">⚙️ Instancia UltraMsg (compartida)</div>'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;background:#0f172a;border-radius:10px;padding:14px 16px;margin-bottom:4px">'+
+    '<div><div style="font-size:14px;font-weight:700;color:#f1f5f9">Activar notificaciones</div>'+
+    '<div style="font-size:12px;color:#64748b;margin-top:2px">Activa para todo el sistema</div></div>'+
+    '<label style="cursor:pointer;display:flex;align-items:center;gap:8px">'+
+    '<input type="checkbox" id="wa-cfg-enabled" '+(cfg.enabled?'checked':'')+' style="width:18px;height:18px;cursor:pointer">'+
+    '<span style="font-size:13px;color:#25d366;font-weight:700" id="wa-cfg-enabled-label">'+(cfg.enabled?'ACTIVO':'INACTIVO')+'</span>'+
+    '</label></div>'+
+    _emailCfgInput('wa-cfg-instance','Instance ID de UltraMsg','instance12345','Tu Instance ID de UltraMsg',cfg.instanceId)+
+    _emailCfgInput('wa-cfg-token','Token de UltraMsg','xxxxxxxxxxxxxxxx','Token de autenticación de UltraMsg',cfg.token)+
+    '</div>'
+  ) : (
+    '<div style="background:rgba(37,211,102,.06);border:1px solid rgba(37,211,102,.15);border-radius:8px;padding:12px 14px;margin-bottom:16px">'+
+    '<div style="font-size:12px;color:#94a3b8">La instancia de UltraMsg es configurada por el administrador principal.</div>'+
+    '<div style="font-size:12px;color:#25d366;font-weight:600;margin-top:4px">'+(cfg.enabled?'✅ Notificaciones ACTIVAS':'⏸ Notificaciones INACTIVAS')+'</div></div>'
+  );
+  var overlay = document.createElement('div');
+  overlay.id = 'jd-wa-cfg-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.innerHTML =
+    '<div style="background:#1e293b;border:1px solid #334155;border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,.7)">'+
+    '<div style="padding:24px 28px;border-bottom:1px solid #334155;display:flex;align-items:center;justify-content:space-between">'+
+    '<div><div style="font-size:18px;font-weight:800;color:#f1f5f9">💬 WhatsApp — Notificaciones</div>'+
+    '<div style="font-size:12px;color:#64748b;margin-top:3px">Vincula tu número · Fornax Studios</div></div>'+
+    '<button onclick="document.getElementById(\'jd-wa-cfg-modal\').remove()" style="padding:6px 12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:8px;color:#f87171;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">✕</button>'+
+    '</div>'+
+    '<div style="padding:24px 28px">'+
+    htmlInstance+
+    '<div style="display:flex;flex-direction:column;gap:14px">'+
+    '<div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px">📱 Mi Número WhatsApp</div>'+
+    _emailCfgInput('wa-cfg-mitel','Mi Teléfono (con código de país)','573001234567','Número donde recibirás notificaciones — sin + ni espacios (ej: 573001234567)',miTel)+
+    '</div>'+
+    '<div style="display:flex;gap:10px;margin-top:24px">'+
+    '<button onclick="waGuardarConfig()" style="flex:1;padding:12px;background:#25d366;color:#0f172a;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;font-family:Outfit,sans-serif">💾 Guardar</button>'+
+    (esSuperAdmin?'<button onclick="waProbarConexion()" style="padding:12px 20px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.35);border-radius:8px;color:#60a5fa;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">🧪 Probar</button>':'')+
+    '</div></div></div>';
+  document.body.appendChild(overlay);
+  var chk=document.getElementById('wa-cfg-enabled');
+  if(chk) chk.onchange=function(){ var lbl=document.getElementById('wa-cfg-enabled-label'); if(lbl) lbl.textContent=this.checked?'ACTIVO':'INACTIVO'; };
+  overlay.addEventListener('click',function(e){ if(e.target===overlay) overlay.remove(); });
+}
+async function waGuardarConfig(){
+  var esSuperAdmin = typeof jdIsSuperAdmin==='function' && jdIsSuperAdmin();
+  var miTel = (document.getElementById('wa-cfg-mitel')?.value||'').replace(/[^0-9]/g,'');
+  await _waGuardarMiTelefono(miTel);
+  if(esSuperAdmin){
+    var cfg = {
+      enabled: document.getElementById('wa-cfg-enabled')?.checked||false,
+      instanceId: (document.getElementById('wa-cfg-instance')?.value||'').trim(),
+      token: (document.getElementById('wa-cfg-token')?.value||'').trim()
+    };
+    await _waGuardarConfigSistema(cfg);
+    if(typeof toast==='function') toast(cfg.enabled?'✅ WhatsApp configurado — notificaciones ACTIVAS':'💾 Configuración guardada — INACTIVO','ok');
+  } else {
+    if(typeof toast==='function') toast(miTel?'✅ Número vinculado — recibirás notificaciones en tu WhatsApp':'💾 Número eliminado','ok');
+  }
+  var modal=document.getElementById('jd-wa-cfg-modal'); if(modal) modal.remove();
+}
+async function waProbarConexion(){
+  var esSuperAdmin = typeof jdIsSuperAdmin==='function' && jdIsSuperAdmin();
+  if(!esSuperAdmin) return;
+  var instancia = (document.getElementById('wa-cfg-instance')?.value||'').trim();
+  var token = (document.getElementById('wa-cfg-token')?.value||'').trim();
+  var miTel = (document.getElementById('wa-cfg-mitel')?.value||'').replace(/[^0-9]/g,'');
+  if(!instancia||!token||!miTel){ if(typeof toast==='function') toast('⚠️ Completa todos los campos primero','warn'); return; }
+  var prevCfg = _waSistemaCfg;
+  _waSistemaCfg = {enabled:true, instanceId:instancia, token:token};
+  var ok = await _waEnviar(miTel,'✅ Prueba exitosa — Fornax Studios\n\nLas notificaciones por WhatsApp están funcionando correctamente.');
+  _waSistemaCfg = prevCfg;
+  if(typeof toast==='function') toast(ok?'✅ Mensaje enviado — revisa tu WhatsApp':'❌ No se pudo enviar — verifica los datos',ok?'ok':'error');
 }
 /* ── FIN SISTEMA DE EMAIL ── */
 

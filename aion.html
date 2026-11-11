@@ -26322,9 +26322,9 @@ function _jdApplyUserUI() {
   const navLiqEjec = document.getElementById('nav-liqs-ejecutivos-item');
   if (navLiqEjec) navLiqEjec.style.display = jdIsSuperAdmin() ? 'flex' : 'none';
 
-  // Mostrar nav item Solicitudes Ejecutivos solo para super_admin
+  // Mostrar nav item Solicitudes Ejecutivos para super_admin y admin
   const navSolEjec = document.getElementById('nav-solicitudes-ejec-item');
-  if (navSolEjec) navSolEjec.style.display = jdIsSuperAdmin() ? 'flex' : 'none';
+  if (navSolEjec) navSolEjec.style.display = (jdIsSuperAdmin() || (_jdCurrentUser && _jdCurrentUser.rol === 'admin')) ? 'flex' : 'none';
   // Sol. Vinculación CEM — ahora unificado en Trazabilidad de Solicitudes, ocultar nav duplicado
   const navSolVincCem = document.getElementById('nav-sol-vinc-cem-item');
   if (navSolVincCem) navSolVincCem.style.display = 'none'; // siempre oculto, fusionado con Trazabilidad

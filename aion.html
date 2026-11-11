@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v6.79 -->
+<!DOCTYPE html><!-- v6.80 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -31455,6 +31455,8 @@ function _emailHtmlCambioEstado(sol, nuevoEstado, notasAdmin){
 
 /* --- Hook genérico: notificar creación de solicitud --- */
 function _emailNotificarCreacion(sol){
+  // WhatsApp siempre, independiente del email
+  try{ if(typeof _waNotificarCreacion==='function') _waNotificarCreacion(sol); }catch(e){}
   var cfg = _emailGetCfg();
   if(!cfg.enabled) return;
   (async function(){
@@ -31464,13 +31466,14 @@ function _emailNotificarCreacion(sol){
       if(targets.length) await _emailEnviar(targets, '🔔 Nueva solicitud: '+(_emailTiposLabel[sol.tipo]||sol.tipo)+' — '+(sol.ejecutivo_nombre||''), _emailHtmlAdminNueva(sol), sol.id||null);
       var execEmail = (typeof _jdCurrentUser!=='undefined' && _jdCurrentUser && _jdCurrentUser.email) ? _jdCurrentUser.email : cfg.execEmail||'';
       if(execEmail) await _emailEnviar([execEmail], '✅ Solicitud recibida — '+(_emailTiposLabel[sol.tipo]||sol.tipo), _emailHtmlExecConfirmacion(sol), sol.id||null);
-      try{ if(typeof _waNotificarCreacion==='function') _waNotificarCreacion(sol); }catch(e){}
     }catch(e){ console.warn('[JD-Email] Error en notificarCreacion:', e); }
   })();
 }
 
 /* --- Hook genérico: notificar cambio de estado --- */
 function _emailNotificarEstado(sol, nuevoEstado, notasAdmin){
+  // WhatsApp siempre, independiente del email
+  try{ if(typeof _waNotificarEstado==='function') _waNotificarEstado(sol, nuevoEstado, notasAdmin); }catch(e){}
   var cfg = _emailGetCfg();
   if(!cfg.enabled) return;
   (async function(){
@@ -31484,7 +31487,6 @@ function _emailNotificarEstado(sol, nuevoEstado, notasAdmin){
         if(emp) execEmail = emp.email||'';
       }
       if(execEmail) await _emailEnviar([execEmail], 'Actualización de tu solicitud — '+(_emailTiposLabel[sol.tipo]||sol.tipo), _emailHtmlCambioEstado(sol, nuevoEstado, notasAdmin), sol.id||null);
-      try{ if(typeof _waNotificarEstado==='function') _waNotificarEstado(sol, nuevoEstado, notasAdmin); }catch(e){}
       /* También notificar al admin en ciertos estados */
       if((nuevoEstado==='aprobado'||nuevoEstado==='rechazado') && cfg.adminEmail){
         await _emailEnviar([cfg.adminEmail], '📋 Solicitud '+nuevoEstado.toUpperCase()+' — '+(_emailTiposLabel[sol.tipo]||sol.tipo)+' — '+(sol.ejecutivo_nombre||''), _emailHtmlCambioEstado(sol, nuevoEstado, notasAdmin), null);

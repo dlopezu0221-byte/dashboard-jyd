@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v6.78 -->
+<!DOCTYPE html><!-- v6.79 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -26331,7 +26331,7 @@ function _jdApplyUserUI() {
   if (navSolEjec) navSolEjec.style.display = (jdIsSuperAdmin() || (_jdCurrentUser && _jdCurrentUser.rol === 'admin')) ? 'flex' : 'none';
   // Mostrar nav item Gestor de Solicitudes para super_admin y gerente
   const navAdminGestor = document.getElementById('nav-admin-gestor-item');
-  if (navAdminGestor) { var _rGest = (_jdCurrentUser && _jdCurrentUser.rol) ? _jdCurrentUser.rol.toLowerCase() : ''; navAdminGestor.style.display = (jdIsSuperAdmin() || _rGest === 'gerente') ? 'flex' : 'none'; }
+  if (navAdminGestor) { var _rGest = (_jdCurrentUser && _jdCurrentUser.rol) ? _jdCurrentUser.rol.toLowerCase() : ''; navAdminGestor.style.display = (jdIsSuperAdmin() || _rGest === 'gerente' || _rGest === 'admin') ? 'flex' : 'none'; }
   // Sol. Vinculación CEM — ahora unificado en Trazabilidad de Solicitudes, ocultar nav duplicado
   const navSolVincCem = document.getElementById('nav-sol-vinc-cem-item');
   if (navSolVincCem) navSolVincCem.style.display = 'none'; // siempre oculto, fusionado con Trazabilidad

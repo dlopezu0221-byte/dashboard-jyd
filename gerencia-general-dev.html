@@ -687,8 +687,7 @@ body.exec-fullscreen #nav-exec-perfil-group { display: block; }
 #nav-exec-solicitudes-group .nav-item,
 #nav-exec-perfil-group .nav-item { display: flex !important; }
 /* WIP: ocultar ítems en desarrollo para ejecutivo comercial (doble ID = especificidad 200 > 110) */
-#nav-exec-solicitudes-group #nav-exec-trazabilidad-item,
-#nav-exec-solicitudes-group #nav-exec-gestor-item { display: none !important; }
+#nav-exec-solicitudes-group #nav-exec-trazabilidad-item { display: none !important; }
 
 /* ── Barra de sesión ejecutivo ── */
 #fab-session-bar {
@@ -2478,7 +2477,7 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
         <div class="nav-item nav-sub" onclick="goPage('mis-pendientes');misPendientesCargar()" style="color:#34d399;font-weight:700"><span class="ico">📌</span>Mis Pendientes<span class="mp-nav-badge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:900;margin-left:4px"></span></div>
         <div class="nav-item nav-sub" onclick="goPage('mi-agenda');agInit()" style="color:#818cf8;font-weight:700;background:rgba(99,102,241,.07);border-left:2px solid rgba(99,102,241,.35)"><span class="ico">📋</span>Mi Agenda</div>
         <div id="nav-mon-trazabilidad-item" class="nav-item nav-sub" onclick="goPage('exec-mis-vinculos')" style="display:none;font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes</div>
-        <div id="nav-mon-gestor-item" class="nav-item nav-sub" onclick="goPage('exec-sol-gestor')" style="display:none;font-weight:700"><span class="ico">🎯</span>Gestor de Solicitudes</div>
+        <div id="nav-mon-gestor-item" class="nav-item nav-sub" onclick="goPage('exec-sol-gestor')" style="font-weight:700"><span class="ico">🎯</span>Gestor de Solicitudes</div>
         <div class="nav-item nav-sub" onclick="goPage('monitor-multas');multasMonitorInit()" style="font-weight:700;color:#fca5a5"><span class="ico">⚠️</span>Multas de Modelos</div>
         <div id="nav-mon-capacitaciones-item" class="nav-item nav-sub" onclick="goPage('exec-sol-capacitacion')" style="display:none;color:#8b5cf6;font-weight:600"><span class="ico">🎓</span>Mis Capacitaciones</div>
       </div>
@@ -2535,9 +2534,11 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
     <div id="nav-consultas-admin-group" style="display:none"></div>
 
     <!-- ASISTENTE IA -->
-    <div class="nav-sec" style="margin-top:8px">Inteligencia IA</div>
-    <div class="nav-item" onclick="goPage('asistente-ia');aiaInit()" style="color:#10b981;font-weight:700;background:rgba(16,185,129,.07);border-left:2px solid rgba(16,185,129,.35)"><span class="ico">🤖</span>Asistente IA</div>
+    <div id="nav-aion-sec" class="nav-sec" style="margin-top:8px">Inteligencia IA</div>
+    <div id="nav-aion-main-item" class="nav-item" onclick="goPage('asistente-ia');aiaInit()" style="color:#10b981;font-weight:700;background:rgba(16,185,129,.07);border-left:2px solid rgba(16,185,129,.35)"><span class="ico">🤖</span>Asistente IA</div>
     <div id="nav-aion-inst-item" class="nav-item" onclick="goPage('aion-instrucciones');aionInstInit()" style="display:none;padding-left:32px;color:#6ee7b7;font-weight:600;font-size:12px"><span class="ico">🧠</span>Instrucciones AION</div>
+    <div id="nav-aion-alertas-item" class="nav-item" onclick="goPage('aion-alertas');aionAlertasInit()" style="display:none;padding-left:32px;color:#fbbf24;font-weight:600;font-size:12px"><span class="ico">🔔</span>Alertas AION <span id="nav-aion-alertas-badge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px;font-weight:800;margin-left:3px">0</span></div>
+    <div id="nav-aion-permisos-item" class="nav-item" onclick="goPage('aion-permisos');aionPermisosInit()" style="display:none;padding-left:32px;color:#a78bfa;font-weight:600;font-size:12px"><span class="ico">🔐</span>Permisos IA</div>
 
     <!-- REPORTES DE DESEMPEÑO -->
     <div class="nav-sec" style="margin-top:8px">Reportes</div>
@@ -2588,7 +2589,7 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
       <div class="nav-item nav-sub" onclick="goPage('mis-pendientes');misPendientesCargar()" style="font-weight:700"><span class="ico">📌</span>Mis Pendientes<span class="mp-nav-badge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:900;margin-left:4px"></span></div>
       <div class="nav-item nav-sub" onclick="goPage('mi-agenda');agInit()" style="color:#818cf8;font-weight:700;background:rgba(99,102,241,.07);border-left:2px solid rgba(99,102,241,.35)"><span class="ico">📋</span>Mi Agenda</div>
       <div id="nav-exec-trazabilidad-item" class="nav-item nav-sub" onclick="goPage('exec-mis-vinculos')" style="display:none;font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes</div>
-      <div id="nav-exec-gestor-item" class="nav-item nav-sub" onclick="goPage('exec-sol-gestor')" style="display:none;font-weight:700"><span class="ico">🎯</span>Gestor de Solicitudes</div>
+      <div id="nav-exec-gestor-item" class="nav-item nav-sub" onclick="goPage('exec-sol-gestor')" style="font-weight:700"><span class="ico">🎯</span>Gestor de Solicitudes</div>
       <div id="nav-exec-informes-item" class="nav-item nav-sub" onclick="goPage('exec-informes-gestion');execIgInit()" style="display:none;color:#34d399;font-weight:700"><span class="ico">📄</span>Informes de Gestión</div>
     </div>
   </div>
@@ -6317,6 +6318,7 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
               <option value="ejecutivo">Ejecutivo Comercial</option>
               <option value="monitor">Monitor</option>
               <option value="aux_servicios">Aux Servicios Generales</option>
+              <option value="modelo_ge">Modelo GE (Grupo Empresarial)</option>
             </select>
           </div>
         </div>
@@ -8029,7 +8031,8 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
         <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Rol de acceso *</label>
         <select id="cru-rol" style="width:100%;background:#252830;border:1px solid #2e3040;border-radius:6px;padding:10px;color:#e8e8e8;font-size:13px;outline:none">
           <option value="estudio">Estudios</option>
-          <option value="modelo">Modelos</option>
+          <option value="modelo">Modelos Fornax</option>
+          <option value="modelo_ge">Modelo GE (Grupo Empresarial)</option>
           <option value="monitor">Monitor</option>
           <option value="ejecutivo">Ejecutivo Comercial</option>
           <option value="gerente">Gerente</option>
@@ -8079,7 +8082,8 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
         <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Rol</label>
         <select id="edu-rol" style="width:100%;background:#252830;border:1px solid #2e3040;border-radius:6px;padding:10px;color:#e8e8e8;font-size:13px;outline:none">
           <option value="estudio">Estudios</option>
-          <option value="modelo">Modelos</option>
+          <option value="modelo">Modelos Fornax</option>
+          <option value="modelo_ge">Modelo GE (Grupo Empresarial)</option>
           <option value="monitor">Monitor</option>
           <option value="ejecutivo">Ejecutivo Comercial</option>
           <option value="gerente">Gerente</option>
@@ -21673,9 +21677,11 @@ function _e3dChartPlat(c, platList){
       </div>
     </div>
     <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap">
-      <button class="btn btn-ghost btn-sm" onclick="goPage('exec-mis-vinculos')">📋 Trazabilidad de Solicitudes</button>
+      <button class="btn btn-ghost btn-sm" onclick="goPage('exec-mis-solicitudes')">📋 Mis Solicitudes</button>
     </div>
   </div>
+  <!-- Panel dinámico: Mis Solicitudes (cargado por solGestorInit) -->
+  <div id="sol-gestor-mis-container" style="margin-bottom:20px"></div>
   <!-- Buscador / selector rápido -->
   <div style="max-width:760px;margin-bottom:24px">
     <select onchange="if(this.value)goPage(this.value);this.value=''" style="width:100%;padding:12px 16px;background:var(--card);border:1px solid var(--gold);border-radius:10px;color:var(--text);font-size:14px;font-weight:600;cursor:pointer">
@@ -22588,6 +22594,7 @@ function _e3dChartPlat(c, platList){
       <button class="btn btn-ghost btn-sm" onclick="adminCargarSolicitudes()">🔄 Actualizar</button>
       <button onclick="adminRepararRegistrosLegacy()" style="padding:7px 14px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.35);border-radius:7px;color:#60a5fa;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap">🔧 Reparar Legacy</button>
       <button onclick="emailMostrarConfigPanel()" style="padding:7px 14px;background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.3);border-radius:6px;color:#c8a84b;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap">⚙️ Email</button>
+      <button onclick="waMostrarConfigPanel()" style="padding:7px 14px;background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.3);border-radius:6px;color:#25d366;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap">💬 WhatsApp</button>
       <button onclick="adminBorrarTodasSolicitudes()" style="padding:7px 14px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:6px;color:#f87171;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap">🗑️ Limpiar</button>
     </div>
   </div>
@@ -26302,12 +26309,13 @@ function _jdApplyUserUI() {
   const navMc = document.getElementById('nav-metas-comerciales-item');
   if (navMc) navMc.style.display = jdIsSuperAdmin() ? 'flex' : 'none';
 
-  // Mostrar nav item Instrucciones AION para super_admin, superadmin y admin
-  (function() {
-    var _rolAion = (_jdCurrentUser && (_jdCurrentUser.rol || _jdCurrentUser.role || '')) || '';
-    var _navAionInst = document.getElementById('nav-aion-inst-item');
-    if (_navAionInst) _navAionInst.style.display = (['super_admin','superadmin','admin'].indexOf(_rolAion.toLowerCase()) >= 0) ? 'flex' : 'none';
-  })();
+  // Mostrar nav items AION — mismo criterio que Administración Usuarios y Metas Comerciales
+  var _navAionInst2 = document.getElementById('nav-aion-inst-item');
+  if (_navAionInst2) _navAionInst2.style.display = jdIsSuperAdmin() ? 'flex' : 'none';
+  var _navAionAl2 = document.getElementById('nav-aion-alertas-item');
+  if (_navAionAl2) _navAionAl2.style.display = jdIsSuperAdmin() ? 'flex' : 'none';
+  var _navAionPermisos2 = document.getElementById('nav-aion-permisos-item');
+  if (_navAionPermisos2) _navAionPermisos2.style.display = jdIsSuperAdmin() ? 'flex' : 'none';
 
   // Mostrar nav item Control de Versiones solo para super_admin
 
@@ -26438,7 +26446,7 @@ function _jdApplyUserUI() {
     // La clase exec-fullscreen activa los grupos de nav exec vía CSS (sin overrides de overflow).
 
     // Ocultar secciones en desarrollo (WIP) para el ejecutivo comercial
-    var _execWipHide = ['nav-exec-trazabilidad-item','nav-exec-gestor-item'];
+    var _execWipHide = ['nav-exec-trazabilidad-item'];
     _execWipHide.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
     // Concursos e Informes de Gestión: visible solo para Fabio Angrino
     var _execNombreNav = ((_jdCurrentUser&&(_jdCurrentUser.nombre||_jdCurrentUser.name||''))||'').toLowerCase();
@@ -26467,7 +26475,7 @@ function _jdApplyUserUI() {
       _navMonGrp.querySelectorAll('.nav-subgroup.open').forEach(function(el){ el.style.display='block'; });
     }
     // 2. Ocultar ítems específicos dentro de nav-monitor-group que NO deben verse para monitores
-    var _monInternalHide = ['nav-mon-trazabilidad-item','nav-mon-gestor-item','nav-mon-capacitaciones-item','nav-mon-ahorro-item','nav-sol-vinc-cem-item','nav-vinculaciones-item'];
+    var _monInternalHide = ['nav-mon-trazabilidad-item','nav-mon-capacitaciones-item','nav-mon-ahorro-item','nav-sol-vinc-cem-item','nav-vinculaciones-item'];
     _monInternalHide.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
     // ── Ocultar secciones WIP (dinámico) ─────────────────────────
     if(typeof _JD_WIP !== 'undefined' && Array.isArray(_JD_WIP.pages)){
@@ -26491,6 +26499,11 @@ function _jdApplyUserUI() {
     // Mostrar Plan Diario para monitores
     var _pdNavMon = document.getElementById('nav-plan-diario-item');
     if(_pdNavMon) _pdNavMon.style.display='';
+    // Mostrar AION para monitores (ia_habilitado=true en ia_permisos_perfil)
+    var _navAionSec2 = document.getElementById('nav-aion-sec');
+    var _navAionMain = document.getElementById('nav-aion-main-item');
+    if(_navAionSec2) _navAionSec2.style.display='';
+    if(_navAionMain) _navAionMain.style.display='';
     document.body.classList.add('monitor-mode');
     goPage('exec-facturacion');
     setTimeout(function(){
@@ -28782,6 +28795,7 @@ async function execEnviarSolicitud(){
     id: 'sol_'+(Date.now()),
     ejecutivo_id: _jdCurrentUser?.id||'',
     ejecutivo_nombre: _execGetNombreActual(),
+    ejecutivo_email: _jdCurrentUser?.email||'',
     tipo: tipo,
     monto: monto,
     descripcion: descripcion,
@@ -28806,6 +28820,7 @@ async function execEnviarSolicitud(){
     var { data: inserted, error: insertErr } = await _supaDb.from('jd_solicitudes_exec').insert([{
       ejecutivo_id:    sol.ejecutivo_id,
       ejecutivo_nombre:sol.ejecutivo_nombre,
+      ejecutivo_email: sol.ejecutivo_email||null,
       tipo:            sol.tipo,
       monto:           sol.monto,
       descripcion:     sol.descripcion,
@@ -28834,6 +28849,9 @@ async function execEnviarSolicitud(){
   ['exec-sol-monto','exec-sol-desc','exec-sol-fecha-extra','exec-sol-notas'].forEach(function(id){
     var el=document.getElementById(id); if(el) el.value='';
   });
+  /* 📧 Notificar al administrador y al ejecutivo (fire & forget, no bloquea UI) */
+  _emailNotificarCreacion(sol);
+  _waNotificarCreacion(sol);
   execActualizarBadgeSolicitudes();
 }
 
@@ -31472,12 +31490,268 @@ function _emailNotificarEstado(sol, nuevoEstado, notasAdmin){
         if(emp) execEmail = emp.email||'';
       }
       if(execEmail) await _emailEnviar([execEmail], 'Actualización de tu solicitud — '+(_emailTiposLabel[sol.tipo]||sol.tipo), _emailHtmlCambioEstado(sol, nuevoEstado, notasAdmin), sol.id||null);
-      /* También notificar al admin en ciertos estados */
-      if((nuevoEstado==='aprobado'||nuevoEstado==='rechazado') && cfg.adminEmail){
+      /* Notificar al admin en TODOS los cambios de estado */
+      if(cfg.adminEmail){
         await _emailEnviar([cfg.adminEmail], '📋 Solicitud '+nuevoEstado.toUpperCase()+' — '+(_emailTiposLabel[sol.tipo]||sol.tipo)+' — '+(sol.ejecutivo_nombre||''), _emailHtmlCambioEstado(sol, nuevoEstado, notasAdmin), null);
       }
     }catch(e){ console.warn('[JD-Email] Error en notificarEstado:', e); }
   })();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   WHATSAPP — UltraMsg
+   ════════════════════════════════════════════════════════════════ */
+function _waGetCfg(){
+  try{ return Object.assign({enabled:false,instanceId:'',token:'',adminPhone:''}, JSON.parse(localStorage.getItem('jd_wa_cfg')||'{}')); }
+  catch(e){ return {enabled:false,instanceId:'',token:'',adminPhone:''}; }
+}
+function _waSaveCfg(cfg){
+  try{ localStorage.setItem('jd_wa_cfg', JSON.stringify(cfg)); }catch(e){}
+}
+async function _waEnviar(toPhone, message){
+  var cfg = _waGetCfg();
+  if(!cfg.enabled || !cfg.instanceId || !cfg.token || !toPhone) return false;
+  var phone = (toPhone||'').replace(/[^0-9]/g,'');
+  if(!phone) return false;
+  try{
+    var resp = await fetch('https://api.ultramsg.com/'+cfg.instanceId+'/messages/chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:'token='+encodeURIComponent(cfg.token)+'&to='+encodeURIComponent(phone)+'&body='+encodeURIComponent(message)
+    });
+    var data = await resp.json();
+    if(data && (data.sent==='true'||data.sent===true)) return true;
+    console.warn('[JD-WA] Respuesta UltraMsg:', data);
+    return false;
+  }catch(e){ console.warn('[JD-WA] Error enviando WhatsApp:', e); return false; }
+}
+function _waTipoLabel(tipo){
+  var m={prestamo:'Préstamo',ahorro:'Ahorro',ahorro_retiro:'Retiro de Ahorro',instalaciones:'Instalación',implementos:'Implementos',paginas:'Páginas',otro:'Otro'};
+  return m[tipo]||tipo||'Solicitud';
+}
+function _waNotificarCreacion(sol){
+  var cfg = _waGetCfg();
+  if(!cfg.enabled) return;
+  var tipo   = _waTipoLabel(sol.tipo);
+  var nombre = sol.ejecutivo_nombre||'Sin nombre';
+  var fecha  = sol.fecha_solicitud||new Date().toISOString().slice(0,10);
+  var monto  = sol.monto ? ' | Monto: $'+Number(sol.monto).toLocaleString('es-CO') : '';
+  var desc   = sol.descripcion ? '\n📝 '+sol.descripcion.substring(0,80) : '';
+  if(cfg.adminPhone){
+    _waEnviar(cfg.adminPhone,
+      '🔔 *Nueva Solicitud — Fornax Studios*\n\n'
+      +'👤 '+nombre+'\n'
+      +'📋 Tipo: '+tipo+monto+'\n'
+      +'📅 Fecha: '+fecha+desc+'\n\n'
+      +'Estado: ⏳ Pendiente');
+  }
+  var execPhone = (typeof _jdCurrentUser!=='undefined'&&_jdCurrentUser&&_jdCurrentUser.telefono)?_jdCurrentUser.telefono:sol.ejecutivo_telefono||'';
+  if(execPhone){
+    _waEnviar(execPhone,
+      '✅ *Solicitud Recibida — Fornax Studios*\n\n'
+      +'Tu solicitud de *'+tipo+'* fue recibida correctamente.\n'
+      +'📅 Fecha: '+fecha+monto+desc+'\n\n'
+      +'Te notificaremos cuando haya una respuesta. ⏳');
+  }
+}
+function _waNotificarEstado(sol, nuevoEstado, notasAdmin){
+  var cfg = _waGetCfg();
+  if(!cfg.enabled) return;
+  var tipo   = _waTipoLabel(sol.tipo);
+  var nombre = sol.ejecutivo_nombre||'Sin nombre';
+  var eicons = {pendiente:'⏳',revision:'🔍',aprobado:'✅',rechazado:'❌',proceso:'🔧',completado:'🎉'};
+  var ei = eicons[nuevoEstado]||'📋';
+  var notas  = notasAdmin ? '\n💬 '+notasAdmin.substring(0,100) : '';
+  if(cfg.adminPhone){
+    _waEnviar(cfg.adminPhone,
+      ei+' *Solicitud '+nuevoEstado.toUpperCase()+'*\n\n'
+      +'👤 '+nombre+'\n'
+      +'📋 Tipo: '+tipo+notas);
+  }
+  var execPhone = sol.ejecutivo_telefono||'';
+  if(!execPhone){
+    try{
+      var emps=JSON.parse(localStorage.getItem('jd_empleados')||'[]');
+      var emp=emps.find(function(e){ return e.nombre&&sol.ejecutivo_nombre&&e.nombre.toLowerCase()===sol.ejecutivo_nombre.toLowerCase(); });
+      if(emp) execPhone=emp.telefono||'';
+    }catch(e){}
+  }
+  if(execPhone){
+    _waEnviar(execPhone,
+      ei+' *Actualización de Solicitud — Fornax Studios*\n\n'
+      +'Tu solicitud de *'+tipo+'* fue actualizada.\n'
+      +'📌 Estado: *'+nuevoEstado.toUpperCase()+'*'+notas);
+  }
+}
+function waMostrarConfigPanel(){
+  var cfg = _waGetCfg();
+  var existing = document.getElementById('jd-wa-cfg-modal');
+  if(existing){ existing.remove(); return; }
+  var overlay = document.createElement('div');
+  overlay.id = 'jd-wa-cfg-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.innerHTML =
+    '<div style="background:#1e293b;border:1px solid #334155;border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,.7)">'+
+    '<div style="padding:24px 28px;border-bottom:1px solid #334155;display:flex;align-items:center;justify-content:space-between">'+
+    '<div><div style="font-size:18px;font-weight:800;color:#f1f5f9">💬 Configuración WhatsApp</div>'+
+    '<div style="font-size:12px;color:#64748b;margin-top:3px">Notificaciones por WhatsApp · UltraMsg</div></div>'+
+    '<button onclick="document.getElementById(\'jd-wa-cfg-modal\').remove()" style="padding:6px 12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:8px;color:#f87171;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">✕</button>'+
+    '</div>'+
+    '<div style="padding:24px 28px">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;background:#0f172a;border-radius:10px;padding:14px 16px;margin-bottom:20px">'+
+    '<div><div style="font-size:14px;font-weight:700;color:#f1f5f9">Activar notificaciones por WhatsApp</div>'+
+    '<div style="font-size:12px;color:#64748b;margin-top:2px">Envía mensajes WA en cada evento de solicitud</div></div>'+
+    '<label style="cursor:pointer;display:flex;align-items:center;gap:8px">'+
+    '<input type="checkbox" id="wa-cfg-enabled" '+(cfg.enabled?'checked':'')+' style="width:18px;height:18px;cursor:pointer">'+
+    '<span style="font-size:13px;color:#25d366;font-weight:700" id="wa-cfg-enabled-label">'+(cfg.enabled?'ACTIVO':'INACTIVO')+'</span>'+
+    '</label></div>'+
+    '<div style="display:flex;flex-direction:column;gap:14px">'+
+    _emailCfgInput('wa-cfg-instance','Instance ID de UltraMsg','instance12345','Tu Instance ID de UltraMsg (ej: instance12345)',cfg.instanceId)+
+    _emailCfgInput('wa-cfg-token','Token de UltraMsg','xxxxxxxxxxxxxxxx','Tu token de autenticación de UltraMsg',cfg.token)+
+    _emailCfgInput('wa-cfg-admin','Teléfono del Admin (con código de país)','573001234567','Con código de país, sin + ni espacios (ej: 573001234567)',cfg.adminPhone)+
+    '</div>'+
+    '<div style="background:rgba(37,211,102,.06);border:1px solid rgba(37,211,102,.2);border-radius:8px;padding:14px;margin-top:18px">'+
+    '<div style="font-size:12px;font-weight:700;color:#25d366;margin-bottom:8px">📌 Cómo configurar UltraMsg</div>'+
+    '<div style="font-size:12px;color:#94a3b8;line-height:1.8">'+
+    '1. Crea cuenta en <strong style="color:#25d366">ultramsg.com</strong> (~$10/mes)<br>'+
+    '2. Crea una instancia y escanea el QR con WhatsApp<br>'+
+    '3. Copia el <strong>Instance ID</strong> y el <strong>Token</strong> aquí<br>'+
+    '4. El teléfono del monitor se toma de su perfil de usuario</div></div>'+
+    '<div style="display:flex;gap:10px;margin-top:24px">'+
+    '<button onclick="waGuardarConfig()" style="flex:1;padding:12px;background:#25d366;color:#0f172a;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;font-family:Outfit,sans-serif">💾 Guardar Configuración</button>'+
+    '<button onclick="waProbarConexion()" style="padding:12px 20px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.35);border-radius:8px;color:#60a5fa;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">🧪 Probar</button>'+
+    '</div></div></div>';
+  document.body.appendChild(overlay);
+  var chk=document.getElementById('wa-cfg-enabled');
+  if(chk) chk.onchange=function(){ var lbl=document.getElementById('wa-cfg-enabled-label'); if(lbl) lbl.textContent=this.checked?'ACTIVO':'INACTIVO'; };
+  overlay.addEventListener('click',function(e){ if(e.target===overlay) overlay.remove(); });
+}
+function waGuardarConfig(){
+  var cfg={
+    enabled:document.getElementById('wa-cfg-enabled')?.checked||false,
+    instanceId:(document.getElementById('wa-cfg-instance')?.value||'').trim(),
+    token:(document.getElementById('wa-cfg-token')?.value||'').trim(),
+    adminPhone:(document.getElementById('wa-cfg-admin')?.value||'').replace(/[^0-9]/g,'')
+  };
+  _waSaveCfg(cfg);
+  if(typeof toast==='function') toast(cfg.enabled?'✅ WhatsApp configurado — notificaciones ACTIVAS':'💾 Configuración guardada — INACTIVO','ok');
+  var modal=document.getElementById('jd-wa-cfg-modal'); if(modal) modal.remove();
+}
+async function waProbarConexion(){
+  var cfg={
+    enabled:true,
+    instanceId:(document.getElementById('wa-cfg-instance')?.value||'').trim(),
+    token:(document.getElementById('wa-cfg-token')?.value||'').trim(),
+    adminPhone:(document.getElementById('wa-cfg-admin')?.value||'').replace(/[^0-9]/g,'')
+  };
+  _waSaveCfg(cfg);
+  if(!cfg.instanceId||!cfg.token||!cfg.adminPhone){ if(typeof toast==='function') toast('⚠️ Completa todos los campos primero','warn'); return; }
+  var ok=await _waEnviar(cfg.adminPhone,'✅ Prueba exitosa — Fornax Studios\n\nLas notificaciones por WhatsApp están funcionando correctamente.');
+  if(typeof toast==='function') toast(ok?'✅ Mensaje enviado — revisa tu WhatsApp':'❌ No se pudo enviar — verifica los datos',ok?'ok':'error');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   GESTOR HUB — Panel "Mis Solicitudes" + Badge de notificación
+   ════════════════════════════════════════════════════════════════ */
+var _solGestorEtiquetas = {
+  prestamo:'Préstamo', ahorro:'Ahorro', sexshop:'Compra Sex Shop',
+  capacitacion:'Capacitación', carta_laboral:'Carta Laboral',
+  fotos:'Sesión Fotográfica', instalaciones:'Arreglo Instalaciones',
+  implementos:'Implementos de Oficina', paginas:'Plataformas',
+  flirt4free:'Solicitud Flirt4Free'
+};
+var _solGestorEstadoColor = {
+  pendiente:'#c8a84b', aprobado:'#22c55e', rechazado:'#ef4444', 'en proceso':'#3b82f6', cerrado:'#6b7280'
+};
+var _solGestorEstadoIcon = {
+  pendiente:'⏳', aprobado:'✅', rechazado:'❌', 'en proceso':'🔄', cerrado:'⬜'
+};
+
+async function solGestorInit(){
+  var cont = document.getElementById('sol-gestor-mis-container');
+  if(!cont) return;
+  solGestorActualizarBadge();
+  if(!_jdCurrentUser){ cont.innerHTML=''; return; }
+  var miNombre = _execGetNombreActual();
+  if(!miNombre){ cont.innerHTML=''; return; }
+  cont.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:10px 0 6px">Cargando solicitudes...</div>';
+  var rows = [];
+  /* 1. Intentar desde Supabase (igual que execCargarMisSolicitudes) */
+  try{
+    if(_supaDb){
+      var { data: sbData, error: sbErr } = await _supaDb.from('jd_solicitudes_exec')
+        .select('id,tipo,descripcion,monto,estado,fecha_solicitud,fecha_respuesta,respuesta_notas,respondido_por')
+        .eq('ejecutivo_nombre', miNombre)
+        .order('fecha_solicitud',{ascending:false}).limit(10);
+      if(!sbErr && sbData && sbData.length) rows = sbData;
+    }
+  }catch(e){}
+  /* 2. Fallback a localStorage para registros legacy */
+  if(!rows.length){
+    try{
+      var local = _solGetLocal ? _solGetLocal() : JSON.parse(localStorage.getItem('jd_solicitudes_exec')||'[]');
+      rows = local.filter(function(s){ return (s.ejecutivo_nombre||'').toLowerCase()===miNombre.toLowerCase(); })
+        .sort(function(a,b){ return (b.fecha_solicitud||'').localeCompare(a.fecha_solicitud||''); }).slice(0,10);
+    }catch(e){}
+  }
+  if(!rows.length){ cont.innerHTML=''; return; }
+  /* Limpiar badge */
+  var badgeEl = document.getElementById('exec-mis-sol-badge');
+  if(badgeEl){ badgeEl.textContent=''; badgeEl.style.display='none'; }
+  try{ localStorage.setItem('jd_sol_visto_'+miNombre, Date.now().toString()); }catch(e){}
+  /* Render */
+  var html = '<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:4px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
+    + '<span style="font-size:13px;font-weight:700;color:var(--text)">📋 Mis Solicitudes Recientes</span>'
+    + '<button onclick="goPage(\'exec-mis-solicitudes\')" style="font-size:11px;color:#c8a84b;background:none;border:none;cursor:pointer;font-weight:600;padding:0">Ver todas →</button>'
+    + '</div>'
+    + '<div style="display:flex;flex-direction:column;gap:8px">';
+  rows.forEach(function(s){
+    var estado = (s.estado||'pendiente').toLowerCase();
+    var color  = _solGestorEstadoColor[estado]||'#6b7280';
+    var icon   = _solGestorEstadoIcon[estado]||'•';
+    var etiq   = _solGestorEtiquetas[s.tipo]||s.tipo||'—';
+    var desc   = (s.descripcion||'').substring(0,65)+((s.descripcion||'').length>65?'…':'');
+    var fecha  = s.fecha_solicitud||'—';
+    var resp   = s.respuesta_notas
+      ? '<div style="font-size:11px;color:var(--muted);margin-top:3px;padding:5px 8px;background:rgba(0,0,0,.18);border-radius:6px">💬 '+s.respuesta_notas.substring(0,80)+'</div>'
+      : '';
+    html += '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border-radius:9px;border-left:3px solid '+color+'">'
+      + '<div style="font-size:17px;line-height:1;padding-top:1px">'+icon+'</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap">'
+      + '<span style="font-size:12.5px;font-weight:700;color:var(--text)">'+etiq+'</span>'
+      + '<span style="font-size:10.5px;font-weight:700;color:'+color+';text-transform:uppercase;letter-spacing:.4px">'+estado+'</span>'
+      + '</div>'
+      + '<div style="font-size:11.5px;color:var(--muted);margin-top:2px">'+desc+'</div>'
+      + '<div style="font-size:10.5px;color:var(--muted);margin-top:2px">'+fecha+'</div>'
+      + resp
+      + '</div></div>';
+  });
+  html += '</div></div>';
+  cont.innerHTML = html;
+}
+
+async function solGestorActualizarBadge(){
+  if(!_supaDb || !_jdCurrentUser) return;
+  try{
+    var userId  = _jdCurrentUser.id||'';
+    var userNom = (_jdCurrentUser.nombre||_jdCurrentUser.name||'').trim();
+    var _vKey   = 'jd_sol_visto_'+(userId||userNom);
+    var _vistaEn = parseInt(localStorage.getItem(_vKey)||'0');
+    var _fechaVista = _vistaEn ? new Date(_vistaEn).toISOString().slice(0,10) : '1900-01-01';
+    var q = _supaDb.from('jd_solicitudes_exec')
+      .select('id',{count:'exact',head:true})
+      .neq('estado','pendiente')
+      .gt('fecha_respuesta', _fechaVista);
+    if(userId) q = q.eq('ejecutivo_id', userId);
+    var {count} = await q;
+    var badgeEl = document.getElementById('exec-mis-sol-badge');
+    if(badgeEl){
+      if(count && count>0){ badgeEl.textContent=count; badgeEl.style.display=''; }
+      else{ badgeEl.textContent=''; badgeEl.style.display='none'; }
+    }
+  }catch(e){}
 }
 
 /* --- Panel de configuración de Email --- */
@@ -33738,6 +34012,7 @@ async function adminResponderSolicitud(solId, nuevoEstado){
   if(solActual){
     var _solConHistorial = Object.assign({}, solActual, { historial: historialActual });
     _emailNotificarEstado(_solConHistorial, nuevoEstado, notas);
+    _waNotificarEstado(_solConHistorial, nuevoEstado, notas);
   }
   adminRenderSolicitudes();
   adminActualizarBadgeSolicitudes();
@@ -57945,7 +58220,7 @@ function goPage(id, tabParam) {
   if(id==='exec-sol-setshop')     { goPage('exec-sol-sexshop'); return; } /* legacy redirect */
   if(id==='exec-sol-capacitacion'){ capInit(); }
   if(id==='exec-sol-fotos')       { execFotosCargarAgenda(); }
-  if(id==='exec-sol-gestor')        { /* static hub */ }
+  if(id==='exec-sol-gestor')        { solGestorInit(); }
   if(id==='exec-sol-carta-laboral') { cartaCargarDatosEmpleado(); }
   if(id==='exec-sol-instalaciones'){
     ['ei-tipo-sol','ei-area','ei-ubicacion','ei-descripcion','ei-motivo','ei-impacto','ei-ref-anterior','ei-observaciones'].forEach(function(fid){ var el=document.getElementById(fid); if(el) el.value=''; });
@@ -102756,7 +103031,7 @@ async function cemRenderAccesoSection(refId, refTipo) {
         + '  </div>'
         + '  <button type="button" id="cem-acceso-btn-crear" onclick="cemAccesoCrearUsuario(\''+refId+'\',\''+escapeHtml(refTipo)+'\')" style="padding:10px 20px;background:var(--gold);color:#111;border:none;border-radius:8px;font-family:Outfit,sans-serif;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0">➕ Crear acceso</button>'
         + '</div>'
-        + '<div style="font-size:11px;color:var(--muted);margin-top:10px">Se enviará un correo con la contraseña temporal. El usuario podrá cambiarla en su primer ingreso.</div>'
+        + '<div style="font-size:11px;color:var(--muted);margin-top:10px">Las credenciales generadas se mostrarán en pantalla para que puedas compartirlas con el usuario.</div>'
         + '</div>';
     }
   } catch(e) {
@@ -102870,9 +103145,9 @@ function cemAccesoMostrarCredenciales(email, pwd, refId, refTipo) {
     +     '</div>'
     +   '</div>'
     + '</div>'
-    + '<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:12px;color:#f59e0b;line-height:1.5">'
-    +   '⚠️ <strong>Importante:</strong> El usuario debe confirmar su correo electrónico antes de poder iniciar sesión. '
-    +   'Si no recibe el correo, puedes ir a tu dashboard de Supabase → Authentication → Providers → Email y desactivar <em>"Confirm email"</em> para que puedan ingresar de inmediato.'
+    + '<div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.25);border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:12px;color:#34D399;line-height:1.5">'
+    +   '✅ <strong>Acceso inmediato:</strong> La confirmación de correo está desactivada. El usuario puede ingresar de inmediato con estas credenciales. '
+    +   'Compártelas de forma segura (WhatsApp, en persona) y pídele que cambie su contraseña al primer ingreso.'
     + '</div>'
     + '<button onclick="document.getElementById(\'cem-cred-overlay\').remove()" style="width:100%;padding:12px;background:var(--gold);color:#111;border:none;border-radius:8px;font-family:Outfit,sans-serif;font-size:13px;font-weight:800;cursor:pointer">✓ Ya copié las credenciales — Cerrar</button>'
     + '</div>';
@@ -129858,16 +130133,32 @@ function _mpRenderizar(data, kpiEl, listaEl, isCreados){
       <div id="aia-status" style="font-size:12px;color:var(--muted);margin-top:8px;display:none;display:flex;align-items:center;gap:6px"></div>
     </div>
 
-    <!-- Área de respuesta -->
+    <!-- Área de respuesta — Chat multi-turno AION -->
     <div id="aia-response-wrap" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-size:13px;font-weight:700;color:#10b981">🤖 Respuesta del Asistente IA</div>
+      <!-- Header del chat -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:13px;font-weight:700;color:#10b981">✦ Conversación AION</div>
+          <span id="aia-turn-label" style="font-size:11px;color:rgba(255,255,255,.35);background:rgba(16,185,129,.1);padding:2px 8px;border-radius:20px">1 turno</span>
+        </div>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-ghost btn-sm" onclick="aiaCopyResponse()">📋 Copiar texto</button>
-          <button class="btn btn-ghost btn-sm" onclick="aiaExportWord()">📄 Exportar documento</button>
+          <button class="btn btn-ghost btn-sm" onclick="aiaCopyResponse()" style="font-size:12px">📋 Copiar último</button>
+          <button class="btn btn-ghost btn-sm" onclick="aiaExportWord()" style="font-size:12px">📄 Exportar</button>
         </div>
       </div>
-      <div id="aia-response" style="background:#13161f;border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:28px 32px;line-height:1.75;font-size:14px;color:#e8e8e8"></div>
+      <!-- Thread scrollable -->
+      <div id="aia-chat-thread" style="display:flex;flex-direction:column;gap:14px;max-height:72vh;overflow-y:auto;padding:4px 2px 8px;scroll-behavior:smooth"></div>
+      <!-- Thinking indicator (mostrado durante procesamiento) -->
+      <div id="aia-thinking-indicator" style="display:none;padding:10px 0 2px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:30px;height:30px;background:linear-gradient(135deg,#10b981,#059669);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">✦</div>
+          <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.18);border-radius:4px 12px 12px 12px;padding:12px 16px;font-size:13px;color:rgba(255,255,255,.45)">
+            <span id="aia-thinking-text">⏳ Analizando datos…</span>
+          </div>
+        </div>
+      </div>
+      <!-- div oculto para compatibilidad con aiaCopyResponse / aiaExportWord -->
+      <div id="aia-response" style="display:none"></div>
     </div>
   </div>
 </div>
@@ -130251,6 +130542,209 @@ function _mpRenderizar(data, kpiEl, listaEl, isCreados){
 
 </div>
 <!-- /page-aion-instrucciones -->
+
+<!-- ══════════════════════════════════════════════════════════════════
+     AION — PANEL DE ALERTAS HISTÓRICAS
+     Visualización y gestión de alertas guardadas en gc_alertas
+════════════════════════════════════════════════════════════════════ -->
+<div id="page-aion-alertas" class="page" style="padding:0;min-height:100vh;background:var(--bg,#0f1117)">
+
+  <!-- Barra superior -->
+  <div style="background:linear-gradient(90deg,rgba(245,158,11,.1),rgba(120,53,15,.06));border-bottom:1px solid rgba(245,158,11,.2);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <div style="width:38px;height:38px;border-radius:10px;background:rgba(245,158,11,.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🔔</div>
+    <div style="flex:1;min-width:200px">
+      <div style="font-size:17px;font-weight:800;color:#f59e0b;letter-spacing:-.01em">Alertas AION</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:1px">Alertas proactivas detectadas automáticamente · <span id="aion-al-count-activas" style="color:#fbbf24;font-weight:700">—</span> sin resolver</div>
+    </div>
+    <button onclick="aionAlertasCargar()" style="padding:8px 16px;border-radius:8px;border:1px solid rgba(245,158,11,.4);background:rgba(245,158,11,.1);color:#f59e0b;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap">
+      🔄 Actualizar
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div style="margin:14px 20px 0;display:flex;gap:8px;flex-wrap:wrap">
+    <button id="aion-al-filtro-todos" onclick="aionAlertasFiltrar('todos')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(245,158,11,.4);background:rgba(245,158,11,.18);color:#f59e0b;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">Todas</button>
+    <button id="aion-al-filtro-CRITICO" onclick="aionAlertasFiltrar('CRITICO')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(239,68,68,.3);background:transparent;color:#f87171;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">🔴 Crítico</button>
+    <button id="aion-al-filtro-ALTO" onclick="aionAlertasFiltrar('ALTO')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(249,115,22,.3);background:transparent;color:#fb923c;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">🟠 Alto</button>
+    <button id="aion-al-filtro-MEDIO" onclick="aionAlertasFiltrar('MEDIO')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(234,179,8,.3);background:transparent;color:#facc15;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">🟡 Medio</button>
+    <button id="aion-al-filtro-BAJO" onclick="aionAlertasFiltrar('BAJO')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(96,165,250,.3);background:transparent;color:#93c5fd;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">🔵 Bajo</button>
+    <button id="aion-al-filtro-resueltas" onclick="aionAlertasFiltrar('resueltas')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(100,116,139,.3);background:transparent;color:#94a3b8;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">✅ Resueltas</button>
+  </div>
+
+  <!-- Tabla -->
+  <div style="margin:14px 20px;overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:13px" id="aion-al-tabla">
+      <thead>
+        <tr style="background:rgba(245,158,11,.09);border-bottom:1px solid rgba(245,158,11,.2)">
+          <th style="padding:10px 12px;text-align:center;color:#fbbf24;font-weight:700;width:90px">Nivel</th>
+          <th style="padding:10px 12px;text-align:left;color:#fbbf24;font-weight:700;min-width:180px">Título</th>
+          <th style="padding:10px 12px;text-align:left;color:#fbbf24;font-weight:700;min-width:200px">Detalle</th>
+          <th style="padding:10px 12px;text-align:left;color:#fbbf24;font-weight:700;min-width:160px">Acción sugerida</th>
+          <th style="padding:10px 12px;text-align:center;color:#fbbf24;font-weight:700;width:130px">Fecha</th>
+          <th style="padding:10px 12px;text-align:center;color:#fbbf24;font-weight:700;width:100px">Estado</th>
+          <th style="padding:10px 12px;text-align:center;color:#fbbf24;font-weight:700;width:150px">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="aion-al-tbody">
+        <tr><td colspan="7" style="padding:40px;text-align:center;color:var(--muted)">⏳ Cargando alertas…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+<!-- /page-aion-alertas -->
+
+<!-- ══════════════════════════════════════════════════════════════════
+     AION — ADMINISTRACIÓN DE PERMISOS IA
+     Gestión centralizada de acceso al Asistente IA por rol
+════════════════════════════════════════════════════════════════════ -->
+<div id="page-aion-permisos" class="page" style="padding:0;min-height:100vh;background:var(--bg,#0f1117)">
+
+  <!-- Barra superior -->
+  <div style="background:linear-gradient(90deg,rgba(167,139,250,.1),rgba(109,40,217,.06));border-bottom:1px solid rgba(167,139,250,.2);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <div style="width:38px;height:38px;border-radius:10px;background:rgba(167,139,250,.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🔐</div>
+    <div style="flex:1;min-width:200px">
+      <div style="font-size:17px;font-weight:800;color:#a78bfa;letter-spacing:-.01em">Permisos IA</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:1px">Administración centralizada de acceso al Asistente IA · <span id="aion-perm-rol-count" style="color:#c4b5fd;font-weight:700">9</span> roles configurados</div>
+    </div>
+    <button onclick="aionPermisosCargar()" style="padding:8px 16px;border-radius:8px;border:1px solid rgba(167,139,250,.4);background:rgba(167,139,250,.1);color:#a78bfa;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap">🔄 Actualizar</button>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,.08);padding:0 20px;background:rgba(0,0,0,.2)">
+    <button id="aion-perm-tab-btn-perfiles" onclick="aionPermisosTab('perfiles')" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid #a78bfa;color:#a78bfa;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🔐 Perfiles</button>
+    <button id="aion-perm-tab-btn-auditoria" onclick="aionPermisosTab('auditoria')" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">📋 Auditoría</button>
+    <button id="aion-perm-tab-btn-consultas" onclick="aionPermisosTab('consultas')" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">📊 Consultas</button>
+  </div>
+
+  <!-- TAB: PERFILES -->
+  <div id="aion-perm-tab-perfiles" style="padding:16px 20px">
+    <div id="aion-perm-loading" style="padding:40px;text-align:center;color:var(--muted)">⏳ Cargando perfiles…</div>
+
+    <!-- Tabla de roles -->
+    <div id="aion-perm-tabla-wrap" style="display:none;overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="background:rgba(167,139,250,.12);border-bottom:2px solid rgba(167,139,250,.25)">
+            <th style="padding:10px 12px;text-align:left;color:#c4b5fd;font-weight:700">Rol</th>
+            <th style="padding:10px 12px;text-align:center;color:#c4b5fd;font-weight:700">IA Habilitada</th>
+            <th style="padding:10px 12px;text-align:left;color:#c4b5fd;font-weight:700">Alcance</th>
+            <th style="padding:10px 12px;text-align:center;color:#c4b5fd;font-weight:700">Módulos activos</th>
+            <th style="padding:10px 12px;text-align:center;color:#c4b5fd;font-weight:700">Acción</th>
+          </tr>
+        </thead>
+        <tbody id="aion-perm-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Panel de edición -->
+    <div id="aion-perm-edit-panel" style="display:none;margin-top:20px;background:rgba(167,139,250,.05);border:1px solid rgba(167,139,250,.2);border-radius:12px;padding:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:15px;font-weight:800;color:#a78bfa" id="aion-perm-edit-title">Editando rol</div>
+          <div style="font-size:11px;color:var(--muted)" id="aion-perm-edit-desc">—</div>
+        </div>
+        <button onclick="aionPermisosCloseEdit()" style="padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--muted);font-family:inherit;font-size:12px;cursor:pointer">✕ Cerrar</button>
+      </div>
+
+      <!-- ia_habilitado + alcance -->
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px">
+        <div style="flex:1;min-width:180px">
+          <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">IA Habilitada</label>
+          <div style="display:flex;gap:8px">
+            <button id="aion-perm-ia-si" onclick="aionPermisosSetIA(true)" style="flex:1;padding:8px;border-radius:8px;border:2px solid rgba(16,185,129,.5);background:rgba(16,185,129,.15);color:#34d399;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">✅ Sí</button>
+            <button id="aion-perm-ia-no" onclick="aionPermisosSetIA(false)" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">❌ No</button>
+          </div>
+        </div>
+        <div style="flex:2;min-width:200px">
+          <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Alcance de acceso</label>
+          <select id="aion-perm-alcance-sel" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(167,139,250,.3);background:rgba(0,0,0,.3);color:var(--text);font-family:inherit;font-size:13px">
+            <option value="global">🌐 Global — acceso completo</option>
+            <option value="empresa">🏢 Empresa — solo su estudio</option>
+            <option value="propio_grupo">👥 Propio grupo — modelos asignados</option>
+            <option value="propio">👤 Propio — solo sus propios datos</option>
+            <option value="ninguno">🚫 Ninguno — sin acceso</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Módulos -->
+      <div style="margin-bottom:16px">
+        <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:10px">Módulos y permisos</label>
+        <div id="aion-perm-mods-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px"></div>
+      </div>
+
+      <!-- Restricciones -->
+      <div style="margin-bottom:20px">
+        <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:10px">Restricciones de contenido</label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.2)">
+          <input type="checkbox" id="aion-perm-rest-fornax" style="width:16px;height:16px;accent-color:#a78bfa">
+          <div>
+            <div style="font-size:13px;color:var(--text);font-weight:600">Sin contenido Fornax</div>
+            <div style="font-size:11px;color:var(--muted)">No hace referencia a concursos Nova, niveles Fornax ni programas exclusivos</div>
+          </div>
+        </label>
+      </div>
+
+      <!-- Botones -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button onclick="aionPermisosGuardar()" style="flex:1;min-width:140px;padding:10px 20px;border-radius:8px;border:none;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">💾 Guardar cambios</button>
+        <button onclick="aionPermisosCloseEdit()" style="padding:10px 20px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--muted);font-family:inherit;font-size:14px;cursor:pointer">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: AUDITORÍA -->
+  <div id="aion-perm-tab-auditoria" style="display:none;padding:16px 20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div style="font-size:13px;color:var(--muted)">Últimos cambios en la configuración de permisos</div>
+      <button onclick="aionPermisosCargarAuditoria()" style="padding:6px 14px;border-radius:8px;border:1px solid rgba(167,139,250,.3);background:rgba(167,139,250,.08);color:#a78bfa;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">🔄 Actualizar</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="background:rgba(167,139,250,.1);border-bottom:1px solid rgba(167,139,250,.2)">
+            <th style="padding:9px 10px;text-align:left;color:#c4b5fd">Fecha</th>
+            <th style="padding:9px 10px;text-align:left;color:#c4b5fd">Usuario</th>
+            <th style="padding:9px 10px;text-align:left;color:#c4b5fd">Acción</th>
+            <th style="padding:9px 10px;text-align:left;color:#c4b5fd">Rol afectado</th>
+            <th style="padding:9px 10px;text-align:left;color:#c4b5fd">Razón</th>
+          </tr>
+        </thead>
+        <tbody id="aion-perm-audit-tbody">
+          <tr><td colspan="5" style="padding:30px;text-align:center;color:var(--muted)">⏳ Cargando…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: CONSULTAS -->
+  <div id="aion-perm-tab-consultas" style="display:none;padding:16px 20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div style="font-size:13px;color:var(--muted)">Log de consultas realizadas al Asistente IA</div>
+      <button onclick="aionPermisosCargarConsultas()" style="padding:6px 14px;border-radius:8px;border:1px solid rgba(167,139,250,.3);background:rgba(167,139,250,.08);color:#a78bfa;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">🔄 Actualizar</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="background:rgba(167,139,250,.1);border-bottom:1px solid rgba(167,139,250,.2)">
+            <th style="padding:9px 10px;text-align:left;color:#c4b5fd">Fecha</th>
+            <th style="padding:9px 10px;text-align:left;color:#c4b5fd">Usuario</th>
+            <th style="padding:9px 10px;text-align:left;color:#c4b5fd">Rol</th>
+            <th style="padding:9px 10px;text-align:left;color:#c4b5fd">Alcance</th>
+            <th style="padding:9px 10px;text-align:left;color:#c4b5fd">Consulta</th>
+            <th style="padding:9px 10px;text-align:center;color:#c4b5fd">Tokens est.</th>
+          </tr>
+        </thead>
+        <tbody id="aion-perm-consultas-tbody">
+          <tr><td colspan="6" style="padding:30px;text-align:center;color:var(--muted)">⏳ Cargando…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+<!-- /page-aion-permisos -->
 
 <!-- ══════════════════════════════════════════════════════════════════
      CENTRO DE REPORTES E INTELIGENCIA EMPRESARIAL
@@ -132085,8 +132579,8 @@ function aiaDetectarAlertas() {
   var metaQ = 700000;
 
   Promise.allSettled([
-    // 0 — Modelos activos con RE
-    db.from('modelos').select('id,nombre,reto_estrella,monitor').not('reto_estrella','is',null),
+    // 0 — Modelos activos con RE (excluye Retirado/Inactivo via filtro JS)
+    db.from('modelos').select('id,nombre,reto_estrella,monitor,estado').not('reto_estrella','is',null),
     // 1 — Facturación quincena actual
     db.from('facturacion_diaria').select('modelo_nombre,valor,plataforma,fecha').gte('fecha',inicioQ).lte('fecha',hoyStr),
     // 2 — Actividad últimos 7 días
@@ -132100,6 +132594,11 @@ function aiaDetectarAlertas() {
     var alertas = [];
 
     var modelos   = (res[0].status==='fulfilled' && !res[0].value.error) ? (res[0].value.data||[]) : [];
+    // Excluir modelos Retirados, Inactivos y perfil Avrilpool (sin RE operativo)
+    modelos = modelos.filter(function(m) {
+      var est = (m.estado || '').toLowerCase().trim();
+      return est !== 'retirado' && est !== 'inactivo' && m.nombre !== 'Avrilpool';
+    });
     var facQ      = (res[1].status==='fulfilled' && !res[1].value.error) ? (res[1].value.data||[]) : [];
     var actv      = (res[2].status==='fulfilled' && !res[2].value.error) ? (res[2].value.data||[]) : [];
     var informes  = (res[3].status==='fulfilled' && !res[3].value.error) ? (res[3].value.data||[]) : [];
@@ -132285,9 +132784,17 @@ function aiaClear() {
   var q = document.getElementById('aia-query');
   var r = document.getElementById('aia-response-wrap');
   var s = document.getElementById('aia-status');
+  var thread = document.getElementById('aia-chat-thread');
+  var turnLbl = document.getElementById('aia-turn-label');
+  var thinkInd = document.getElementById('aia-thinking-indicator');
   if (q) q.value = '';
   if (r) r.style.display = 'none';
   if (s) { s.textContent = ''; s.style.display = 'none'; }
+  if (thread) thread.innerHTML = '';
+  if (turnLbl) turnLbl.textContent = '1 turno';
+  if (thinkInd) thinkInd.style.display = 'none';
+  // Limpiar historial de conversación multi-turno
+  window._aiaConvMessages = [];
   window._aiaLastResponse = '';
   window._aiaLastQuery = '';
 }
@@ -132328,9 +132835,25 @@ async function aiaSubmit() {
   var responseWrap = document.getElementById('aia-response-wrap');
   var responseEl = document.getElementById('aia-response');
 
+  // Inicializar historial multi-turno si no existe
+  if (!window._aiaConvMessages) window._aiaConvMessages = [];
+
   if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '⏳ Procesando…'; }
   if (statusEl) { statusEl.textContent = '⏳ Recopilando datos del sistema…'; statusEl.style.display = ''; statusEl.style.color = 'var(--muted)'; }
-  if (responseWrap) responseWrap.style.display = 'none';
+
+  // Mostrar el chat thread y agregar burbuja del usuario
+  if (responseWrap) responseWrap.style.display = '';
+  var _chatThread = document.getElementById('aia-chat-thread');
+  var _thinkInd   = document.getElementById('aia-thinking-indicator');
+  var _turnLbl    = document.getElementById('aia-turn-label');
+  if (_chatThread) {
+    var _userBubble = document.createElement('div');
+    _userBubble.style.cssText = 'display:flex;justify-content:flex-end';
+    _userBubble.innerHTML = '<div style="max-width:85%;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.28);border-radius:14px 14px 2px 14px;padding:12px 18px;font-size:13.5px;color:#e2e8f0;line-height:1.55;white-space:pre-wrap;word-break:break-word">' + query.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>';
+    _chatThread.appendChild(_userBubble);
+    _chatThread.scrollTop = _chatThread.scrollHeight;
+  }
+  if (_thinkInd) { _thinkInd.style.display = ''; }
 
   try {
     if (statusEl) statusEl.textContent = '📊 Consultando base de datos Supabase…';
@@ -132342,7 +132865,8 @@ async function aiaSubmit() {
     try { _instruccionesDin = await aionCargarInstruccionesActivas(); } catch(eInst) {}
 
     if (statusEl) statusEl.textContent = '🤖 Analizando con Claude AI (puede tomar 20-40 seg.)…';
-    var respText = await _aiaCallClaude(key, model, query, ctx, _instruccionesDin);
+    // Pasar historial de conversación para soporte multi-turno
+    var respText = await _aiaCallClaude(key, model, query, ctx, _instruccionesDin, window._aiaConvMessages);
 
     // AION Audit Log — registrar consulta (no bloqueante) ——————————————
     (async function() {
@@ -132365,6 +132889,33 @@ async function aiaSubmit() {
     })();
     // ——————————————————————————————————————————————————————————————————
 
+    // ia_consultas_log — log detallado de permisos aplicados (no bloqueante) ——
+    (async function() {
+      try {
+        var _lcDb = typeof _gcaDb==='function' ? _gcaDb() : typeof _gcDb==='function' ? _gcDb() : typeof _supaDb!=='undefined' ? _supaDb : null;
+        if (!_lcDb) return;
+        var _lcRol    = (ctx.permisosUsuario && ctx.permisosUsuario.rol) || ((_jdCurrentUser && _jdCurrentUser.rol) || 'desconocido');
+        var _lcNom    = (ctx.permisosUsuario && ctx.permisosUsuario.nombre) || ((_jdCurrentUser && (_jdCurrentUser.nombre || _jdCurrentUser.email)) || 'anónimo');
+        var _lcEmail  = (_jdCurrentUser && _jdCurrentUser.email) || '';
+        var _lcUid    = (_jdCurrentUser && _jdCurrentUser.id) || null;
+        var _lcAlc    = (ctx.permisosUsuario && ctx.permisosUsuario.alcance) || 'global';
+        var _lcMods   = ctx.loadStatus || {};
+        var _lcTokens = Math.round(((query||'').length + (respText||'').length) / 4);
+        await _lcDb.from('ia_consultas_log').insert({
+          usuario_id:        _lcUid,
+          usuario_email:     _lcEmail,
+          usuario_nombre:    _lcNom,
+          usuario_rol:       _lcRol,
+          alcance_aplicado:  _lcAlc,
+          query_texto:       (query || '').slice(0, 2000),
+          modulos_cargados:  _lcMods,
+          tokens_estimados:  _lcTokens,
+          exito:             true
+        });
+      } catch(eLc) { /* silencioso — no interrumpir la respuesta */ }
+    })();
+    // ——————————————————————————————————————————————————————————————————
+
     // NOVA Fase 2 — Guardar en nova_conversaciones_ia (no bloqueante) ——
     (async function() {
       try {
@@ -132374,8 +132925,9 @@ async function aiaSubmit() {
         var _nvRol   = (_jdCurrentUser && (_jdCurrentUser.rol || _jdCurrentUser.role || '')) || 'desconocido';
         var _nvEmail = (_jdCurrentUser && (_jdCurrentUser.email || '')) || '';
         var _nvUid   = (_jdCurrentUser && _jdCurrentUser.id) || null;
-        var _nvTokensIn  = Math.round(((query||'').length + 2000) / 4); // estimado
-        var _nvTokensOut = Math.round(((respText||'').length) / 4);
+        // Usar tokens reales de la API si están disponibles; si no, estimar
+        var _nvTokensIn  = (window._aiaLastUsage && window._aiaLastUsage.input_tokens)  ? window._aiaLastUsage.input_tokens  : Math.round(((query||'').length + 2000) / 4);
+        var _nvTokensOut = (window._aiaLastUsage && window._aiaLastUsage.output_tokens) ? window._aiaLastUsage.output_tokens : Math.round(((respText||'').length) / 4);
         await _nvDb.from('nova_conversaciones_ia').insert({
           usuario_id:    _nvUid,
           usuario_email: _nvEmail,
@@ -132395,6 +132947,9 @@ async function aiaSubmit() {
     })();
     // ——————————————————————————————————————————————————————————————————
 
+    // Ocultar indicador de pensamiento
+    if (_thinkInd) _thinkInd.style.display = 'none';
+
     // Extraer bloque [CHART] si existe
     var _chartData = null;
     var _cleanRespText = respText;
@@ -132406,61 +132961,92 @@ async function aiaSubmit() {
       }
     } catch(eParse) { _chartData = null; _cleanRespText = respText; }
 
-    // Render response
-    if (responseEl) {
-      var html = '';
-      try {
-        if (typeof window.marked !== 'undefined' && window.marked.parse) {
-          html = window.marked.parse(_cleanRespText);
-        } else {
-          html = _aiaMarkdownBasic(_cleanRespText);
-        }
-      } catch(e2) {
-        html = _aiaMarkdownBasic(_cleanRespText);
+    // Renderizar markdown de la respuesta
+    var _respHtml = '';
+    try {
+      if (typeof window.marked !== 'undefined' && window.marked.parse) {
+        _respHtml = window.marked.parse(_cleanRespText);
+      } else {
+        _respHtml = _aiaMarkdownBasic(_cleanRespText);
       }
-      responseEl.innerHTML = html;
-      // Aplicar estilos post-render
-      responseEl.querySelectorAll('h1').forEach(function(h){h.style.cssText='color:#10b981;font-size:19px;font-weight:800;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(16,185,129,.2)';});
-      responseEl.querySelectorAll('h2').forEach(function(h){h.style.cssText='color:#34d399;font-size:16px;font-weight:700;margin:18px 0 8px';});
-      responseEl.querySelectorAll('h3').forEach(function(h){h.style.cssText='color:#6ee7b7;font-size:14px;font-weight:700;margin:14px 0 6px';});
-      responseEl.querySelectorAll('h4').forEach(function(h){h.style.cssText='color:#a7f3d0;font-size:13px;font-weight:600;margin:10px 0 5px';});
-      responseEl.querySelectorAll('table').forEach(function(t){
-        t.style.cssText='width:100%;border-collapse:collapse;margin:12px 0;font-size:13px';
-        t.querySelectorAll('th').forEach(function(th){th.style.cssText='background:rgba(16,185,129,.15);color:#10b981;padding:8px 12px;border:1px solid rgba(16,185,129,.25);text-align:left;font-weight:600;font-size:12px';});
-        t.querySelectorAll('td').forEach(function(td){td.style.cssText='padding:8px 12px;border:1px solid rgba(255,255,255,.07);vertical-align:top';});
-        t.querySelectorAll('tr:nth-child(even) td').forEach(function(td){td.style.background='rgba(255,255,255,.02)';});
-      });
-      responseEl.querySelectorAll('ul,ol').forEach(function(l){l.style.cssText='padding-left:22px;margin:8px 0';});
-      responseEl.querySelectorAll('li').forEach(function(li){li.style.cssText='margin:4px 0;line-height:1.6';});
-      responseEl.querySelectorAll('strong').forEach(function(s){s.style.color='#f0f0f0';});
-      responseEl.querySelectorAll('code').forEach(function(c){c.style.cssText='background:rgba(255,255,255,.06);padding:1px 6px;border-radius:3px;font-size:12px;font-family:monospace';});
-      responseEl.querySelectorAll('hr').forEach(function(hr){hr.style.cssText='border:none;border-top:1px solid rgba(16,185,129,.2);margin:16px 0';});
-      responseEl.querySelectorAll('blockquote').forEach(function(bq){bq.style.cssText='border-left:3px solid #10b981;padding-left:14px;margin:12px 0;color:rgba(255,255,255,.6);font-style:italic';});
-      responseEl.querySelectorAll('p').forEach(function(p){if(!p.style.marginBottom)p.style.marginBottom='10px';});
+    } catch(e2) {
+      _respHtml = _aiaMarkdownBasic(_cleanRespText);
     }
 
-    // Renderizar gráfico si AION incluyó datos de chart
-    var _cWrap = document.getElementById('aia-chart-wrap');
-    if (!_cWrap && responseEl) {
-      _cWrap = document.createElement('div');
-      _cWrap.id = 'aia-chart-wrap';
-      _cWrap.style.cssText = 'margin-top:18px;background:rgba(16,185,129,.04);border:1px solid rgba(16,185,129,.18);border-radius:12px;padding:20px 20px 16px;display:none';
-      responseEl.after(_cWrap);
-    }
-    if (_cWrap) {
-      if (_chartData) { _cWrap.style.display = ''; _aiaRenderChart(_cWrap, _chartData); }
-      else { _cWrap.style.display = 'none'; }
+    // Construir burbuja de respuesta AION
+    if (_chatThread) {
+      var _aionBubble = document.createElement('div');
+      _aionBubble.style.cssText = 'display:flex;align-items:flex-start;gap:10px';
+      var _respTimestamp = new Date().toLocaleTimeString('es-CO', {hour:'2-digit',minute:'2-digit'});
+      var _turnNum = Math.floor((window._aiaConvMessages.length / 2) + 1);
+      var _respTxt = window.btoa ? '' : ''; // placeholder para ref JS
+      _aionBubble.innerHTML = '<div style="width:30px;height:30px;background:linear-gradient(135deg,#10b981,#059669);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-top:3px">✦</div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">'
+        + '<span style="font-size:11px;color:rgba(16,185,129,.75);font-weight:600">AION · ' + _respTimestamp + ' · turno ' + _turnNum + '</span>'
+        + '</div>'
+        + '<div class="aia-bubble-content" style="background:#13161f;border:1px solid rgba(16,185,129,.18);border-radius:4px 12px 12px 12px;padding:22px 26px;line-height:1.75;font-size:14px;color:#e8e8e8">'
+        + _respHtml
+        + '</div>'
+        + '</div>';
+      _chatThread.appendChild(_aionBubble);
+
+      // Aplicar estilos al contenido renderizado
+      var _bContent = _aionBubble.querySelector('.aia-bubble-content');
+      if (_bContent) {
+        _bContent.querySelectorAll('h1').forEach(function(h){h.style.cssText='color:#10b981;font-size:19px;font-weight:800;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(16,185,129,.2)';});
+        _bContent.querySelectorAll('h2').forEach(function(h){h.style.cssText='color:#34d399;font-size:16px;font-weight:700;margin:18px 0 8px';});
+        _bContent.querySelectorAll('h3').forEach(function(h){h.style.cssText='color:#6ee7b7;font-size:14px;font-weight:700;margin:14px 0 6px';});
+        _bContent.querySelectorAll('h4').forEach(function(h){h.style.cssText='color:#a7f3d0;font-size:13px;font-weight:600;margin:10px 0 5px';});
+        _bContent.querySelectorAll('table').forEach(function(t){
+          t.style.cssText='width:100%;border-collapse:collapse;margin:12px 0;font-size:13px';
+          t.querySelectorAll('th').forEach(function(th){th.style.cssText='background:rgba(16,185,129,.15);color:#10b981;padding:8px 12px;border:1px solid rgba(16,185,129,.25);text-align:left;font-weight:600;font-size:12px';});
+          t.querySelectorAll('td').forEach(function(td){td.style.cssText='padding:8px 12px;border:1px solid rgba(255,255,255,.07);vertical-align:top';});
+          t.querySelectorAll('tr:nth-child(even) td').forEach(function(td){td.style.background='rgba(255,255,255,.02)';});
+        });
+        _bContent.querySelectorAll('ul,ol').forEach(function(l){l.style.cssText='padding-left:22px;margin:8px 0';});
+        _bContent.querySelectorAll('li').forEach(function(li){li.style.cssText='margin:4px 0;line-height:1.6';});
+        _bContent.querySelectorAll('strong').forEach(function(s){s.style.color='#f0f0f0';});
+        _bContent.querySelectorAll('code').forEach(function(c){c.style.cssText='background:rgba(255,255,255,.06);padding:1px 6px;border-radius:3px;font-size:12px;font-family:monospace';});
+        _bContent.querySelectorAll('hr').forEach(function(hr){hr.style.cssText='border:none;border-top:1px solid rgba(16,185,129,.2);margin:16px 0';});
+        _bContent.querySelectorAll('blockquote').forEach(function(bq){bq.style.cssText='border-left:3px solid #10b981;padding-left:14px;margin:12px 0;color:rgba(255,255,255,.6);font-style:italic';});
+        _bContent.querySelectorAll('p').forEach(function(p){if(!p.style.marginBottom)p.style.marginBottom='10px';});
+      }
+
+      // Renderizar gráfico dentro de la burbuja si existe
+      if (_chartData) {
+        var _cWrap = document.createElement('div');
+        _cWrap.style.cssText = 'margin-top:14px;margin-left:40px;background:rgba(16,185,129,.04);border:1px solid rgba(16,185,129,.18);border-radius:12px;padding:18px 18px 14px';
+        _aionBubble.querySelector('div[style*="flex:1"]').appendChild(_cWrap);
+        _aiaRenderChart(_cWrap, _chartData);
+      }
+
+      _chatThread.scrollTop = _chatThread.scrollHeight;
     }
 
-    if (responseWrap) responseWrap.style.display = '';
-    if (statusEl) { statusEl.textContent = '✅ Respuesta generada con éxito · ' + new Date().toLocaleTimeString('es-CO'); statusEl.style.color = 'var(--success)'; }
+    // Actualizar historial multi-turno (solo query y respuesta limpia, no los datos)
+    window._aiaConvMessages.push({ role: 'user', content: query });
+    window._aiaConvMessages.push({ role: 'assistant', content: respText });
+    // Mantener máximo 8 mensajes (4 exchanges) para no saturar el contexto
+    if (window._aiaConvMessages.length > 8) {
+      window._aiaConvMessages = window._aiaConvMessages.slice(-8);
+    }
+
+    // Actualizar contador de turnos
+    var _totalTurnos = Math.floor(window._aiaConvMessages.length / 2);
+    if (_turnLbl) _turnLbl.textContent = _totalTurnos + (_totalTurnos === 1 ? ' turno' : ' turnos');
+
+    // Actualizar _aiaLastResponse para aiaCopyResponse / aiaExportWord
     window._aiaLastResponse = respText;
     window._aiaLastQuery = query;
-    if (responseEl) responseEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    if (statusEl) { statusEl.textContent = '✅ Respuesta generada · ' + new Date().toLocaleTimeString('es-CO'); statusEl.style.color = 'var(--success)'; }
   } catch(e) {
+    // Ocultar indicador de pensamiento en caso de error
+    if (_thinkInd) _thinkInd.style.display = 'none';
+    // Eliminar burbuja del usuario si la respuesta falló (opcional: conservarla para contexto)
     var errMsg = (e && e.message) ? e.message : String(e);
     if (statusEl) {
-      // Si el mensaje ya incluye instrucción de Configuración, mostrar directamente
       if (errMsg.includes('⚙️ Configuración')) {
         statusEl.textContent = '❌ ' + errMsg;
       } else if (errMsg.includes('401') || errMsg.toLowerCase().includes('auth')) {
@@ -132647,12 +133233,79 @@ function _escHtml(str) {
 // ══════════════════════════════════════════════════════════════════════════
 
 async function _aiaFetchContext(query) {
-  var ctx = { informes: [], gestiones: [], pendientes: [], facturacion: [], facResumen: [], tendencia: [], topModelos: [], modelos: [], cumplimientoRE: [], plataformas: [], facturacionQuincena: [], modeloFiltrado: null, summary: '', fetchError: false };
+  var ctx = { informes: [], gestiones: [], pendientes: [], facturacion: [], facResumen: [], tendencia: [], topModelos: [], modelos: [], cumplimientoRE: [], plataformas: [], facturacionQuincena: [], modeloFiltrado: null, concursos: [], multas: [], loadStatus: {}, summary: '', fetchError: false };
   var db = null;
   if (typeof _gcaDb === 'function') { try { db = _gcaDb(); } catch(e) {} }
   if (!db && typeof _gcDb === 'function') { try { db = _gcDb(); } catch(e) {} }
   if (!db && typeof _supaDb !== 'undefined' && _supaDb) { db = _supaDb; }
   if (!db) { ctx.summary = '[Sin acceso a base de datos — respondiendo con conocimiento general]'; return ctx; }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // CAPA 2 — PERMISOS IA: Cargar configuración de acceso del usuario
+  // Fuente: tabla ia_permisos_perfil (1 fila por rol, JSONB de permisos)
+  // ═══════════════════════════════════════════════════════════════════
+  var _iaUser     = (typeof _jdCurrentUser !== 'undefined' && _jdCurrentUser) ? _jdCurrentUser : null;
+  var _iaRol      = (_iaUser && _iaUser.rol) ? _iaUser.rol : 'super_admin'; // fallback seguro
+  var _iaNomUsr   = (_iaUser && (_iaUser.nombre || _iaUser.email || '')) || 'Usuario';
+  var _iaUidUsr   = (_iaUser && _iaUser.id) ? _iaUser.id : null;
+
+  // ═══════════════════════════════════════════════════════════════
+  // SUPER ADMIN — ACCESO TOTAL GARANTIZADO
+  // Los roles super_admin, superadmin, admin y gerencia NUNCA tienen
+  // restricciones: se omite la consulta a ia_permisos_perfil y se fuerza
+  // alcance global + todos los módulos. Ningún registro en la tabla de
+  // permisos puede limitar a estos roles.
+  // ═══════════════════════════════════════════════════════════════
+  var _iaEsSuperAdmin = (_iaRol === 'super_admin' || _iaRol === 'superadmin' ||
+                         _iaRol === 'admin'       || _iaRol === 'gerencia');
+  var _iaPermProfile = null;
+
+  if (!_iaEsSuperAdmin) {
+    // Solo roles no-admin consultan la tabla de permisos
+    try {
+      var _ppRes = await db.from('ia_permisos_perfil')
+        .select('permisos,ia_habilitado,descripcion')
+        .eq('rol', _iaRol).eq('activo', true).single();
+      if (!_ppRes.error && _ppRes.data) _iaPermProfile = _ppRes.data;
+    } catch(ePP) {}
+
+    // Si la tabla existe y el rol tiene ia_habilitado = false → acceso denegado
+    if (_iaPermProfile && _iaPermProfile.ia_habilitado === false) {
+      ctx.summary = '[ACCESO_IA_DENEGADO]';
+      ctx.iaAccesoDenegado = true;
+      ctx.permisosUsuario = { rol: _iaRol, nombre: _iaNomUsr, alcance: 'ninguno', modulos: null, restricciones: {} };
+      return ctx;
+    }
+  }
+  // Super admin: _iaPermProfile = null → permisos totales automáticamente
+
+  // Extraer permisos — si no existe config (tabla aún no creada) → acceso total (backward compat)
+  var _iaPerms   = (_iaPermProfile && _iaPermProfile.permisos) ? _iaPermProfile.permisos : null;
+  var _iaAlcance = _iaEsSuperAdmin ? 'global' : ((_iaPerms && _iaPerms.alcance) ? _iaPerms.alcance : 'global');
+  var _iaMods    = _iaEsSuperAdmin ? null : ((_iaPerms && _iaPerms.modulos) ? _iaPerms.modulos : null);
+  var _iaRest    = _iaEsSuperAdmin ? {} : ((_iaPerms && _iaPerms.restricciones) ? _iaPerms.restricciones : {});
+  // CAPA 2 — FILTRO DE ESTUDIO: para monitores y alcance 'propio_grupo' se aísla al usuario a su propio estudio
+  var _iaEstudio = (_iaUser && (_iaUser.estudio || _iaUser.estudio_nombre || _iaUser.empresa ||
+                   (_iaUser.datos_extra && (_iaUser.datos_extra.estudio || _iaUser.datos_extra.empresa)))) || null;
+  // Rol monitor = siempre Fornax Studios (igual que módulo de facturación _efacGetModelosFornaxAll)
+  var _iaEsMonitor = (_iaRol === 'monitor' || _iaRol === 'Monitor');
+  if (_iaEsMonitor && !_iaEstudio) _iaEstudio = 'Fornax Studios';
+  // Activar filtro solo para monitores/propio_grupo — NUNCA para super_admin
+  var _iaEsGrupoPropio = (!_iaEsSuperAdmin && (_iaAlcance === 'propio_grupo' || _iaEsMonitor) && !!_iaEstudio);
+
+  // Helper: ¿puede el rol consultar este módulo?
+  function _iaPuede(mod) {
+    if (_iaEsSuperAdmin) return true; // Super admin: acceso total sin excepción
+    if (!_iaMods) return true;        // Sin config → acceso total (backward compat)
+    return !!(_iaMods[mod] && _iaMods[mod].consultar);
+  }
+
+  // Almacenar en ctx para uso posterior en _aiaCallClaude (restricciones del system prompt)
+  ctx.permisosUsuario = {
+    rol: _iaRol, nombre: _iaNomUsr, alcance: _iaAlcance,
+    modulos: _iaMods, restricciones: _iaRest
+  };
+  // ═══════════════════════════════════════════════════════════════════
 
   var since = new Date();
   since.setDate(since.getDate() - 90);  // Período por defecto: 90 días (3 meses)
@@ -132666,26 +133319,75 @@ async function _aiaFetchContext(query) {
   var esConsultaAnual = (qLow.indexOf('año') !== -1 || qLow.indexOf('anual') !== -1 ||
                          qLow.indexOf('2026') !== -1 || qLow.indexOf('2025') !== -1 ||
                          qLow.indexOf('historial') !== -1 || qLow.indexOf('todo el año') !== -1);
-  var esConsultaRE    = (qLow.indexOf('reto') !== -1 || qLow.indexOf('estrella') !== -1 ||
-                         qLow.indexOf('cumplimiento') !== -1 || qLow.indexOf('cumplió') !== -1 ||
-                         qLow.indexOf('cumplio') !== -1 || qLow.indexOf('meta') !== -1 ||
-                         qLow.indexOf('quincenas') !== -1 || qLow.indexOf('quincena') !== -1);
+  var esConsultaRE    = true; // AION siempre carga datos de Reto Estrella — es un indicador central del sistema
   var esConsultaPlat  = (qLow.indexOf('plataforma') !== -1 || qLow.indexOf('f4f') !== -1 ||
                          qLow.indexOf('flirt4free') !== -1 || qLow.indexOf('stripchat') !== -1 ||
                          qLow.indexOf('chaturbate') !== -1 || qLow.indexOf('camsoda') !== -1);
   // Detectar consulta sobre modelo/ranking de la semana actual
   var esConsultaSemana = (qLow.indexOf('semana') !== -1);
+  // Detectar consulta sobre horas de conexión
+  var esConsultaHoras = (qLow.indexOf('hora') !== -1 || qLow.indexOf('conexi') !== -1 ||
+                         qLow.indexOf('online') !== -1 || qLow.indexOf('en l\xednea') !== -1 ||
+                         qLow.indexOf('en linea') !== -1 || qLow.indexOf('tiempo') !== -1);
+  // Rango de fechas para horas: detectar meses/fechas en la consulta y retroceder si es necesario
+  // Nota: _qIniD se define más abajo (PASO 4b); aquí se recalcula de forma independiente
+  var _iaHorasSince = (function(){
+    var _d=new Date(), _dd=_d.getDate(), _mm=_d.getMonth()+1, _yy=_d.getFullYear();
+    return _yy+'-'+String(_mm).padStart(2,'0')+'-'+(_dd<=15?'01':'16');
+  }()); // por defecto: inicio de quincena actual
+  (function(){
+    var _mMap = { 'enero':'01','febrero':'02','marzo':'03','abril':'04','mayo':'05','junio':'06',
+                  'julio':'07','agosto':'08','septiembre':'09','octubre':'10','noviembre':'11','diciembre':'12' };
+    var _hA = new Date().getFullYear(), _hM = new Date().getMonth() + 1;
+    Object.keys(_mMap).forEach(function(nom){
+      if (qLow.indexOf(nom) !== -1) {
+        var mNum = parseInt(_mMap[nom]);
+        var anio = (mNum > _hM) ? (_hA - 1) : _hA;
+        var cand = anio + '-' + _mMap[nom] + '-01';
+        if (cand < _iaHorasSince) _iaHorasSince = cand;
+      }
+    });
+    // Detectar "últimos X días"
+    var mDias = qLow.match(/\xfaltimos?\s+(\d+)\s+d\xedas?/);
+    if (mDias) { var d=new Date(); d.setDate(d.getDate()-parseInt(mDias[1])); var ds=d.toISOString().slice(0,10); if(ds<_iaHorasSince) _iaHorasSince=ds; }
+    // Detectar fechas explícitas dd/mm o dd de mes
+    var mFecha = qLow.match(/(\d{1,2})\s+de\s+(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)/g);
+    if (mFecha) { mFecha.forEach(function(f){ Object.keys(_mMap).forEach(function(n){ if(f.indexOf(n)!==-1){ var d2=parseInt(f); var m2=_mMap[n]; var a2=(parseInt(m2)>_hM)?(_hA-1):_hA; var c2=a2+'-'+m2+'-'+String(d2).padStart(2,'0'); if(c2<_iaHorasSince) _iaHorasSince=c2; } }); }); }
+  })();
   // Calcular lunes de la semana actual para consulta semanal
   var _hoyDtSem = new Date();
   var _dowSem = _hoyDtSem.getDay() || 7; // 1=lunes … 7=domingo
   var _lunesDtSem = new Date(_hoyDtSem); _lunesDtSem.setDate(_hoyDtSem.getDate() - (_dowSem - 1));
   var lunesStrSem = _lunesDtSem.toISOString().slice(0, 10);
 
-  // PASO 1: Obtener modelos primero (pequeña tabla, rápida) — para detectar nombre en consulta
+  // PASO 1: Obtener modelos con RE — raw fetch + anon key (igual que módulo Monitores _MM_HDR)
+  // Para alcance 'propio' o 'propio_grupo' se filtra por nombre del usuario.
+  // El fetch directo con anon key evita RLS y devuelve RE de todos los modelos.
+  var _iaNomUsr_lc = _iaNomUsr.toLowerCase();
+  var _modUrl = 'https://mqafwoaghwhnvorerjha.supabase.co/rest/v1/modelos?select=nombre,reto_estrella,estado,monitor,nivel_fornax,categoria&limit=2000&order=nombre';
+  // Para alcance propio: agregar filtro de nombre al URL
+  if (_iaAlcance === 'propio') {
+    _modUrl = 'https://mqafwoaghwhnvorerjha.supabase.co/rest/v1/modelos?select=nombre,reto_estrella,estado,monitor,nivel_fornax,categoria&nombre=ilike.*' + encodeURIComponent(_iaNomUsr) + '*&limit=10&order=nombre';
+  }
   try {
-    var modRes = await db.from('modelos').select('nombre,reto_estrella,empresa,estado').order('nombre', {ascending: true}).limit(200);
-    if (!modRes.error) ctx.modelos = modRes.data || [];
+    var _mUrl = _modUrl;
+    var _mHdr = typeof _MM_HDR !== 'undefined' ? _MM_HDR : {'apikey':'sb_publishable_aFR9VQR68If1Nc-ZO0cI6w_FgDLLsNP','Authorization':'Bearer sb_publishable_aFR9VQR68If1Nc-ZO0cI6w_FgDLLsNP','Content-Type':'application/json'};
+    var _mFetch = await fetch(_mUrl, {headers: _mHdr});
+    if (_mFetch.ok) {
+      var _mData = await _mFetch.json();
+      if (Array.isArray(_mData) && _mData.length > 0) ctx.modelos = _mData;
+    }
   } catch(e) {}
+  // Fallback: Supabase client si el fetch directo falla
+  if (!ctx.modelos.length) {
+    try {
+      var _modQ = db.from('modelos').select('nombre,reto_estrella,estado,monitor,nivel_fornax,categoria').order('nombre', {ascending: true});
+      if (_iaAlcance === 'propio') _modQ = _modQ.ilike('nombre', '%' + _iaNomUsr + '%').limit(10);
+      else _modQ = _modQ.limit(500);
+      var modRes = await _modQ;
+      if (!modRes.error) ctx.modelos = modRes.data || [];
+    } catch(e) {}
+  }
 
   // PASO 2: Detectar si la consulta menciona un modelo específico
   var modeloDetectado = null;
@@ -132698,15 +133400,52 @@ async function _aiaFetchContext(query) {
     }
   }
 
-  // PASO 3: Calcular rango exacto de fechas
-  // Si la consulta pide el año completo y no menciona un mes específico → usar anoIni
-  var facSince = esConsultaAnual ? anoIni : sinceStr;
-  var facHasta = hoy;
+  // PASO 3: Rango de fechas — POLÍTICA SIN LIMITACIONES
+  // El sistema SIEMPRE trae el año en curso completo como mínimo.
+  // Solo se restringe a períodos cortos cuando el usuario pide explícitamente "hoy" o "ayer".
+  // Para consultas históricas (año anterior, 2025, 2024, etc.) se amplía automáticamente.
+
   var mesesES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   var diasPorMes = [31,28,31,30,31,30,31,31,30,31,30,31];
+
+  // Detectar si pide años anteriores
+  var _aniosAnteriores = [];
+  for (var _ay = anoActual - 1; _ay >= 2022; _ay--) {
+    if (qLow.indexOf(String(_ay)) !== -1) _aniosAnteriores.push(_ay);
+  }
+  var esHistoricoExtendido = (_aniosAnteriores.length > 0 ||
+    qLow.indexOf('histórico') !== -1 || qLow.indexOf('historico') !== -1 ||
+    qLow.indexOf('todo el historial') !== -1 || qLow.indexOf('desde siempre') !== -1 ||
+    qLow.indexOf('año anterior') !== -1 || qLow.indexOf('año pasado') !== -1 ||
+    qLow.indexOf('años') !== -1);
+
+  // Detectar hoy / ayer (únicos casos que restringen a período muy corto)
+  var esHoy  = (qLow.indexOf('hoy') !== -1 || qLow.indexOf('dia de hoy') !== -1 || qLow.indexOf('día de hoy') !== -1);
+  var esAyer = (qLow.indexOf('ayer') !== -1);
+
+  // DEFAULT: siempre año en curso completo
+  var facSince = anoIni;
+  var facHasta = hoy;
+
+  if (esHistoricoExtendido) {
+    // Histórico: ir al inicio del año más antiguo mencionado, o 2 años atrás
+    var _anioBase = _aniosAnteriores.length > 0 ? Math.min.apply(null, _aniosAnteriores) : (anoActual - 1);
+    facSince = _anioBase + '-01-01';
+  } else if (esHoy) {
+    facSince = hoy;
+  } else if (esAyer) {
+    var _ayerDt = new Date(); _ayerDt.setDate(_ayerDt.getDate() - 1);
+    facSince = _ayerDt.toISOString().slice(0, 10);
+    facHasta = facSince;
+  } else if (esConsultaSemana) {
+    // Semana: desde el lunes de la semana actual, pero con contexto del año completo
+    // No restringir facSince — mantener año completo para que el desglose quincena sea veraz
+    // facSince ya = anoIni
+  }
+  // Mes específico mencionado: ajustar rango
   var mesIdx = -1;
   mesesES.forEach(function(m, i) { if (qLow.indexOf(m) !== -1) mesIdx = i; });
-  if (mesIdx !== -1) {
+  if (mesIdx !== -1 && !esHoy && !esAyer) {
     var anoMatch = qLow.match(/20(2[0-9])/);
     var anoConsulta = anoMatch ? parseInt('20' + anoMatch[1]) : new Date().getFullYear();
     var mesNum = mesIdx + 1;
@@ -132715,23 +133454,43 @@ async function _aiaFetchContext(query) {
     var ultimoDia = (mesIdx === 1 && esBisiesto) ? 29 : diasPorMes[mesIdx];
     facSince = anoConsulta + '-' + String(mesNum).padStart(2,'0') + '-01';
     var finMes = anoConsulta + '-' + String(mesNum).padStart(2,'0') + '-' + String(ultimoDia).padStart(2,'0');
-    facHasta = (finMes < hoy) ? finMes : hoy;
-  } else if (qLow.indexOf('quincena') !== -1 || qLow.indexOf('mes') !== -1) {
-    // Calcular inicio real de la quincena actual (no retroceder 60 días arbitrarios)
-    var _qNow = new Date();
-    var _qDia = _qNow.getDate();
-    var _qMes = _qNow.getMonth() + 1;
-    var _qAno = _qNow.getFullYear();
-    facSince = _qAno + '-' + String(_qMes).padStart(2,'0') + '-' + (_qDia <= 15 ? '01' : '16');
+    // Si es año anterior cerrar en fin del mes; si es año actual mantener hasta hoy
+    if (anoConsulta < new Date().getFullYear()) { facHasta = (finMes < hoy) ? finMes : hoy; }
+    // Si histórico extendido, mantener facSince en el año más antiguo
+    if (esHistoricoExtendido && facSince > (_anioBase + '-01-01')) { facSince = _anioBase + '-01-01'; }
+  }
+
+  // Si la consulta es sobre horas y el mes detectado restringió facSince,
+  // restaurar al año completo para que _studMods incluya TODOS los modelos Fornax
+  // del período real de horas, no solo los del mes más reciente mencionado.
+  if (esConsultaHoras && mesIdx !== -1) {
+    facSince = anoIni;
+    facHasta = hoy;
   }
 
   // PASO 4: Construir query de facturación con filtro inteligente por modelo
-  var facQ = db.from('facturacion_diaria').select('fecha,modelo_nombre,estudio_nombre,plataforma,valor').gte('fecha', facSince).lte('fecha', facHasta).gt('valor', 0).order('fecha', {ascending: true});
+  // ORDEN DESCENDENTE (más reciente primero) — garantiza que si se alcanza el límite,
+  // siempre se conservan los datos más recientes y se pierden los más antiguos, nunca al revés.
+  // Para alcance 'propio': filtrar por nombre del usuario (solo ve su propia facturación).
+  var facQ = db.from('facturacion_diaria').select('fecha,modelo_nombre,estudio_nombre,plataforma,valor').gte('fecha', facSince).lte('fecha', facHasta).gt('valor', 0).order('fecha', {ascending: false});
+  if (_iaAlcance === 'propio' && _iaNomUsr && _iaNomUsr.length > 2) {
+    // Usuario con alcance propio solo ve su propia facturación
+    facQ = facQ.ilike('modelo_nombre', '%' + _iaNomUsr + '%');
+  }
+  // Para alcance propio_grupo (monitor): restringir facturación al estudio del usuario
+  if (_iaEsGrupoPropio) {
+    facQ = facQ.eq('estudio_nombre', _iaEstudio);
+  }
+  var _facRangeDays = Math.round((new Date(facHasta) - new Date(facSince)) / 86400000);
   if (modeloDetectado) {
-    // Consulta filtrada por modelo — sin límite de fechas relevante, límite mayor
-    facQ = facQ.ilike('modelo_nombre', '%' + modeloDetectado + '%').limit(5000);
+    // Consulta filtrada por modelo — traer todo el historial sin cortar
+    var _modLimit = _facRangeDays > 365 ? 25000 : 15000;
+    facQ = facQ.ilike('modelo_nombre', '%' + modeloDetectado + '%').limit(_modLimit);
   } else {
-    facQ = facQ.limit(2000);
+    // Sin modelo específico: límite alto para no perder datos recientes de ningún modelo
+    // Con orden DESC el límite siempre protege los datos más recientes
+    var _generalLimit = _facRangeDays > 365 ? 50000 : (_facRangeDays > 90 ? 25000 : 8000);
+    facQ = facQ.limit(_generalLimit);
   }
 
   // PASO 4b: Total quincena — consulta directa a facturacion_diaria con conversión de plataforma.
@@ -132743,10 +133502,12 @@ async function _aiaFetchContext(query) {
   var _anioD = _hoyD.getFullYear();
   var _qIniD = _anioD + '-' + String(_mesD).padStart(2,'0') + '-' + (_diaD <= 15 ? '01' : '16');
   try {
-    var _qDirect = await db.from('facturacion_diaria')
+    var _qDirect0 = db.from('facturacion_diaria')
       .select('valor,plataforma')
       .gte('fecha', _qIniD)
       .lte('fecha', hoy);
+    if (_iaEsGrupoPropio) _qDirect0 = _qDirect0.eq('estudio_nombre', _iaEstudio);
+    var _qDirect = await _qDirect0;
     if (!_qDirect.error && _qDirect.data && _qDirect.data.length) {
       ctx.facturadoQuincena = _qDirect.data.reduce(function(s,r){
         var pl = (r.plataforma||'').toLowerCase();
@@ -132764,21 +133525,71 @@ async function _aiaFetchContext(query) {
   } catch(eQ) {}
 
   // PASO 5: Queries paralelas — informes + gestiones + pendientes + facturación + RPC resumen agregado
+  // CAPA 2 — PERMISOS: cada query se ejecuta solo si el rol tiene permiso de consultar ese módulo.
+  // Para roles con alcance 'propio', los RPCs globales (topModelos, tendencia) se omiten.
+  var _iaEsGlobal  = (_iaAlcance === 'global');
+  var _iaEsGrupal  = (_iaAlcance === 'global' || _iaAlcance === 'propio_grupo' || _iaAlcance === 'empresa');
+  var _iaNullQ     = Promise.resolve({status:'fulfilled', value:{data:null, error:null}});
+  var _iaEmptyQ    = Promise.resolve({status:'fulfilled', value:{data:[], error:null}});
+
+  // Multas — para alcance 'propio' filtrar por nombre del usuario
+  var _multasQ = _iaPuede('multas')
+    ? db.from('multas_registros').select('*').order('created_at',{ascending:false}).limit(60)
+    : _iaEmptyQ;
+  if (_iaPuede('multas') && _iaAlcance === 'propio' && _iaNomUsr.length > 2) {
+    _multasQ = db.from('multas_registros').select('*').ilike('modelo_nombre','%' + _iaNomUsr + '%').order('created_at',{ascending:false}).limit(60);
+  }
+
   try {
     var res = await Promise.allSettled([
-      db.from('gc_informes').select('id,monitor_nombre,fecha,turno,estado,observaciones_generales').gte('fecha', sinceStr).order('fecha', {ascending: false}).limit(30),
-      db.from('gc_registros').select('id,monitor_nombre,tipo_entidad,entidad_nombre,tipo_gestion,descripcion,resultado,recomendaciones,compromisos,created_at').order('created_at', {ascending: false}).limit(50),
-      db.from('gc_pendientes').select('id,creado_por_nombre,titulo,descripcion,estado,prioridad,responsable_nombre,fecha_limite,created_at').in('estado',['pendiente','en_progreso']).order('created_at', {ascending: false}).limit(30),
-      facQ,
-      db.rpc('ai_facturacion_resumen', {p_desde: facSince, p_hasta: facHasta}),
-      db.rpc('ai_tendencia_mensual', {p_anio: anoActual}),
-      db.rpc('ai_top_modelos', {p_desde: anoIni, p_hasta: hoy, p_limite: 20}),
-        esConsultaRE   ? db.rpc('ai_cumplimiento_re', {p_anio: anoActual}) : Promise.resolve({status:'fulfilled',value:{data:null}}),
-        esConsultaPlat ? db.rpc('ai_facturacion_plataforma', {p_desde: facSince, p_hasta: facHasta}) : Promise.resolve({status:'fulfilled',value:{data:null}}),
-        // Query #9: facturación de la semana actual (lunes a hoy) — solo cuando la consulta menciona "semana"
-        esConsultaSemana ? db.from('facturacion_diaria').select('fecha,modelo_nombre,estudio_nombre,plataforma,valor').gte('fecha', lunesStrSem).lte('fecha', hoy).gt('valor', 0).limit(5000) : Promise.resolve({status:'fulfilled',value:{data:[]}}),
-        // Query #10: instrucciones vigentes de Gerencia (siempre — son el marco de interpretación de AION)
-        db.from('gc_instrucciones_gerencia').select('ambito,entidad_nombre,texto,prioridad').eq('vigente', true).order('prioridad', {ascending: true}).limit(50)
+      // #0 informes_gestion — solo si tiene permiso
+      _iaPuede('informes_gestion')
+        ? db.from('gc_informes').select('id,monitor_nombre,fecha,turno,estado,observaciones_generales').gte('fecha', sinceStr).order('fecha', {ascending: false}).limit(30)
+        : _iaEmptyQ,
+      // #1 gestiones_operativas — solo si tiene permiso informes_gestion
+      _iaPuede('informes_gestion')
+        ? db.from('gc_registros').select('id,monitor_nombre,tipo_entidad,entidad_nombre,tipo_gestion,descripcion,resultado,recomendaciones,compromisos,created_at').order('created_at', {ascending: false}).limit(50)
+        : _iaEmptyQ,
+      // #2 pendientes — solo si tiene permiso
+      _iaPuede('pendientes')
+        ? db.from('gc_pendientes').select('id,creado_por_nombre,titulo,descripcion,estado,prioridad,responsable_nombre,fecha_limite,created_at').in('estado',['pendiente','en_progreso']).order('created_at', {ascending: false}).limit(30)
+        : _iaEmptyQ,
+      // #3 facturación — solo si tiene permiso (ya filtrada por scope en PASO 4)
+      _iaPuede('facturacion') ? facQ : _iaEmptyQ,
+      // #4 RPC resumen — solo para roles con análisis global (evita filtros de RPC que no soportan scope propio)
+      (_iaPuede('facturacion') && _iaEsGlobal) ? db.rpc('ai_facturacion_resumen', {p_desde: facSince, p_hasta: facHasta}) : _iaNullQ,
+      // #5 RPC tendencia — solo global
+      _iaEsGlobal ? db.rpc('ai_tendencia_mensual', {p_anio: anoActual}) : _iaNullQ,
+      // #6 RPC top modelos — solo para roles con alcance global (revela ranking completo)
+      (_iaPuede('modelos') && _iaEsGlobal) ? db.rpc('ai_top_modelos', {p_desde: anoIni, p_hasta: hoy, p_limite: 20}) : _iaNullQ,
+      // #7 RE cumplimiento — solo si tiene permiso
+      (esConsultaRE && _iaPuede('cumplimiento_re'))
+        ? db.rpc('ai_cumplimiento_re', {p_anio: anoActual})
+        : _iaNullQ,
+      // #8 plataformas — solo si tiene permiso y es consulta específica
+      (esConsultaPlat && _iaPuede('facturacion') && _iaEsGlobal)
+        ? db.rpc('ai_facturacion_plataforma', {p_desde: facSince, p_hasta: facHasta})
+        : _iaNullQ,
+      // #9 facturación semana — igual que #3 pero rango semanal
+      (esConsultaSemana && _iaPuede('facturacion'))
+        ? (function(){ var _qSem = db.from('facturacion_diaria').select('fecha,modelo_nombre,estudio_nombre,plataforma,valor').gte('fecha', lunesStrSem).lte('fecha', hoy).gt('valor', 0).limit(5000); if (_iaEsGrupoPropio) _qSem = _qSem.eq('estudio_nombre', _iaEstudio); return _qSem; })()
+        : _iaEmptyQ,
+      // #10 instrucciones gerencia — solo si tiene permiso instrucciones_sistema
+      _iaPuede('instrucciones_sistema')
+        ? db.from('gc_instrucciones_gerencia').select('ambito,entidad_nombre,texto,prioridad').eq('vigente', true).order('prioridad', {ascending: true}).limit(50)
+        : _iaEmptyQ,
+      // #11 concursos — solo si tiene permiso (modelo_ge no tiene concursos Fornax)
+      _iaPuede('concursos')
+        ? fetch('https://mqafwoaghwhnvorerjha.supabase.co/rest/v1/concursos_config?select=id,nombre,edicion,fecha_inicio,fecha_dia2,fecha_fin,estado,meta_global,premio_descripcion&estado=in.(activo,programado,proximo,pendiente)&order=fecha_inicio.asc&limit=10', {headers: typeof _MM_HDR !== 'undefined' ? _MM_HDR : {'apikey':'sb_publishable_aFR9VQR68If1Nc-ZO0cI6w_FgDLLsNP','Authorization':'Bearer sb_publishable_aFR9VQR68If1Nc-ZO0cI6w_FgDLLsNP'}}).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];})
+        : Promise.resolve([]),
+      // #12 multas — condicional y filtrada por scope
+      _multasQ,
+      // #13 modelos con ID — solo para resolver modelo_id → nombre en horas_conexion
+      esConsultaHoras
+        ? db.from('modelos').select('id,nombre').limit(500)
+        : _iaEmptyQ,
+      // #14 — reservado (horas_conexion se obtiene con paginación completa más abajo)
+      _iaEmptyQ
     ]);
     if (res[0].status === 'fulfilled' && !res[0].value.error) ctx.informes = res[0].value.data || [];
     if (res[1].status === 'fulfilled' && !res[1].value.error) ctx.gestiones = res[1].value.data || [];
@@ -132816,6 +133627,103 @@ async function _aiaFetchContext(query) {
     } else {
       ctx.instruccionesGerencia = [];
     }
+    // Concursos activos (Query #11 — fetch directo con anon key)
+    if (res[11] && res[11].status === 'fulfilled' && Array.isArray(res[11].value) && res[11].value.length) {
+      ctx.concursos = res[11].value;
+      ctx.loadStatus.concursos = 'OK:' + res[11].value.length + '_registros';
+    } else if (res[11] && res[11].status === 'rejected') {
+      ctx.loadStatus.concursos = 'ERROR_QUERY';
+    } else if (res[11] && res[11].status === 'fulfilled') {
+      ctx.loadStatus.concursos = 'OK:sin_concursos_activos';
+    } else {
+      ctx.loadStatus.concursos = 'NO_EJECUTADA';
+    }
+    // Multas (Query #12 — Supabase con RLS, todos los estados)
+    if (res[12] && res[12].status === 'fulfilled' && res[12].value && !res[12].value.error) {
+      var _multasData = res[12].value.data || [];
+      ctx.multas = _multasData;
+      ctx.loadStatus.multas = 'OK:' + _multasData.length + '_registros';
+    } else if (res[12] && res[12].status === 'rejected') {
+      ctx.loadStatus.multas = 'ERROR_QUERY:' + (res[12].reason ? (res[12].reason.message || 'unknown') : 'unknown');
+    } else if (res[12] && res[12].value && res[12].value.error) {
+      ctx.loadStatus.multas = 'ERROR_RLS:' + (res[12].value.error.code || res[12].value.error.message || 'acceso_denegado');
+    } else {
+      ctx.loadStatus.multas = 'NO_EJECUTADA';
+    }
+    // Horas de conexión — paginación completa (igual que _e3CargarHorasMes)
+    // CRÍTICO: Supabase capea a 1000 filas/query server-side. .limit(10000) no funciona.
+    // Con 84+ modelos × 40 días × múltiples plataformas = 2.000-5.000+ registros → hay que paginar.
+    if (esConsultaHoras && res[13] && res[13].status === 'fulfilled' && !res[13].value.error) {
+      var _modIdMap = {};
+      (res[13].value.data || []).forEach(function(m){ if (m.id && m.nombre) _modIdMap[m.id] = m.nombre; });
+      // Paginación completa: traer TODOS los registros del período en páginas de 1000
+      var _horasRaw = [], _PAGE_H = 1000, _offsetH = 0;
+      try {
+        while (true) {
+          var _hRes = await db.from('horas_conexion')
+            .select('modelo_id,fecha,plataforma,horas,minutos')
+            .gte('fecha', _iaHorasSince).lte('fecha', hoy)
+            .range(_offsetH, _offsetH + _PAGE_H - 1);
+          if (_hRes.error) break;
+          _horasRaw = _horasRaw.concat(_hRes.data || []);
+          if ((_hRes.data || []).length < _PAGE_H) break;
+          _offsetH += _PAGE_H;
+        }
+      } catch(_hErr) {}
+      // Agrupar: modelo → día → plataforma (suma si hay múltiples registros del mismo día/plat)
+      var _horasAgg = {};
+      _horasRaw.forEach(function(r){
+        var nom = _modIdMap[r.modelo_id] || ('id_' + r.modelo_id);
+        var dec = (parseFloat(r.horas)||0) + (parseFloat(r.minutos)||0)/60;
+        var plat = r.plataforma || 'N/D';
+        if (!_horasAgg[nom]) _horasAgg[nom] = { byDay: {} };
+        if (!_horasAgg[nom].byDay[r.fecha]) _horasAgg[nom].byDay[r.fecha] = {};
+        _horasAgg[nom].byDay[r.fecha][plat] = (_horasAgg[nom].byDay[r.fecha][plat]||0) + dec;
+      });
+      // Total = suma del máximo de plataformas por día (igual que _e3CargarHorasMes)
+      // Evita doble conteo cuando el modelo transmite en varias plataformas simultáneamente
+      ctx.horasConexion = Object.keys(_horasAgg).map(function(nom){
+        var byDay = _horasAgg[nom].byDay;
+        var total = 0;
+        var detalle = [];
+        Object.keys(byDay).sort().forEach(function(fecha){
+          var platMap = byDay[fecha];
+          var platKeys = Object.keys(platMap);
+          var maxH = Math.max.apply(null, platKeys.map(function(p){ return platMap[p]; }));
+          var maxPlat = platKeys.reduce(function(a,b){ return platMap[a]>=platMap[b]?a:b; }, platKeys[0]);
+          total += maxH;
+          detalle.push({ fecha: fecha, plataforma: maxPlat, horas: parseFloat(maxH.toFixed(2)) });
+        });
+        return { modelo: nom, periodo_desde: _iaHorasSince, periodo_hasta: hoy, total_horas: parseFloat(total.toFixed(2)), detalle: detalle.slice(0,50) };
+      }).sort(function(a,b){ return b.total_horas - a.total_horas; });
+      ctx.loadStatus.horas_conexion = 'OK:' + ctx.horasConexion.length + '_modelos_' + _horasRaw.length + '_registros';
+    } else if (esConsultaHoras) {
+      ctx.horasConexion = [];
+      ctx.loadStatus.horas_conexion = 'NO_DATOS_O_ERROR';
+    }
+    // Status general de módulos principales
+    // CAPA 2 — POST-FILTRO DE ESTUDIO: para propio_grupo, eliminar modelos y cumplimiento_RE de otros estudios
+    // Se usa facturación (ya filtrada por estudio) como referencia de qué modelos pertenecen al estudio
+    if (_iaEsGrupoPropio) {
+      var _studMods = {};
+      ctx.facturacion.forEach(function(f){ if (f.modelo_nombre) _studMods[(f.modelo_nombre||'').toLowerCase()] = true; });
+      if (Object.keys(_studMods).length > 0) {
+        ctx.modelos = ctx.modelos.filter(function(m){ return !!_studMods[(m.nombre||'').toLowerCase()]; });
+        if (ctx.cumplimientoRE && ctx.cumplimientoRE.length) {
+          ctx.cumplimientoRE = ctx.cumplimientoRE.filter(function(r){ return !!_studMods[(r.modelo_nombre||'').toLowerCase()]; });
+        }
+        if (ctx.topModelos && ctx.topModelos.length) {
+          ctx.topModelos = ctx.topModelos.filter(function(r){ return !!_studMods[(r.modelo_nombre||'').toLowerCase()]; });
+        }
+        if (ctx.horasConexion && ctx.horasConexion.length) {
+          ctx.horasConexion = ctx.horasConexion.filter(function(r){ return !!_studMods[(r.modelo||'').toLowerCase()]; });
+        }
+      }
+      ctx.loadStatus.filtro_estudio = 'APLICADO:' + _iaEstudio;
+    }
+    ctx.loadStatus.modelos = ctx.modelos.length > 0 ? 'OK:' + ctx.modelos.length + '_registros' : 'SIN_DATOS';
+    ctx.loadStatus.facturacion = ctx.facturacion.length > 0 ? 'OK:' + ctx.facturacion.length + '_registros' : 'SIN_DATOS';
+    ctx.loadStatus.informes_gc = ctx.informes.length > 0 ? 'OK:' + ctx.informes.length + '_registros' : 'SIN_DATOS';
 
     // ═══ PRE-CÁLCULO QUINCENA ACTUAL — ctx.facturadoQuincena ═══
     // Fuente primaria: PASO 4b (RPC SECURITY DEFINER). Solo corre fallback si PASO 4b falló (ctx.facturadoQuincena === 0).
@@ -132981,6 +133889,122 @@ async function _aiaFetchContext(query) {
     lines.push('\n--- FACTURACIÓN ---\n(Sin registros en el período ' + facSince + ' a ' + facHasta + (modeloDetectado ? ' para ' + modeloDetectado : '') + ')');
   }
 
+  // --- DESGLOSE FACTURACIÓN POR QUINCENA POR MODELO ---
+  // Se genera cuando el período abarca más de 15 días (consultas históricas/multi-quincena)
+  (function() {
+    var _rangeD = Math.round((new Date(facHasta) - new Date(facSince)) / 86400000);
+    if (!ctx.facturacion.length || _rangeD <= 15) return;
+
+    // Calcular qué quincenas hay en el rango
+    var _quincenasRng = [];
+    var _dCur = new Date(facSince + 'T00:00:00');
+    var _dEndQ = new Date(facHasta + 'T00:00:00');
+    while (_dCur <= _dEndQ) {
+      var _yr = _dCur.getFullYear(), _mo = _dCur.getMonth() + 1, _dy = _dCur.getDate();
+      var _isQ1 = _dy <= 15;
+      var _qKey = _yr + '-' + String(_mo).padStart(2,'0') + (_isQ1 ? '-Q1' : '-Q2');
+      if (!_quincenasRng.length || _quincenasRng[_quincenasRng.length-1].key !== _qKey) {
+        var _nomMes = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][_mo-1];
+        _quincenasRng.push({ key: _qKey, label: (_isQ1 ? 'Q1-' : 'Q2-') + _nomMes });
+      }
+      // Avanzar a inicio de siguiente quincena
+      if (_isQ1) { _dCur = new Date(_yr, _mo-1, 16); }
+      else       { _dCur = new Date(_yr, _mo, 1);    }
+    }
+
+    // Acumular por modelo+quincena
+    var _byModQ = {};
+    ctx.facturacion.forEach(function(f) {
+      var _nom = f.modelo_nombre || 'Sin nombre';
+      var _fd = f.fecha || '';
+      if (!_fd || _fd.length < 10) return;
+      var _fYr = parseInt(_fd.slice(0,4)), _fMo = parseInt(_fd.slice(5,7)), _fDy = parseInt(_fd.slice(8,10));
+      var _fKey = _fYr + '-' + String(_fMo).padStart(2,'0') + (_fDy <= 15 ? '-Q1' : '-Q2');
+      if (!_byModQ[_nom]) _byModQ[_nom] = { estudio: f.estudio_nombre || '' };
+      _byModQ[_nom][_fKey] = (_byModQ[_nom][_fKey] || 0) + (Number(f.valor) || 0);
+    });
+
+    // Incluir modelos activos con RE que no tienen facturación (cero total)
+    ctx.modelos.forEach(function(m) {
+      var _est = (m.estado||'').toLowerCase().trim();
+      if (_est === 'retirado' || _est === 'inactivo' || m.nombre === 'Avrilpool') return;
+      if (!_byModQ[m.nombre]) _byModQ[m.nombre] = { estudio: m.empresa || '' };
+    });
+
+    // Detectar quincena actual (en curso) para no marcarla como "sin facturar" prematuramente
+    var _hoyForQ = new Date();
+    var _curQKey = _hoyForQ.getFullYear() + '-' + String(_hoyForQ.getMonth()+1).padStart(2,'0') + (_hoyForQ.getDate() <= 15 ? '-Q1' : '-Q2');
+    // Usar las últimas 2 quincenas COMPLETAS (excluir la actual si está en curso)
+    var _completedQs = _quincenasRng.filter(function(q){ return q.key !== _curQKey; });
+    var _ultimas2Keys = _completedQs.slice(-2).map(function(q){ return q.key; });
+    var _sinFac2Q = [], _sinFac1Q = [];
+
+    lines.push('\n--- DESGLOSE FACTURACIÓN POR QUINCENA POR MODELO ---');
+    var _qHdrLabeled = _quincenasRng.map(function(q){ return q.key === _curQKey ? q.label + '(en curso)' : q.label; }).join(' | ');
+    lines.push('Período: ' + facSince + ' a ' + facHasta + ' | Columnas: ' + _qHdrLabeled);
+    lines.push('');
+
+    Object.keys(_byModQ).sort().forEach(function(nom) {
+      var _mD = _byModQ[nom];
+      var _vals = _quincenasRng.map(function(q){
+        var v = Math.round(_mD[q.key] || 0);
+        return q.label + ': ' + (v > 0 ? v.toLocaleString('es-CO') + ' cr' : '0 cr');
+      }).join(' | ');
+      var _cero2 = _ultimas2Keys.length >= 2 && (_mD[_ultimas2Keys[0]]||0) === 0 && (_mD[_ultimas2Keys[1]]||0) === 0;
+      var _cero1 = !_cero2 && _ultimas2Keys.length >= 1 && (_mD[_ultimas2Keys[_ultimas2Keys.length-1]]||0) === 0;
+      var _alerta = _cero2 ? ' ⛔ SIN FACTURAR 2+ QUINCENAS' : _cero1 ? ' ⚠️ SIN FACTURAR ÚLTIMA QUINCENA' : '';
+      lines.push('• ' + nom + ' [' + (_mD.estudio||'') + '] | ' + _vals + _alerta);
+      if (_cero2) _sinFac2Q.push(nom);
+      else if (_cero1) _sinFac1Q.push(nom);
+    });
+
+    if (_sinFac2Q.length) lines.push('\n⛔ MODELOS SIN FACTURACIÓN EN LAS ÚLTIMAS 2 QUINCENAS (' + _sinFac2Q.length + '): ' + _sinFac2Q.join(', '));
+    if (_sinFac1Q.length) lines.push('⚠️ MODELOS SIN FACTURACIÓN EN LA ÚLTIMA QUINCENA (' + _sinFac1Q.length + '): ' + _sinFac1Q.join(', '));
+  })();
+
+  // --- ÚLTIMA FACTURACIÓN POR MODELO (fecha exacta + días de inactividad) ---
+  // Esta sección es la fuente autoritativa para preguntas sobre actividad/inactividad de modelos.
+  // Se basa en la fecha más reciente con valor > 0 en facturacion_diaria para cada modelo.
+  (function() {
+    if (!ctx.facturacion.length) return;
+    var _lastByMod = {};
+    ctx.facturacion.forEach(function(f) {
+      var nom = (f.modelo_nombre || '').trim();
+      var fecha = (f.fecha || '').slice(0, 10);
+      if (!nom || !fecha) return;
+      if (!_lastByMod[nom] || fecha > _lastByMod[nom].fecha) {
+        _lastByMod[nom] = { fecha: fecha, estudio: f.estudio_nombre || '', valor: Number(f.valor)||0 };
+      }
+    });
+    var _hoyMs = new Date().getTime();
+    var _inac60 = [], _inac30 = [], _activos7 = [], _activos30 = [];
+    Object.keys(_lastByMod).sort().forEach(function(nom) {
+      var d = _lastByMod[nom];
+      var dias = Math.round((_hoyMs - new Date(d.fecha + 'T12:00:00').getTime()) / 86400000);
+      var etiqueta = nom + ' [' + d.estudio + '] última factura: ' + d.fecha + ' (' + dias + ' días atrás)';
+      if (dias > 60)      _inac60.push(etiqueta);
+      else if (dias > 30) _inac30.push(etiqueta);
+      else if (dias <= 7) _activos7.push(nom + ' [' + d.estudio + '] → ' + d.fecha);
+      else                _activos30.push(nom + ' [' + d.estudio + '] → ' + d.fecha);
+    });
+    lines.push('\n--- ÚLTIMA FACTURACIÓN POR MODELO (FECHA EXACTA) ---');
+    lines.push('Nota: basado en registros de facturacion_diaria desde ' + facSince + ' hasta ' + facHasta);
+    if (_inac60.length) {
+      lines.push('⛔ SIN FACTURAR MÁS DE 60 DÍAS (' + _inac60.length + '):');
+      _inac60.forEach(function(e){ lines.push('  • ' + e); });
+    }
+    if (_inac30.length) {
+      lines.push('⚠️ SIN FACTURAR 31–60 DÍAS (' + _inac30.length + '):');
+      _inac30.forEach(function(e){ lines.push('  • ' + e); });
+    }
+    if (_activos7.length) {
+      lines.push('✅ ACTIVOS ÚLTIMOS 7 DÍAS (' + _activos7.length + '): ' + _activos7.join(' | '));
+    }
+    if (_activos30.length) {
+      lines.push('✅ ACTIVOS 8–30 DÍAS (' + _activos30.length + '): ' + _activos30.join(' | '));
+    }
+  })();
+
   // --- MODELOS Y RETO ESTRELLA ---
   lines.push('\n--- MODELOS Y RETO ESTRELLA (' + ctx.modelos.length + ' modelos) ---');
   if (ctx.modelos.length) {
@@ -133113,18 +134137,223 @@ async function _aiaFetchContext(query) {
   ctx.summary = lines.join('\n');
   return ctx;
 }
-async function _aiaCallClaude(key, model, query, ctx, instruccionesDin) {
-  var systemPrompt = 'Eres el Director de Inteligencia Empresarial del Grupo Empresarial J&D y Fornax Studios. Tienes acceso en tiempo real a los datos de la empresa y tu misión es generar análisis del más alto nivel directivo.\n\nIDENTIDAD:\nEres un consultor senior de inteligencia de negocios con profundo conocimiento del mercado webcam latinoamericano. Combinas visión estratégica con análisis cuantitativo riguroso. Piensas como un CFO que también entiende el lado operativo y humano del negocio.\n\nCONTEXTO DEL NEGOCIO:\n- Grupo J&D y Fornax Studios: estudios de modelos webcam en Colombia\n- Plataformas: F4F/Stripchat, Chaturbate, CamSoda, LiveJasmin\n- Créditos (tokens): moneda de medición de todas las plataformas\n- Monitores: personal de acompañamiento, entrenamiento y gestión de modelos\n- RE (Reto Estrella): meta de ganancias mínima por modelo — JAMÁS SE REDUCE\n- Quincenas: períodos de pago del 1-15 y del 16 al fin de mes\n- Formato numérico colombiano: miles con punto, decimales con coma (1.250.000 cr / 12,5 %)\n\nCAPACIDADES QUE DEBES EJERCER SIEMPRE:\n1. VE MÁS ALLÁ DE LA PREGUNTA: si los datos revelan algo importante que no te preguntaron, repórtalo proactivamente\n2. TENDENCIAS: identifica si el desempeño sube, baja o se estabiliza vs. períodos anteriores\n3. DIAGNÓSTICO DE RAÍZ: no te detengas en el síntoma, llega a la causa probable\n4. PROYECCIONES: cuando haya datos históricos suficientes, proyecta el cierre del mes o quincena\n5. ALERTAS TEMPRANAS: detecta señales de riesgo antes de que se conviertan en problema\n6. OPORTUNIDADES: identifica modelos o plataformas con potencial no explotado\n7. BENCHMARKING: compara desempeño individual vs. promedio del grupo y estándares de industria\n8. CONCENTRACIÓN: alerta si hay dependencia excesiva en un modelo, monitor o plataforma\n\nREGLAS ABSOLUTAS:\n1. El Reto Estrella NUNCA se reduce — si alguien lo sugiere, recházalo con argumento técnico claro\n2. Las multas NO son fuente de ingreso — son mecanismo de alineación conductual\n3. La retención supera siempre a la rotación en valor estratégico\n4. Toda conclusión se sustenta en datos del contexto o en conocimiento verificable de la industria\n5. Si los datos son insuficientes, indícalo — pero igualmente entrega contexto de valor\n\nFORMATO DE RESPUESTA:\n- Español formal ejecutivo — nivel informe de junta directiva\n- Markdown estructurado: ## secciones, ### subsecciones, tablas, bullets\n- Emojis funcionales: 🔴 crítico | 🟠 alto | 🟡 medio | 🟢 positivo | 📊 dato | 💡 insight | ⚡ acción urgente | 🎯 meta\n- Pregunta simple → respuesta directa PRIMERO, luego contexto y profundidad\n- Informe completo → Resumen ejecutivo → KPIs → Análisis → Hallazgos → Riesgos → Oportunidades → Recomendaciones → Plan de acción\n- Siempre en formato colombiano (1.250.000 cr, 12,5 %)\n- Tienes hasta 8.192 tokens disponibles — úsalos cuando la profundidad lo justifique\n\nCONOCIMIENTO DE INDUSTRIA (aplica como contexto cuando sea relevante):\n- Benchmarks F4F/Stripchat: modelos establecidos facturan 400.000-2.000.000 cr/quincena\n- Días pico: viernes-domingo son 30-50% superiores a días de semana en camming\n- Señales de riesgo de abandono: caída >30% dos quincenas consecutivas, irregularidad de horarios\n- Diversificación: modelos activos en 2+ plataformas tienen 40-60% más ingresos promedio\n- Retención: un modelo con RE establecido tarda 3-6 meses en ser reemplazado en productividad\n\nCAPACIDAD DE VISUALIZACIÓN — GRÁFICOS:\nCuando la consulta involucre datos numéricos comparativos, puedes incluir UN gráfico al final usando este bloque EXACTO (sin texto adicional dentro del bloque, solo JSON válido):\n\n[CHART]\n{"type":"bar","title":"Título del gráfico","labels":["Etiqueta1","Etiqueta2"],"datasets":[{"label":"Nombre serie","data":[1000,2000]}]}\n[/CHART]\n\nReglas para gráficos:\n- type "bar": comparaciones (facturación por modelo, monitor, plataforma)\n- type "line": tendencias temporales (evolución por día o quincena)\n- type "doughnut": distribuciones porcentuales (share por plataforma o modelo)\n- Los valores en data deben ser NÚMEROS ENTEROS (sin formato, sin puntos de miles: 1250000 no 1.250.000)\n- Solo incluye el gráfico cuando aporte valor analítico claro; en preguntas simples omítelo\n- El bloque [CHART]...[/CHART] siempre al FINAL de tu respuesta, después del análisis textual';
+async function _aiaCallClaude(key, model, query, ctx, instruccionesDin, convMessages) {
+  var systemPrompt = 'Eres el Director de Inteligencia Empresarial del Grupo Empresarial J&D y Fornax Studios. Tienes acceso en tiempo real a los datos de la empresa y tu misión es generar análisis del más alto nivel directivo.\n\nIDENTIDAD:\nEres un consultor senior de inteligencia de negocios con profundo conocimiento del mercado webcam latinoamericano. Combinas visión estratégica con análisis cuantitativo riguroso. Piensas como un CFO que también entiende el lado operativo y humano del negocio.\n\nCONTEXTO DEL NEGOCIO:\n- Grupo J&D y Fornax Studios: estudios de modelos webcam en Colombia\n- Plataformas: F4F/Stripchat, Chaturbate, CamSoda, LiveJasmin\n- Créditos (tokens): moneda de medición de todas las plataformas\n- Monitores: personal de acompañamiento, entrenamiento y gestión de modelos\n- RE (Reto Estrella): meta de ganancias mínima por modelo — JAMÁS SE REDUCE\n- Quincenas: períodos de pago del 1-15 y del 16 al fin de mes\n- Formato numérico colombiano: miles con punto, decimales con coma (1.250.000 cr / 12,5 %)\n\nCAPACIDADES QUE DEBES EJERCER SIEMPRE:\n1. VE MÁS ALLÁ DE LA PREGUNTA: si los datos revelan algo importante que no te preguntaron, repórtalo proactivamente\n2. TENDENCIAS: identifica si el desempeño sube, baja o se estabiliza vs. períodos anteriores\n3. DIAGNÓSTICO DE RAÍZ: no te detengas en el síntoma, llega a la causa probable\n4. PROYECCIONES: cuando haya datos históricos suficientes, proyecta el cierre del mes o quincena\n5. ALERTAS TEMPRANAS: detecta señales de riesgo antes de que se conviertan en problema\n6. OPORTUNIDADES: identifica modelos o plataformas con potencial no explotado\n7. BENCHMARKING: compara desempeño individual vs. promedio del grupo y estándares de industria\n8. CONCENTRACIÓN: alerta si hay dependencia excesiva en un modelo, monitor o plataforma\n\nREGLAS ABSOLUTAS:\n1. El Reto Estrella NUNCA se reduce — si alguien lo sugiere, recházalo con argumento técnico claro\n2. Las multas NO son fuente de ingreso — son mecanismo de alineación conductual\n3. La retención supera siempre a la rotación en valor estratégico\n4. Toda conclusión se sustenta en datos del contexto o en conocimiento verificable de la industria\n5. PROHIBIDO incluir secciones de "Limitación de Datos", "Transparencia Metodológica", advertencias de cobertura o cualquier caveat sobre insuficiencia de información — JAMÁS, en ningún caso, salvo que el usuario lo pida explícitamente. Analiza con lo que hay, proyecta con confianza, entrega valor. Si los datos no cubren el período exacto, usa el más cercano disponible y dilo en UNA línea al final, no como sección ni alerta\n6. DIAGNÓSTICO DE DATOS: El contexto incluye ESTADO_CARGA_DE_DATOS con el resultado técnico de cada módulo. Reglas estrictas: (a) Si un módulo muestra ERROR_RLS o ERROR_QUERY → di los datos de ese módulo existen en el sistema pero no pudieron cargarse en esta consulta por restricciones técnicas — NUNCA afirmes que el sistema no tiene ese módulo. (b) Si muestra OK:sin_registros → di que el módulo existe pero no encontró registros con el criterio actual. (c) Si muestra OK:N_registros → usa esos datos para responder. (d) JAMÁS afirmes que el sistema no tiene un módulo cuando ESTADO_CARGA_DE_DATOS muestra un error técnico — esa afirmación es factualmente incorrecta.\n\nFORMATO DE RESPUESTA:\n- Español formal ejecutivo — nivel informe de junta directiva\n- Markdown estructurado: ## secciones, ### subsecciones, tablas, bullets\n- Emojis funcionales: 🔴 crítico | 🟠 alto | 🟡 medio | 🟢 positivo | 📊 dato | 💡 insight | ⚡ acción urgente | 🎯 meta\n- Pregunta simple → respuesta directa PRIMERO, luego contexto y profundidad\n- Informe completo → Resumen ejecutivo → KPIs → Análisis → Hallazgos → Riesgos → Oportunidades → Recomendaciones → Plan de acción\n- NUNCA abras con una sección de limitaciones, advertencias o cobertura de datos — ve directo al análisis desde la primera línea\n- Siempre en formato colombiano (1.250.000 cr, 12,5 %)\n- Tienes hasta 16.000 tokens disponibles — ÚSALOS SIEMPRE con la profundidad máxima que el contexto permita\n- CONVERSACIÓN MULTI-TURNO: en esta sesión puedes recibir múltiples preguntas en cadena. Los datos de la empresa siempre están en el ÚLTIMO mensaje del usuario. Los mensajes anteriores contienen el historial de la conversación (preguntas y respuestas previas). Usa el historial para responder preguntas de seguimiento ("y ese modelo?", "compáralo con X", "dame más detalle") con plena coherencia contextual\n- PRECISIÓN EN FECHAS: cuando el contexto incluye la sección "ÚLTIMA FACTURACIÓN POR MODELO (FECHA EXACTA)", usa SIEMPRE esa fecha exacta (ej: 2026-11-08) — NUNCA aproximes con quincenas si tienes la fecha real\n- INACTIVIDAD: para preguntas sobre "sin actividad", "sin estar en línea", "sin facturar", basa la respuesta EXCLUSIVAMENTE en la sección "ÚLTIMA FACTURACIÓN POR MODELO (FECHA EXACTA)" del contexto — no en el desglose por quincena ni en totales del año\n- Si un modelo aparece en ⛔ SIN FACTURAR MÁS DE 60 DÍAS pero el usuario dice que tiene actividad reciente, indica que según facturacion_diaria la última fecha registrada es [fecha del contexto] y sugiere verificar si existe un registro bajo otro nombre o plataforma\n\nCONOCIMIENTO DE INDUSTRIA (aplica como contexto cuando sea relevante):\n- Benchmarks F4F/Stripchat: modelos establecidos facturan 400.000-2.000.000 cr/quincena\n- Días pico: viernes-domingo son 30-50% superiores a días de semana en camming\n- Señales de riesgo de abandono: caída >30% dos quincenas consecutivas, irregularidad de horarios\n- Diversificación: modelos activos en 2+ plataformas tienen 40-60% más ingresos promedio\n- Retención: un modelo con RE establecido tarda 3-6 meses en ser reemplazado en productividad\n\nCAPACIDAD DE VISUALIZACIÓN — GRÁFICOS:\nCuando la consulta involucre datos numéricos comparativos, puedes incluir UN gráfico al final usando este bloque EXACTO (sin texto adicional dentro del bloque, solo JSON válido):\n\n[CHART]\n{"type":"bar","title":"Título del gráfico","labels":["Etiqueta1","Etiqueta2"],"datasets":[{"label":"Nombre serie","data":[1000,2000]}]}\n[/CHART]\n\nReglas para gráficos:\n- type "bar": comparaciones (facturación por modelo, monitor, plataforma)\n- type "line": tendencias temporales (evolución por día o quincena)\n- type "doughnut": distribuciones porcentuales (share por plataforma o modelo)\n- Los valores en data deben ser NÚMEROS ENTEROS (sin formato, sin puntos de miles: 1250000 no 1.250.000)\n- Solo incluye el gráfico cuando aporte valor analítico claro; en preguntas simples omítelo\n- El bloque [CHART]...[/CHART] siempre al FINAL de tu respuesta, después del análisis textual\n\nESTÁNDAR MÍNIMO DE CALIDAD — TODAS LAS RESPUESTAS DE NEGOCIO:\nEsta es la diferencia entre una respuesta básica y una respuesta de alto valor. Para toda pregunta sobre datos de la empresa DEBES incluir obligatoriamente:\n1. DATO DIRECTO: el número o respuesta exacta en la primera línea — sin preámbulos\n2. TABLA DE RANKING: si hay más de 1 modelo/monitor/plataforma, presenta tabla comparativa completa con todos los que hay en el contexto\n3. COMPARACIÓN Y TENDENCIA: vs. quincena anterior, vs. meta, vs. promedio del grupo — si el dato existe en el contexto\n4. HALLAZGO PROACTIVO: algo importante que los datos revelan y que NO te preguntaron — SIEMPRE al menos uno\n5. RIESGO CONCRETO: con nombre, número y magnitud\n6. OPORTUNIDAD CONCRETA: con nombre, número y potencial estimado\n7. RECOMENDACIÓN ACCIONABLE: específica, con responsable y plazo sugerido\n8. GRÁFICO: cuando los datos son comparativos o tienen tendencia, incluye el bloque [CHART]\nÚNICA EXCEPCIÓN: preguntas de sí/no sobre un dato puntual (ej: "¿facturó hoy X modelo?") → respuesta directa + dato + 1 contexto relevante.\nPROHIBIDO responder con menos de 3 secciones a cualquier pregunta de análisis. Si el contexto tiene datos, el análisis es profundo. Si los datos son escasos, explica QUÉ datos faltan y analiza lo disponible con la misma profundidad.\nRECUERDA: El usuario puede consultar esto a Claude directamente — tu respuesta debe ser IGUAL O MEJOR que lo que Claude daría con los mismos datos. Nunca des menos.';
 
   // Inyectar instrucciones dinámicas de AION si las hay
   if (instruccionesDin && instruccionesDin.trim()) {
     systemPrompt += '\n\nINSTRUCCIONES DINÁMICAS DEL SISTEMA (gc_instrucciones_gerencia):\n' + instruccionesDin;
   }
 
-  var userContent = query + '\n\n' + ctx.summary;
-  // Limitar contexto para no exceder límites de la API (~200k chars max para ser seguros)
-  if (userContent.length > 120000) {
-    userContent = userContent.slice(0, 120000) + '\n\n[...Datos truncados por límite de contexto...]';
+  // ═══════════════════════════════════════════════════════════════════
+  // CAPA 2 — PERMISOS: Detectar acceso denegado y personalizar system prompt
+  // ═══════════════════════════════════════════════════════════════════
+  if (ctx.iaAccesoDenegado) {
+    // El rol no tiene acceso al asistente IA
+    return 'Lo siento, tu perfil de acceso actual no tiene habilitado el Asistente IA. Para más información, comunícate con el administrador del sistema.';
+  }
+  if (ctx.permisosUsuario) {
+    var _pu = ctx.permisosUsuario;
+    // Construir bloque de restricciones para el system prompt
+    var _restricBlock = '\n\nCONFIGURACIÓN DE ACCESO PARA ESTA SESIÓN:\n';
+    _restricBlock += '- Usuario: ' + _pu.nombre + ' | Rol: ' + _pu.rol + ' | Alcance: ' + _pu.alcance + '\n';
+    // Super admin: acceso total garantizado — ninguna restricción aplicable
+    if (_pu.rol === 'super_admin' || _pu.rol === 'superadmin' || _pu.rol === 'admin' || _pu.rol === 'gerencia') {
+      _restricBlock += '- ACCESO TOTAL: Este usuario tiene permisos de administrador. Puedes responder sobre cualquier módulo, cualquier estudio, cualquier modelo, cualquier rango de fechas y cualquier dato del sistema sin ninguna restricción.\n';
+      systemPrompt += _restricBlock;
+      // No agregar más restricciones — salir del bloque de permisos
+    } else
+    // Ajustar identidad de AION según el rol
+    if (_pu.alcance === 'propio') {
+      _restricBlock += '- RESTRICCIÓN CRÍTICA: Responde ÚNICAMENTE sobre los datos de ' + _pu.nombre + '. NO reveles datos de otros modelos, monitores, estudios ni del grupo en general.\n';
+      _restricBlock += '- Enfoca tu análisis en el desempeño personal, metas RE propias, facturación individual y estado de pagos propios.\n';
+      _restricBlock += '- No menciones nombres de otros modelos, comparaciones con el grupo ni rankings del equipo.\n';
+      if (_pu.restricciones && _pu.restricciones.sin_contenido_fornax) {
+        _restricBlock += '- RESTRICCIÓN DE CONTENIDO: No hagas referencia a concursos, niveles Nova ni programas exclusivos de Fornax Studios.\n';
+      }
+    } else if (_pu.alcance === 'propio_grupo') {
+      _restricBlock += '- Acceso limitado al grupo asignado. No reveles información de otros monitores ni del grupo empresarial completo.\n';
+      _restricBlock += '- Responde análisis operativos y de desempeño de los modelos asignados.\n';
+    } else if (_pu.alcance === 'empresa') {
+      _restricBlock += '- Acceso al nivel de estudio/empresa propio. No reveles estrategia global ni datos confidenciales de gerencia.\n';
+    }
+    // Si alcance es global, no agregar restricciones (acceso completo)
+    if (_pu.alcance !== 'ninguno' && _pu.alcance !== 'global') {
+      systemPrompt += _restricBlock;
+    }
+  }
+  // ═══════════════════════════════════════════════════════════════════
+
+  // === CONSTRUCCIÓN DEL MENSAJE: datos primero, pregunta al final ===
+  // Principio: Claude necesita ver TODOS los datos antes de responder la pregunta.
+  // Los datos estructurados en JSON son la fuente más precisa (fechas exactas, valores exactos).
+  // El resumen de texto es apoyo adicional. La pregunta va al FINAL para que Claude
+  // la responda con pleno conocimiento del contexto, igual que un analista que revisa
+  // los datos antes de contestar.
+
+  var _datosJSON = '';
+  try {
+    // — Estado de carga de cada módulo (Claude usa esto para diagnosticar qué datos tiene disponibles) —
+    if (ctx.loadStatus && Object.keys(ctx.loadStatus).length > 0) {
+      _datosJSON += 'ESTADO_CARGA_DE_DATOS (técnico — cada módulo muestra si cargó correctamente):\n';
+      _datosJSON += JSON.stringify(ctx.loadStatus, null, 1) + '\n\n';
+    }
+
+    // — Horas de conexión AL INICIO (evita truncamiento; variables de _aiaFetchContext ya no aplican aquí) —
+    if (ctx.horasConexion && ctx.horasConexion.length > 0) {
+      var _hDesde = (ctx.horasConexion[0] && ctx.horasConexion[0].periodo_desde) || 'inicio';
+      var _hHasta = (ctx.horasConexion[0] && ctx.horasConexion[0].periodo_hasta) || 'hoy';
+      _datosJSON += 'HORAS_CONEXI\xd3N_POR_MODELO (' + ctx.horasConexion.length + ' modelos — per\xedodo COMPLETO ' + _hDesde + ' a ' + _hHasta + '):\n';
+      _datosJSON += 'REGLA_ABSOLUTA_HORAS: total_horas est\xe1 PRE-CALCULADO por modelo para el per\xedodo indicado. USA estos datos directamente. NO uses facturaci\xf3n como proxy de horas.\n';
+      var _manyH = ctx.horasConexion.length > 20;
+      _datosJSON += JSON.stringify(ctx.horasConexion.map(function(h){
+        if (_manyH) return { modelo: h.modelo, periodo_desde: h.periodo_desde, periodo_hasta: h.periodo_hasta, total_horas: h.total_horas };
+        return { modelo: h.modelo, periodo_desde: h.periodo_desde, periodo_hasta: h.periodo_hasta, total_horas: h.total_horas, detalle: h.detalle };
+      }), null, 1) + '\n\n';
+    }
+
+    // — Última facturación exacta por modelo (calculada de registros individuales) —
+    if (ctx.facturacion && ctx.facturacion.length > 0) {
+      var _lf = {};
+      ctx.facturacion.forEach(function(f) {
+        var n = (f.modelo_nombre||'').trim();
+        var d = (f.fecha||'').slice(0,10);
+        var v = Number(f.valor)||0;
+        if (!n || !d) return;
+        if (!_lf[n] || d > _lf[n].f) _lf[n] = { f:d, e:f.estudio_nombre||'', v:v };
+      });
+      var _hoyMs2 = new Date().getTime();
+      var _listaFac = Object.keys(_lf).sort().map(function(n) {
+        var dias = Math.round((_hoyMs2 - new Date(_lf[n].f + 'T12:00:00').getTime()) / 86400000);
+        return {
+          modelo: n,
+          estudio: _lf[n].e,
+          ultima_fecha: _lf[n].f,
+          dias_sin_facturar: dias,
+          estado: dias > 60 ? 'INACTIVO_MAS_60_DIAS' : dias > 30 ? 'INACTIVO_30_A_60_DIAS' : dias > 7 ? 'ACTIVO_RECIENTE' : 'ACTIVO_ESTA_SEMANA'
+        };
+      }).sort(function(a,b){ return b.dias_sin_facturar - a.dias_sin_facturar; });
+      _datosJSON += 'ULTIMA_FACTURACION_POR_MODELO (calculado de registros reales, ordenado por inactividad):\n';
+      _datosJSON += JSON.stringify(_listaFac, null, 1) + '\n\n';
+    }
+
+    // — Lista de modelos con su estado actual —
+    if (ctx.modelos && ctx.modelos.length > 0) {
+      _datosJSON += 'MODELOS_REGISTRADOS_EN_SISTEMA:\n';
+      _datosJSON += JSON.stringify(ctx.modelos.map(function(m){
+        return { nombre: m.nombre, monitor: m.monitor || 'N/D', estado: m.estado, reto_estrella: Number(m.reto_estrella) || 0, nivel_fornax: m.nivel_fornax || 'N/D', categoria: m.categoria || 'N/D' };
+      }), null, 1) + '\n\n';
+
+      // — Sección dedicada: solo modelos CON Reto Estrella asignado (RE > 0) —
+      var _modConRE = ctx.modelos.filter(function(m){ return Number(m.reto_estrella) > 0; });
+      if (_modConRE.length > 0) {
+        _datosJSON += 'RETO_ESTRELLA_POR_MODELO (modelos con RE asignado — ' + _modConRE.length + ' modelos):\n';
+        _datosJSON += JSON.stringify(_modConRE.map(function(m){
+          return { nombre: m.nombre, reto_estrella: Number(m.reto_estrella), monitor: m.monitor || 'N/D', estado: m.estado, nivel_fornax: m.nivel_fornax || 'N/D' };
+        }).sort(function(a,b){ return b.reto_estrella - a.reto_estrella; }), null, 1) + '\n\n';
+      } else {
+        _datosJSON += 'RETO_ESTRELLA_POR_MODELO: (ningún modelo tiene RE asignado en la base de datos — el campo reto_estrella es 0 o NULL para todos los modelos activos)\n\n';
+      }
+    }
+
+    // — Facturación de la quincena actual (totales por modelo) —
+    if (ctx.facturacion && ctx.facturacion.length > 0) {
+      var _hoyD2 = new Date();
+      var _qIni2 = _hoyD2.getFullYear() + '-' + String(_hoyD2.getMonth()+1).padStart(2,'0') + '-' + (_hoyD2.getDate()<=15?'01':'16');
+      var _totQ = {};
+      ctx.facturacion.forEach(function(f) {
+        if ((f.fecha||'') < _qIni2) return;
+        var n = (f.modelo_nombre||'').trim();
+        if (!n) return;
+        _totQ[n] = (_totQ[n]||0) + (Number(f.valor)||0);
+      });
+      if (Object.keys(_totQ).length > 0) {
+        _datosJSON += 'FACTURACION_QUINCENA_ACTUAL (desde ' + _qIni2 + '):\n';
+        var _arrQ = Object.entries(_totQ).map(function(e){ return {modelo:e[0], creditos:Math.round(e[1])}; })
+                         .sort(function(a,b){ return b.creditos - a.creditos; });
+        _datosJSON += JSON.stringify(_arrQ, null, 1) + '\n\n';
+      }
+    }
+
+    // — Concursos activos —
+    if (ctx.concursos && ctx.concursos.length > 0) {
+      _datosJSON += 'CONCURSOS_ACTIVOS:\n';
+      _datosJSON += JSON.stringify(ctx.concursos, null, 1) + '\n\n';
+    }
+
+    // — Multas (todos los estados: pendiente, aplicada, pagada, exonerada) —
+    if (ctx.multas && ctx.multas.length > 0) {
+      _datosJSON += 'MULTAS (' + ctx.multas.length + ' registros — todos los estados):\n';
+      _datosJSON += JSON.stringify(ctx.multas.map(function(m){
+        // Fallbacks para diferentes posibles nombres de columnas en multas_registros
+        return {
+          empleado: m.empleado_nombre || m.modelo_nombre || m.nombre || m.nombre_empleado || 'N/D',
+          motivo:   m.tipo_nombre || m.motivo || m.descripcion || m.concepto || 'N/D',
+          valor:    Number(m.valor || m.monto || m.multa || 0),
+          estado:   m.estado || 'N/D',
+          fecha:    (m.created_at || m.fecha || '').slice(0,10)
+        };
+      }), null, 1) + '\n\n';
+    } else {
+      _datosJSON += 'MULTAS_ESTADO: ' + ((ctx.loadStatus && ctx.loadStatus.multas) || 'no_consultado') + '\n';
+      _datosJSON += '(Módulo de multas existente en el sistema. Si ERROR_RLS: acceso bloqueado por permisos de sesión.)\n\n';
+    }
+
+    // — Tendencia mensual del año (JSON estructurado para cálculos precisos) —
+    if (ctx.tendencia && ctx.tendencia.length > 0) {
+      _datosJSON += 'TENDENCIA_MENSUAL_' + new Date().getFullYear() + ' (' + ctx.tendencia.length + ' meses — datos completos del año):\n';
+      _datosJSON += JSON.stringify(ctx.tendencia.map(function(t){
+        return { mes: t.nombre_mes || ('Mes_' + t.mes), total_creditos: Number(t.total_creditos)||0, modelos_activos: t.modelos_activos, dias_con_datos: t.dias_con_datos };
+      }), null, 1) + '\n\n';
+    }
+
+    // — Cumplimiento Reto Estrella anual (JSON estructurado) —
+    if (ctx.cumplimientoRE && ctx.cumplimientoRE.length > 0) {
+      _datosJSON += 'CUMPLIMIENTO_RE_ANUAL (' + ctx.cumplimientoRE.length + ' modelos — historial del año):\n';
+      _datosJSON += JSON.stringify(ctx.cumplimientoRE.map(function(m){
+        return { modelo: m.modelo_nombre, reto_estrella: Number(m.reto_estrella)||0, quincenas_cumplidas: m.quincenas_cumplidas, quincenas_totales: m.quincenas_totales, pct_cumplimiento: Number(m.porcentaje_cumplimiento)||0, total_creditos_anio: Number(m.total_creditos_anio)||0 };
+      }).sort(function(a,b){ return b.total_creditos_anio - a.total_creditos_anio; }), null, 1) + '\n\n';
+    }
+
+    // — Top modelos del año (JSON estructurado con ranking completo) —
+    if (ctx.topModelos && ctx.topModelos.length > 0) {
+      _datosJSON += 'TOP_MODELOS_ANIO_COMPLETO (' + ctx.topModelos.length + ' modelos, ranking anual):\n';
+      _datosJSON += JSON.stringify(ctx.topModelos.map(function(t){
+        return { posicion: t.posicion, modelo: t.modelo_nombre, estudio: t.estudio_nombre, total_creditos: Number(t.total_creditos)||0, dias_activos: t.dias_activos };
+      }), null, 1) + '\n\n';
+    }
+
+  } catch(_ej) {}
+
+  var userContent = '';
+  userContent += '╔══════════════════════════════════════════════════════════╗\n';
+  userContent += '║  DATOS DE LA EMPRESA — FUENTE DEFINITIVA (JSON exacto)  ║\n';
+  userContent += '╚══════════════════════════════════════════════════════════╝\n';
+  userContent += 'Fecha de consulta: ' + new Date().toISOString().slice(0,10) + '\n\n';
+  if (_datosJSON) userContent += _datosJSON;
+  userContent += '══════════════════════════════════════════════════════════\n';
+  userContent += 'CONTEXTO ADICIONAL (análisis pre-calculado del sistema):\n';
+  userContent += '══════════════════════════════════════════════════════════\n';
+  userContent += ctx.summary;
+  userContent += '\n\n╔══════════════════════════════╗\n';
+  userContent += '║  PREGUNTA DEL USUARIO        ║\n';
+  userContent += '╚══════════════════════════════╝\n';
+  userContent += query;
+
+  // Limitar contexto: si excede, recortar el summary (nunca los datos JSON ni la pregunta)
+  var _maxLen = 180000;
+  if (userContent.length > _maxLen) {
+    var _jsonEnd = userContent.indexOf('══════════════════════════════════════════════════════════\nCONTEXTO ADICIONAL');
+    var _pregStart = userContent.lastIndexOf('╔══════════════════════════════╗\n║  PREGUNTA DEL USUARIO');
+    if (_jsonEnd > 0 && _pregStart > 0) {
+      var _jsonPart = userContent.slice(0, _jsonEnd);
+      var _pregPart = userContent.slice(_pregStart);
+      var _summaryBudget = _maxLen - _jsonPart.length - _pregPart.length - 200;
+      var _summaryPart = ctx.summary.slice(0, Math.max(0, _summaryBudget)) + '\n[...resumen truncado por tamaño...]\n\n';
+      userContent = _jsonPart + '══════════════════════════════════════════════════════════\nCONTEXTO ADICIONAL:\n══════════════════════════════════════════════════════════\n' + _summaryPart + '╔══════════════════════════════╗\n║  PREGUNTA DEL USUARIO        ║\n╚══════════════════════════════╝\n' + query;
+    } else {
+      userContent = userContent.slice(0, _maxLen) + '\n\n[...truncado...]\n\nPREGUNTA: ' + query;
+    }
   }
 
   // ——— AION Backend (seguro — API key nunca expuesta en navegador) ———
@@ -133140,26 +134369,56 @@ async function _aiaCallClaude(key, model, query, ctx, instruccionesDin) {
     }
   } catch(eJwt) {}
 
+  // Multi-turn: si hay historial, se antepone al mensaje actual.
+  // La historia contiene {role:'user', content: queryTexto} y {role:'assistant', content: respuesta}.
+  // El mensaje ACTUAL siempre lleva los datos frescos inyectados en userContent.
+  var _apiMessages;
+  if (convMessages && convMessages.length > 0) {
+    _apiMessages = convMessages.concat([{ role: 'user', content: userContent }]);
+  } else {
+    _apiMessages = [{ role: 'user', content: userContent }];
+  }
+
   var _reqBody = JSON.stringify({
     model: model,
-    max_tokens: 8192,
+    max_tokens: 16000,
     system: systemPrompt,
-    messages: [{ role: 'user', content: userContent }]
+    messages: _apiMessages
   });
 
   var resp;
   if (_jwtToken) {
     // Ruta principal: backend AION con autenticación JWT
-    resp = await fetch(AION_BACKEND + '/api/claude', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + _jwtToken
-      },
-      body: _reqBody
-    });
-    // Si el backend rechaza el JWT (401/403), intentar fallback con API key directa
-    if (resp.status === 401 || resp.status === 403) {
+    var _backendOk = false;
+    try {
+      resp = await fetch(AION_BACKEND + '/api/claude', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + _jwtToken
+        },
+        body: _reqBody
+      });
+      _backendOk = true;
+    } catch (_backendErr) {
+      // Backend inalcanzable (caído, timeout de red, CORS) — caer en API key directa
+      if (key) {
+        resp = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': key,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: _reqBody
+        });
+      } else {
+        throw new Error('Servidor AION no disponible. Configura tu API Key en ⚙️ Configuración para continuar sin él.');
+      }
+    }
+    // Si el backend respondió pero rechaza el JWT (401/403), intentar fallback con API key directa
+    if (_backendOk && (resp.status === 401 || resp.status === 403)) {
       if (key) {
         resp = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
@@ -133199,6 +134458,8 @@ async function _aiaCallClaude(key, model, query, ctx, instruccionesDin) {
   }
 
   var data = await resp.json();
+  // Guardar uso real de tokens para contabilidad precisa
+  try { window._aiaLastUsage = data.usage || null; } catch(e) {}
   if (data && data.content && data.content[0] && data.content[0].text) {
     return data.content[0].text;
   }
@@ -133513,6 +134774,454 @@ async function aionCargarInstruccionesActivas() {
 }
 
 // ══ FIN AION INSTRUCCIONES ══════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════════
+// AION — PANEL DE ALERTAS HISTÓRICAS (gc_alertas)
+// ══════════════════════════════════════════════════════════════════
+
+var _aionAlData = [];
+var _aionAlFiltroActual = 'todos';
+
+function aionAlertasInit() {
+  _aionAlFiltroActual = 'todos';
+  _aionAlActualizarBotones('todos');
+  aionAlertasCargar();
+}
+
+async function aionAlertasCargar() {
+  var tbody = document.getElementById('aion-al-tbody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--muted)">⏳ Cargando alertas…</td></tr>';
+  try {
+    var db = _aionGetDb();
+    if (!db) throw new Error('Sin conexión a base de datos');
+    var res = await db.from('gc_alertas').select('*').order('fecha_deteccion', { ascending: false }).limit(200);
+    if (res.error) throw res.error;
+    _aionAlData = res.data || [];
+    _aionAlRenderFiltrado();
+    // Actualizar badge del nav
+    var sinResolver = _aionAlData.filter(function(r){ return !r.resuelto; }).length;
+    var badge = document.getElementById('nav-aion-alertas-badge');
+    if (badge) {
+      badge.textContent = sinResolver;
+      badge.style.display = sinResolver > 0 ? 'inline' : 'none';
+    }
+    var cntEl = document.getElementById('aion-al-count-activas');
+    if (cntEl) cntEl.textContent = sinResolver;
+  } catch(e) {
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="padding:30px;text-align:center;color:#f87171">❌ Error al cargar alertas: ' + (e.message||String(e)) + '</td></tr>';
+  }
+}
+
+function aionAlertasFiltrar(filtro) {
+  _aionAlFiltroActual = filtro;
+  _aionAlActualizarBotones(filtro);
+  _aionAlRenderFiltrado();
+}
+
+function _aionAlActualizarBotones(filtroActivo) {
+  var ids = ['todos','CRITICO','ALTO','MEDIO','BAJO','resueltas'];
+  var colores = {
+    'todos': { act: 'rgba(245,158,11,.18)', bord: 'rgba(245,158,11,.5)', clr: '#f59e0b' },
+    'CRITICO': { act: 'rgba(239,68,68,.18)', bord: 'rgba(239,68,68,.5)', clr: '#f87171' },
+    'ALTO': { act: 'rgba(249,115,22,.18)', bord: 'rgba(249,115,22,.5)', clr: '#fb923c' },
+    'MEDIO': { act: 'rgba(234,179,8,.18)', bord: 'rgba(234,179,8,.5)', clr: '#facc15' },
+    'BAJO': { act: 'rgba(96,165,250,.18)', bord: 'rgba(96,165,250,.5)', clr: '#93c5fd' },
+    'resueltas': { act: 'rgba(100,116,139,.25)', bord: 'rgba(100,116,139,.5)', clr: '#94a3b8' }
+  };
+  ids.forEach(function(id) {
+    var btn = document.getElementById('aion-al-filtro-' + id);
+    if (!btn) return;
+    var c = colores[id] || colores['todos'];
+    if (id === filtroActivo) {
+      btn.style.background = c.act;
+      btn.style.borderColor = c.bord;
+      btn.style.color = c.clr;
+      btn.style.fontWeight = '700';
+    } else {
+      btn.style.background = 'transparent';
+      btn.style.borderColor = c.bord.replace('.5', '.25');
+      btn.style.color = c.clr;
+      btn.style.fontWeight = '600';
+    }
+  });
+}
+
+function _aionAlRenderFiltrado() {
+  var datos = _aionAlData;
+  if (_aionAlFiltroActual === 'resueltas') {
+    datos = datos.filter(function(r){ return r.resuelto; });
+  } else if (_aionAlFiltroActual !== 'todos') {
+    datos = datos.filter(function(r){ return !r.resuelto && (r.nivel||'').toUpperCase() === _aionAlFiltroActual; });
+  } else {
+    datos = datos.filter(function(r){ return !r.resuelto; });
+  }
+  _aionAlRenderTabla(datos);
+}
+
+function _aionAlNivelConfig(nivel) {
+  var n = (nivel||'').toUpperCase();
+  if (n === 'CRITICO') return { bg: 'rgba(239,68,68,.15)', bord: 'rgba(239,68,68,.4)', clr: '#f87171', ico: '🔴' };
+  if (n === 'ALTO')    return { bg: 'rgba(249,115,22,.12)', bord: 'rgba(249,115,22,.35)', clr: '#fb923c', ico: '🟠' };
+  if (n === 'MEDIO')   return { bg: 'rgba(234,179,8,.1)', bord: 'rgba(234,179,8,.3)', clr: '#facc15', ico: '🟡' };
+  if (n === 'BAJO')    return { bg: 'rgba(96,165,250,.1)', bord: 'rgba(96,165,250,.3)', clr: '#93c5fd', ico: '🔵' };
+  return { bg: 'rgba(255,255,255,.04)', bord: 'rgba(255,255,255,.1)', clr: '#e2e8f0', ico: '⚪' };
+}
+
+function _aionAlRenderTabla(rows) {
+  var tbody = document.getElementById('aion-al-tbody');
+  if (!tbody) return;
+  if (!rows || rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="padding:40px;text-align:center;color:var(--muted);font-size:13px">📭 No hay alertas en esta categoría.</td></tr>';
+    return;
+  }
+  var html = '';
+  rows.forEach(function(r, i) {
+    var nc = _aionAlNivelConfig(r.nivel);
+    var rowBg = i % 2 === 0 ? 'rgba(255,255,255,.018)' : 'transparent';
+    var fecha = r.fecha_deteccion ? new Date(r.fecha_deteccion).toLocaleDateString('es-CO', {day:'2-digit',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+    var estadoBadge = r.resuelto
+      ? '<span style="display:inline-block;padding:3px 8px;border-radius:12px;background:rgba(16,185,129,.12);color:#34d399;font-size:11px;font-weight:700">✅ Resuelta</span>'
+      : '<span style="display:inline-block;padding:3px 8px;border-radius:12px;background:' + nc.bg + ';color:' + nc.clr + ';border:1px solid ' + nc.bord + ';font-size:11px;font-weight:700">⚠ Activa</span>';
+    var safeId = String(r.id).replace(/['"<>&]/g,'');
+    var acciones = r.resuelto
+      ? '<button onclick="aionAlertasEliminar(\'' + safeId + '\')" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.07);color:#f87171;font-size:11px;cursor:pointer;font-weight:600" title="Eliminar alerta">🗑</button>'
+      : '<button onclick="aionAlertasResolver(\'' + safeId + '\')" style="padding:4px 9px;border-radius:6px;border:1px solid rgba(16,185,129,.35);background:rgba(16,185,129,.08);color:#34d399;font-size:11px;cursor:pointer;font-weight:600;margin-right:4px">✅ Resolver</button><button onclick="aionAlertasEliminar(\'' + safeId + '\')" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.07);color:#f87171;font-size:11px;cursor:pointer;font-weight:600" title="Eliminar">🗑</button>';
+    html += '<tr style="background:' + rowBg + ';border-bottom:1px solid rgba(255,255,255,.04)">'
+      + '<td style="padding:10px 12px;text-align:center"><span style="display:inline-block;padding:4px 10px;border-radius:12px;background:' + nc.bg + ';color:' + nc.clr + ';border:1px solid ' + nc.bord + ';font-size:11px;font-weight:800;white-space:nowrap">' + nc.ico + ' ' + (r.nivel||'—') + '</span></td>'
+      + '<td style="padding:10px 12px;color:var(--text);font-weight:600;font-size:12px">' + _escHtml(r.titulo||'—') + '</td>'
+      + (function() {
+          var full = (r.detalle || '—');
+          var LIMIT = 200;
+          if (full.length <= LIMIT) {
+            return '<td style="padding:10px 12px;color:var(--muted);font-size:12px;line-height:1.5;max-width:240px;word-break:break-word">' + _escHtml(full) + '</td>';
+          }
+          var corto = full.slice(0, LIMIT) + '…';
+          var uid = 'al-det-' + i;
+          return '<td style="padding:10px 12px;color:var(--muted);font-size:12px;line-height:1.5;max-width:240px;word-break:break-word">'
+            + '<span id="' + uid + '-s">' + _escHtml(corto)
+            + ' <button onclick="document.getElementById(\'' + uid + '-s\').style.display=\'none\';document.getElementById(\'' + uid + '-f\').style.display=\'block\'" style="border:none;background:none;color:#a78bfa;cursor:pointer;font-size:11px;padding:0;text-decoration:underline;vertical-align:baseline">ver más ▾</button></span>'
+            + '<span id="' + uid + '-f" style="display:none">' + _escHtml(full)
+            + ' <button onclick="document.getElementById(\'' + uid + '-s\').style.display=\'inline\';document.getElementById(\'' + uid + '-f\').style.display=\'none\'" style="border:none;background:none;color:#a78bfa;cursor:pointer;font-size:11px;padding:0;text-decoration:underline;vertical-align:baseline">ver menos ▴</button></span>'
+            + '</td>';
+        })()
+      + '<td style="padding:10px 12px;color:#94a3b8;font-size:11px;font-style:italic">' + _escHtml(r.accion_sugerida||'—') + '</td>'
+      + '<td style="padding:10px 12px;text-align:center;color:var(--muted);font-size:11px;white-space:nowrap">' + fecha + '</td>'
+      + '<td style="padding:10px 12px;text-align:center">' + estadoBadge + '</td>'
+      + '<td style="padding:10px 12px;text-align:center;white-space:nowrap">' + acciones + '</td>'
+      + '</tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+function _escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function aionAlertasResolver(id) {
+  try {
+    var db = _aionGetDb();
+    if (!db) throw new Error('Sin conexión');
+    var user = (_jdCurrentUser && (_jdCurrentUser.nombre || _jdCurrentUser.email)) || 'Admin';
+    var res = await db.from('gc_alertas').update({ resuelto: true, resuelto_en: new Date().toISOString(), resuelto_por: user }).eq('id', id);
+    if (res.error) throw res.error;
+    try { toast('✅ Alerta marcada como resuelta.', 'success'); } catch(e) {}
+    await aionAlertasCargar();
+  } catch(e) {
+    try { toast('Error: ' + (e.message||String(e)), 'error'); } catch(e2) {}
+  }
+}
+
+async function aionAlertasEliminar(id) {
+  if (!confirm('¿Eliminar esta alerta permanentemente?')) return;
+  try {
+    var db = _aionGetDb();
+    if (!db) throw new Error('Sin conexión');
+    var res = await db.from('gc_alertas').delete().eq('id', id);
+    if (res.error) throw res.error;
+    try { toast('🗑 Alerta eliminada.', 'success'); } catch(e) {}
+    await aionAlertasCargar();
+  } catch(e) {
+    try { toast('Error: ' + (e.message||String(e)), 'error'); } catch(e2) {}
+  }
+}
+
+// ══ FIN AION ALERTAS ═══════════════════════════════════════════════
+
+// ══ AION — PERMISOS IA ══════════════════════════════════════════════
+var _aionPermRolActual = null;
+var _aionPermDataActual = null;
+var _aionPermIAHab = true;
+var _aionPermPerfiles = [];
+
+var _AION_MODS = [
+  { key: 'facturacion',           label: '💰 Facturación' },
+  { key: 'modelos',               label: '👤 Modelos' },
+  { key: 'cumplimiento_re',       label: '⭐ Cumplimiento RE' },
+  { key: 'multas',                label: '⚠️ Multas' },
+  { key: 'concursos',             label: '🏆 Concursos' },
+  { key: 'informes_gestion',      label: '📋 Informes Gestión' },
+  { key: 'pendientes',            label: '📌 Pendientes' },
+  { key: 'instrucciones_sistema', label: '🧠 Instrucciones Sistema' },
+  { key: 'monitores',             label: '👁 Monitores' }
+];
+
+var _AION_ROLES_LBL = {
+  super_admin: 'Super Admin', gerente: 'Gerente', admin: 'Administrador',
+  ejecutivo: 'Ejecutivo Comercial', monitor: 'Monitor', estudio: 'Estudio',
+  modelo: 'Modelo Fornax', modelo_ge: 'Modelo GE', aux_servicios: 'Aux. Servicios'
+};
+
+var _AION_ALCANCE_LBL = {
+  global: '🌐 Global', empresa: '🏢 Empresa',
+  propio_grupo: '👥 Propio grupo', propio: '👤 Propio', ninguno: '🚫 Ninguno'
+};
+
+function aionPermisosInit() {
+  aionPermisosCargar();
+}
+
+async function aionPermisosCargar() {
+  var loadEl = document.getElementById('aion-perm-loading');
+  var tablaWrap = document.getElementById('aion-perm-tabla-wrap');
+  if (loadEl) { loadEl.style.display = ''; loadEl.innerHTML = '⏳ Cargando perfiles…'; }
+  if (tablaWrap) tablaWrap.style.display = 'none';
+  try {
+    var db = _aionGetDb ? _aionGetDb() : null;
+    if (!db) throw new Error('Sin base de datos');
+    var res = await db.from('ia_permisos_perfil').select('*').order('id');
+    if (res.error) throw res.error;
+    _aionPermPerfiles = res.data || [];
+    var tbody = document.getElementById('aion-perm-tbody');
+    if (!tbody) return;
+    if (!_aionPermPerfiles.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--muted)">No hay perfiles configurados.</td></tr>';
+    } else {
+      var html = '';
+      _aionPermPerfiles.forEach(function(r, i) {
+        var rowBg = i % 2 === 0 ? 'rgba(255,255,255,.018)' : 'transparent';
+        var iaColor = r.ia_habilitado ? '#34d399' : '#f87171';
+        var iaTxt = r.ia_habilitado ? '✅ Activa' : '❌ Inactiva';
+        var alcance = (r.permisos && r.permisos.alcance) ? (_AION_ALCANCE_LBL[r.permisos.alcance] || r.permisos.alcance) : '—';
+        var modsCount = (r.permisos && r.permisos.modulos) ? Object.keys(r.permisos.modulos).filter(function(k){ return r.permisos.modulos[k] && r.permisos.modulos[k].consultar; }).length : '—';
+        var label = _AION_ROLES_LBL[r.rol] || r.rol;
+        html += '<tr style="background:' + rowBg + ';border-bottom:1px solid rgba(255,255,255,.04)">'
+          + '<td style="padding:11px 12px;font-weight:700;color:var(--text)">' + _escHtml(label) + '<div style="font-size:10px;color:var(--muted);font-weight:400">' + _escHtml((r.descripcion||'').slice(0,55)) + '</div></td>'
+          + '<td style="padding:11px 12px;text-align:center"><span style="color:' + iaColor + ';font-size:12px;font-weight:700">' + iaTxt + '</span></td>'
+          + '<td style="padding:11px 12px;font-size:12px;color:#c4b5fd">' + alcance + '</td>'
+          + '<td style="padding:11px 12px;text-align:center;font-size:12px;color:#94a3b8">' + (modsCount !== '—' ? modsCount + ' / ' + _AION_MODS.length : '—') + '</td>'
+          + '<td style="padding:11px 12px;text-align:center"><button onclick="aionPermisosEditar(' + i + ')" style="padding:5px 14px;border-radius:8px;border:1px solid rgba(167,139,250,.4);background:rgba(167,139,250,.1);color:#a78bfa;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">✏️ Editar</button></td>'
+          + '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+    if (loadEl) loadEl.style.display = 'none';
+    if (tablaWrap) tablaWrap.style.display = '';
+  } catch(e) {
+    if (loadEl) loadEl.innerHTML = '<span style="color:#f87171">❌ Error: ' + _escHtml(e.message||String(e)) + '</span>';
+  }
+}
+
+function aionPermisosEditar(idx) {
+  var r = _aionPermPerfiles[idx];
+  if (!r) return;
+  _aionPermRolActual = r.rol;
+  _aionPermDataActual = r;
+  _aionPermIAHab = !!r.ia_habilitado;
+
+  var perms = r.permisos || {};
+  var alcance = perms.alcance || 'global';
+  var mods = perms.modulos || null;
+  var rest = perms.restricciones || {};
+
+  var titleEl = document.getElementById('aion-perm-edit-title');
+  if (titleEl) titleEl.textContent = '✏️ Editando: ' + (_AION_ROLES_LBL[r.rol] || r.rol);
+  var descEl = document.getElementById('aion-perm-edit-desc');
+  if (descEl) descEl.textContent = r.descripcion || '';
+
+  aionPermisosSetIA(_aionPermIAHab, true);
+
+  var alcSel = document.getElementById('aion-perm-alcance-sel');
+  if (alcSel) alcSel.value = alcance;
+
+  var grid = document.getElementById('aion-perm-mods-grid');
+  if (grid) {
+    var gridHtml = '';
+    _AION_MODS.forEach(function(mod) {
+      var modPerms = (mods && mods[mod.key]) ? mods[mod.key] : {};
+      var chkC = modPerms.consultar ? 'checked' : '';
+      var chkA = modPerms.analizar ? 'checked' : '';
+      var chkG = modPerms.generar_informe ? 'checked' : '';
+      gridHtml += '<div style="padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.2)">'
+        + '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px">' + mod.label + '</div>'
+        + '<div style="display:flex;gap:12px;flex-wrap:wrap">'
+        + '<label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);cursor:pointer"><input type="checkbox" id="mod-' + mod.key + '-c" ' + chkC + ' style="accent-color:#a78bfa"> Consultar</label>'
+        + '<label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);cursor:pointer"><input type="checkbox" id="mod-' + mod.key + '-a" ' + chkA + ' style="accent-color:#a78bfa"> Analizar</label>'
+        + '<label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);cursor:pointer"><input type="checkbox" id="mod-' + mod.key + '-g" ' + chkG + ' style="accent-color:#a78bfa"> Informe</label>'
+        + '</div>'
+        + '</div>';
+    });
+    grid.innerHTML = gridHtml;
+  }
+
+  var chkFornax = document.getElementById('aion-perm-rest-fornax');
+  if (chkFornax) chkFornax.checked = !!(rest.sin_contenido_fornax);
+
+  var panel = document.getElementById('aion-perm-edit-panel');
+  if (panel) { panel.style.display = ''; setTimeout(function(){ panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50); }
+}
+
+function aionPermisosSetIA(val) {
+  _aionPermIAHab = val;
+  var btnSi = document.getElementById('aion-perm-ia-si');
+  var btnNo = document.getElementById('aion-perm-ia-no');
+  if (val) {
+    if (btnSi) { btnSi.style.border = '2px solid rgba(16,185,129,.5)'; btnSi.style.background = 'rgba(16,185,129,.15)'; btnSi.style.color = '#34d399'; }
+    if (btnNo) { btnNo.style.border = '1px solid rgba(255,255,255,.1)'; btnNo.style.background = 'transparent'; btnNo.style.color = 'var(--muted)'; }
+  } else {
+    if (btnNo) { btnNo.style.border = '2px solid rgba(239,68,68,.5)'; btnNo.style.background = 'rgba(239,68,68,.15)'; btnNo.style.color = '#f87171'; }
+    if (btnSi) { btnSi.style.border = '1px solid rgba(255,255,255,.1)'; btnSi.style.background = 'transparent'; btnSi.style.color = 'var(--muted)'; }
+  }
+}
+
+function aionPermisosCloseEdit() {
+  var panel = document.getElementById('aion-perm-edit-panel');
+  if (panel) panel.style.display = 'none';
+  _aionPermRolActual = null;
+  _aionPermDataActual = null;
+}
+
+async function aionPermisosGuardar() {
+  if (!_aionPermRolActual) return;
+  try {
+    var alcSel = document.getElementById('aion-perm-alcance-sel');
+    var alcance = alcSel ? alcSel.value : 'global';
+
+    var newMods = {};
+    _AION_MODS.forEach(function(mod) {
+      var c = document.getElementById('mod-' + mod.key + '-c');
+      var a = document.getElementById('mod-' + mod.key + '-a');
+      var g = document.getElementById('mod-' + mod.key + '-g');
+      newMods[mod.key] = {
+        consultar: c ? c.checked : false,
+        analizar: a ? a.checked : false,
+        generar_informe: g ? g.checked : false
+      };
+    });
+
+    var chkFornax = document.getElementById('aion-perm-rest-fornax');
+    var newRest = {};
+    if (chkFornax && chkFornax.checked) newRest.sin_contenido_fornax = true;
+
+    var newPermisos = { alcance: alcance, modulos: newMods, restricciones: newRest };
+
+    var db = _aionGetDb ? _aionGetDb() : null;
+    if (!db) throw new Error('Sin base de datos');
+
+    var res = await db.from('ia_permisos_perfil')
+      .update({ ia_habilitado: _aionPermIAHab, permisos: newPermisos, updated_at: new Date().toISOString() })
+      .eq('rol', _aionPermRolActual);
+    if (res.error) throw res.error;
+
+    var adminUser = typeof _jdCurrentUser !== 'undefined' ? _jdCurrentUser : {};
+    await db.from('ia_permisos_auditoria').insert({
+      usuario_id: adminUser.id || null,
+      usuario_email: adminUser.email || null,
+      usuario_rol: adminUser.rol || null,
+      accion: 'modificado',
+      rol_afectado: _aionPermRolActual,
+      cambios_antes: _aionPermDataActual ? _aionPermDataActual.permisos : null,
+      cambios_despues: newPermisos
+    }).catch(function(){});
+
+    try { toast('✅ Permisos guardados correctamente.', 'success'); } catch(e2) {}
+    aionPermisosCloseEdit();
+    await aionPermisosCargar();
+  } catch(e) {
+    try { toast('❌ Error al guardar: ' + (e.message||String(e)), 'error'); } catch(e2) {}
+  }
+}
+
+function aionPermisosTab(tab) {
+  ['perfiles','auditoria','consultas'].forEach(function(t) {
+    var panel = document.getElementById('aion-perm-tab-' + t);
+    var btn = document.getElementById('aion-perm-tab-btn-' + t);
+    if (panel) panel.style.display = t === tab ? '' : 'none';
+    if (btn) {
+      btn.style.borderBottom = t === tab ? '2px solid #a78bfa' : '2px solid transparent';
+      btn.style.color = t === tab ? '#a78bfa' : 'var(--muted)';
+      btn.style.fontWeight = t === tab ? '700' : '600';
+    }
+  });
+  if (tab === 'auditoria') aionPermisosCargarAuditoria();
+  if (tab === 'consultas') aionPermisosCargarConsultas();
+}
+
+async function aionPermisosCargarAuditoria() {
+  var tbody = document.getElementById('aion-perm-audit-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--muted)">⏳ Cargando…</td></tr>';
+  try {
+    var db = _aionGetDb ? _aionGetDb() : null;
+    if (!db) throw new Error('Sin base de datos');
+    var res = await db.from('ia_permisos_auditoria').select('*').order('created_at', {ascending:false}).limit(100);
+    if (res.error) throw res.error;
+    var rows = res.data || [];
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--muted)">📭 Sin registros de auditoría.</td></tr>';
+      return;
+    }
+    var html = '';
+    rows.forEach(function(r, i) {
+      var bg = i % 2 === 0 ? 'rgba(255,255,255,.018)' : 'transparent';
+      var fecha = r.created_at ? new Date(r.created_at).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+      html += '<tr style="background:' + bg + ';border-bottom:1px solid rgba(255,255,255,.04)">'
+        + '<td style="padding:9px 10px;color:var(--muted);font-size:11px;white-space:nowrap">' + fecha + '</td>'
+        + '<td style="padding:9px 10px;color:var(--text);font-size:12px">' + _escHtml(r.usuario_email||r.usuario_rol||'—') + '</td>'
+        + '<td style="padding:9px 10px"><span style="display:inline-block;padding:2px 8px;border-radius:10px;background:rgba(167,139,250,.12);color:#c4b5fd;font-size:11px;font-weight:700">' + _escHtml(r.accion||'—') + '</span></td>'
+        + '<td style="padding:9px 10px;color:#a78bfa;font-size:12px;font-weight:600">' + _escHtml(_AION_ROLES_LBL[r.rol_afectado]||r.rol_afectado||'—') + '</td>'
+        + '<td style="padding:9px 10px;color:var(--muted);font-size:11px">' + _escHtml((r.razon||'—').slice(0,80)) + '</td>'
+        + '</tr>';
+    });
+    tbody.innerHTML = html;
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="5" style="padding:30px;text-align:center;color:#f87171">❌ ' + _escHtml(e.message||String(e)) + '</td></tr>';
+  }
+}
+
+async function aionPermisosCargarConsultas() {
+  var tbody = document.getElementById('aion-perm-consultas-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="padding:30px;text-align:center;color:var(--muted)">⏳ Cargando…</td></tr>';
+  try {
+    var db = _aionGetDb ? _aionGetDb() : null;
+    if (!db) throw new Error('Sin base de datos');
+    var res = await db.from('ia_consultas_log').select('*').order('created_at',{ascending:false}).limit(100);
+    if (res.error) throw res.error;
+    var rows = res.data || [];
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="padding:30px;text-align:center;color:var(--muted)">📭 Sin consultas registradas.</td></tr>';
+      return;
+    }
+    var html = '';
+    rows.forEach(function(r, i) {
+      var bg = i % 2 === 0 ? 'rgba(255,255,255,.018)' : 'transparent';
+      var fecha = r.created_at ? new Date(r.created_at).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+      var consulta = (r.query_texto||'—').slice(0,70) + ((r.query_texto||'').length > 70 ? '…' : '');
+      html += '<tr style="background:' + bg + ';border-bottom:1px solid rgba(255,255,255,.04)">'
+        + '<td style="padding:9px 10px;color:var(--muted);font-size:11px;white-space:nowrap">' + fecha + '</td>'
+        + '<td style="padding:9px 10px;color:var(--text);font-size:12px">' + _escHtml(r.usuario_nombre||r.usuario_email||'—') + '</td>'
+        + '<td style="padding:9px 10px"><span style="display:inline-block;padding:2px 8px;border-radius:10px;background:rgba(167,139,250,.1);color:#c4b5fd;font-size:11px">' + _escHtml(_AION_ROLES_LBL[r.usuario_rol]||r.usuario_rol||'—') + '</span></td>'
+        + '<td style="padding:9px 10px;color:#94a3b8;font-size:11px">' + _escHtml(r.alcance_aplicado||'—') + '</td>'
+        + '<td style="padding:9px 10px;color:var(--muted);font-size:11px;max-width:200px">' + _escHtml(consulta) + '</td>'
+        + '<td style="padding:9px 10px;text-align:center;color:var(--muted);font-size:11px">' + (r.tokens_estimados||'—') + '</td>'
+        + '</tr>';
+    });
+    tbody.innerHTML = html;
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="6" style="padding:30px;text-align:center;color:#f87171">❌ ' + _escHtml(e.message||String(e)) + '</td></tr>';
+  }
+}
+// ══ FIN AION PERMISOS ════════════════════════════════════════════════
 
 function aiaExportWord() {
   var txt = window._aiaLastResponse || '';

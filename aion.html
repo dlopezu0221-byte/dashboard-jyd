@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v6.80 -->
+<!DOCTYPE html><!-- v6.81 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -28815,15 +28815,16 @@ async function execEnviarSolicitud(){
 
   try{
     var { data: inserted, error: insertErr } = await _supaDb.from('jd_solicitudes_exec').insert([{
-      ejecutivo_id:    sol.ejecutivo_id,
-      ejecutivo_nombre:sol.ejecutivo_nombre,
-      tipo:            sol.tipo,
-      monto:           sol.monto,
-      descripcion:     sol.descripcion,
-      fecha_extra:     sol.fecha_extra||null,
-      notas:           sol.notas||null,
-      estado:          'pendiente',
-      fecha_solicitud: sol.fecha_solicitud
+      ejecutivo_id:       sol.ejecutivo_id,
+      ejecutivo_nombre:   sol.ejecutivo_nombre,
+      ejecutivo_telefono: _waGetMiTelefono()||sol.ejecutivo_telefono||null,
+      tipo:               sol.tipo,
+      monto:              sol.monto,
+      descripcion:        sol.descripcion,
+      fecha_extra:        sol.fecha_extra||null,
+      notas:              sol.notas||null,
+      estado:             'pendiente',
+      fecha_solicitud:    sol.fecha_solicitud
     }]).select().single();
 
     if(insertErr){
@@ -31617,10 +31618,17 @@ function _waGetMiTelefono(){
 }
 async function _waGuardarMiTelefono(tel){
   if(!_supaDb||!_jdCurrentUser) return;
-  var de = Object.assign({}, _jdCurrentUser.datos_extra||{});
-  de.whatsapp = tel;
-  _jdCurrentUser.datos_extra = de;
-  await _supaDb.from('jd_usuarios').update({datos_extra: de}).eq('id', _jdCurrentUser.id);
+  /* Guardar en telefono (columna segura) y en datos_extra.whatsapp */
+  _jdCurrentUser.telefono = tel;
+  var updates = {telefono: tel};
+  try{
+    var de = Object.assign({}, _jdCurrentUser.datos_extra||{});
+    de.whatsapp = tel;
+    _jdCurrentUser.datos_extra = de;
+    updates.datos_extra = de;
+  }catch(e){}
+  try{ await _supaDb.from('jd_usuarios').update(updates).eq('id', _jdCurrentUser.id); }
+  catch(e){ console.warn('[JD-WA] Error guardando teléfono:', e); }
 }
 async function _waGuardarConfigSistema(cfg){
   if(!_supaDb) return false;
@@ -31688,6 +31696,10 @@ function _waNotificarEstado(sol, nuevoEstado, notasAdmin){
     var notas  = notasAdmin ? '\n💬 '+notasAdmin.substring(0,100) : '';
     _waNotificarAdmins(ei+' *Solicitud '+nuevoEstado.toUpperCase()+'*\n\n'+'👤 '+nombre+'\n'+'📋 Tipo: '+tipo+notas);
     var execPhone = sol.ejecutivo_telefono||'';
+    /* Si no hay teléfono en la solicitud, buscarlo en jd_usuarios */
+    if(!execPhone && _supaDb && sol.ejecutivo_id){
+      try{ var {data:eu}=await _supaDb.from('jd_usuarios').select('telefono,datos_extra').eq('id',sol.ejecutivo_id).single(); if(eu) execPhone=(eu.datos_extra&&eu.datos_extra.whatsapp)||eu.telefono||''; }catch(e){}
+    }
     if(!execPhone){ try{ var emps=JSON.parse(localStorage.getItem('jd_empleados')||'[]'); var emp=emps.find(function(e){ return e.nombre&&sol.ejecutivo_nombre&&e.nombre.toLowerCase()===sol.ejecutivo_nombre.toLowerCase(); }); if(emp) execPhone=emp.telefono||''; }catch(e){} }
     if(execPhone){ _waEnviar(execPhone, ei+' *Actualización de Solicitud — Fornax Studios*\n\nTu solicitud de *'+tipo+'* fue actualizada.\n📌 Estado: *'+nuevoEstado.toUpperCase()+'*'+notas); }
   })().catch(function(e){ console.warn('[JD-WA] Error notificando estado:', e); });

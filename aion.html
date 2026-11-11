@@ -2454,6 +2454,7 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
       <div class="nav-item nav-sub" onclick="goPage('admin-cronograma-cap')"><span class="ico">📅</span>Cronograma Cap.</div>
       <div id="nav-mi-perfil-staff-item" class="nav-item nav-sub" onclick="staffVerMiPerfil()" style="color:#f59e0b;font-weight:600;display:none"><span class="ico">👤</span>Mi Perfil</div>
       <div id="nav-solicitudes-ejec-item" class="nav-item nav-sub" onclick="goPage('solicitudes-ejecutivos')" style="display:none;color:#f59e0b;font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes<span id="admin-sol-badge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:900;margin-left:4px"></span></div>
+      <div id="nav-admin-gestor-item" class="nav-item nav-sub" onclick="goPage('exec-sol-gestor')" style="display:none;color:#34d399;font-weight:700"><span class="ico">🎯</span>Gestor de Solicitudes</div>
       <div class="nav-item nav-sub" onclick="goPage('horarios')"><span class="ico">📅</span>Horarios Modelos</div>
       <div class="nav-item nav-sub" onclick="goPage('horarios-admin')"><span class="ico">🗓️</span>Horarios Administrativos</div>
     </div>
@@ -26328,6 +26329,9 @@ function _jdApplyUserUI() {
   // Mostrar nav item Solicitudes Ejecutivos para super_admin y admin
   const navSolEjec = document.getElementById('nav-solicitudes-ejec-item');
   if (navSolEjec) navSolEjec.style.display = (jdIsSuperAdmin() || (_jdCurrentUser && _jdCurrentUser.rol === 'admin')) ? 'flex' : 'none';
+  // Mostrar nav item Gestor de Solicitudes para super_admin y gerente
+  const navAdminGestor = document.getElementById('nav-admin-gestor-item');
+  if (navAdminGestor) navAdminGestor.style.display = (jdIsSuperAdmin() || ((_jdCurrentUser&&(_jdCurrentUser.rol||'').toLowerCase()).indexOf('gerente')>=0)) ? 'flex' : 'none';
   // Sol. Vinculación CEM — ahora unificado en Trazabilidad de Solicitudes, ocultar nav duplicado
   const navSolVincCem = document.getElementById('nav-sol-vinc-cem-item');
   if (navSolVincCem) navSolVincCem.style.display = 'none'; // siempre oculto, fusionado con Trazabilidad

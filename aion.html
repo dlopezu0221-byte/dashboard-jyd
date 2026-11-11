@@ -686,8 +686,7 @@ body.exec-fullscreen #nav-exec-perfil-group { display: block; }
 #nav-exec-modelos-group .nav-item,
 #nav-exec-solicitudes-group .nav-item,
 #nav-exec-perfil-group .nav-item { display: flex !important; }
-/* WIP: ocultar ítems en desarrollo para ejecutivo comercial (doble ID = especificidad 200 > 110) */
-#nav-exec-solicitudes-group #nav-exec-trazabilidad-item,
+/* Gestor oculto para ejecutivo vía JS; Trazabilidad habilitada — nov 2026 */
 #nav-exec-solicitudes-group #nav-exec-gestor-item { display: none !important; }
 /* Mi Agenda oculta en exec section (módulo en construcción) */
 #nav-exec-solicitudes-group .nav-item[onclick*="mi-agenda"] { display: none !important; }
@@ -2479,7 +2478,7 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
         <div id="nav-gestion-comercial-item" class="nav-item nav-sub" onclick="goPage('gestion-comercial');gcInit()" style="color:#f59e0b;font-weight:700;background:rgba(245,158,11,.07);border-left:2px solid rgba(245,158,11,.35);display:none"><span class="ico">💼</span>Gestión Comercial</div>
         <div class="nav-item nav-sub" onclick="goPage('mis-pendientes');misPendientesCargar()" style="color:#34d399;font-weight:700"><span class="ico">📌</span>Mis Pendientes<span class="mp-nav-badge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:900;margin-left:4px"></span></div>
         <div class="nav-item nav-sub" onclick="goPage('mi-agenda');agInit()" style="color:#818cf8;font-weight:700;background:rgba(99,102,241,.07);border-left:2px solid rgba(99,102,241,.35)"><span class="ico">📋</span>Mi Agenda</div>
-        <div id="nav-mon-trazabilidad-item" class="nav-item nav-sub" onclick="goPage('exec-mis-vinculos')" style="display:none;font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes</div>
+        <div id="nav-mon-trazabilidad-item" class="nav-item nav-sub" onclick="goPage('exec-mis-vinculos')" style="font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes</div>
         <div id="nav-mon-gestor-item" class="nav-item nav-sub" onclick="goPage('exec-sol-gestor')" style="display:none;font-weight:700"><span class="ico">🎯</span>Gestor de Solicitudes</div>
         <div class="nav-item nav-sub" onclick="goPage('monitor-multas');multasMonitorInit()" style="font-weight:700;color:#fca5a5"><span class="ico">⚠️</span>Multas de Modelos</div>
         <div id="nav-mon-capacitaciones-item" class="nav-item nav-sub" onclick="goPage('exec-sol-capacitacion')" style="display:none;color:#8b5cf6;font-weight:600"><span class="ico">🎓</span>Mis Capacitaciones</div>
@@ -2589,7 +2588,7 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
       <div class="nav-item nav-sub" onclick="goPage('gestion-comercial');gcInit()" style="font-weight:700"><span class="ico">💼</span>Gestión Comercial</div>
       <div class="nav-item nav-sub" onclick="goPage('mis-pendientes');misPendientesCargar()" style="font-weight:700"><span class="ico">📌</span>Mis Pendientes<span class="mp-nav-badge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:900;margin-left:4px"></span></div>
       <div class="nav-item nav-sub" onclick="goPage('mi-agenda');agInit()" style="color:#818cf8;font-weight:700;background:rgba(99,102,241,.07);border-left:2px solid rgba(99,102,241,.35)"><span class="ico">📋</span>Mi Agenda</div>
-      <div id="nav-exec-trazabilidad-item" class="nav-item nav-sub" onclick="goPage('exec-mis-vinculos')" style="display:none;font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes</div>
+      <div id="nav-exec-trazabilidad-item" class="nav-item nav-sub" onclick="goPage('exec-mis-vinculos')" style="font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes</div>
       <div id="nav-exec-gestor-item" class="nav-item nav-sub" onclick="goPage('exec-sol-gestor')" style="display:none;font-weight:700"><span class="ico">🎯</span>Gestor de Solicitudes</div>
       <div id="nav-exec-informes-item" class="nav-item nav-sub" onclick="goPage('exec-informes-gestion');execIgInit()" style="display:none;color:#34d399;font-weight:700"><span class="ico">📄</span>Informes de Gestión</div>
     </div>
@@ -26440,7 +26439,7 @@ function _jdApplyUserUI() {
     // La clase exec-fullscreen activa los grupos de nav exec vía CSS (sin overrides de overflow).
 
     // Ocultar secciones en desarrollo (WIP) para el ejecutivo comercial
-    var _execWipHide = ['nav-exec-trazabilidad-item','nav-exec-gestor-item'];
+    var _execWipHide = ['nav-exec-gestor-item']; /* Trazabilidad habilitada — nov 2026 */
     _execWipHide.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
     // Concursos e Informes de Gestión: visible solo para Fabio Angrino
     var _execNombreNav = ((_jdCurrentUser&&(_jdCurrentUser.nombre||_jdCurrentUser.name||''))||'').toLowerCase();
@@ -26469,7 +26468,7 @@ function _jdApplyUserUI() {
       _navMonGrp.querySelectorAll('.nav-subgroup.open').forEach(function(el){ el.style.display='block'; });
     }
     // 2. Ocultar ítems específicos dentro de nav-monitor-group que NO deben verse para monitores
-    var _monInternalHide = ['nav-mon-trazabilidad-item','nav-mon-gestor-item','nav-mon-capacitaciones-item','nav-mon-ahorro-item','nav-sol-vinc-cem-item','nav-vinculaciones-item'];
+    var _monInternalHide = ['nav-mon-gestor-item','nav-mon-capacitaciones-item','nav-mon-ahorro-item','nav-sol-vinc-cem-item','nav-vinculaciones-item']; /* Trazabilidad habilitada — nov 2026 */
     _monInternalHide.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
     // ── Ocultar secciones WIP (dinámico) ─────────────────────────
     if(typeof _JD_WIP !== 'undefined' && Array.isArray(_JD_WIP.pages)){

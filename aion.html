@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v6.81 -->
+<!DOCTYPE html><!-- v6.82 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -31613,22 +31613,24 @@ async function _waCargarConfigSistema(){
 }
 function _waGetMiTelefono(){
   if(!_jdCurrentUser) return '';
-  var de = _jdCurrentUser.datos_extra||{};
-  return de.whatsapp||_jdCurrentUser.telefono||'';
+  /* Priorizar telefono (columna siempre presente) */
+  return _jdCurrentUser.telefono||(_jdCurrentUser.datos_extra&&_jdCurrentUser.datos_extra.whatsapp)||'';
 }
 async function _waGuardarMiTelefono(tel){
-  if(!_supaDb||!_jdCurrentUser) return;
-  /* Guardar en telefono (columna segura) y en datos_extra.whatsapp */
+  if(!_supaDb||!_jdCurrentUser||!_jdCurrentUser.id) return;
   _jdCurrentUser.telefono = tel;
-  var updates = {telefono: tel};
+  /* 1. Guardar solo en telefono (columna que siempre existe) — save independiente */
+  try{
+    var {error:errTel} = await _supaDb.from('jd_usuarios').update({telefono: tel}).eq('id', _jdCurrentUser.id);
+    if(errTel) console.warn('[JD-WA] Error guardando telefono:', errTel);
+  }catch(e){ console.warn('[JD-WA] Error telefono:', e); }
+  /* 2. Intentar guardar en datos_extra (columna opcional) — fallo no afecta el anterior */
   try{
     var de = Object.assign({}, _jdCurrentUser.datos_extra||{});
     de.whatsapp = tel;
     _jdCurrentUser.datos_extra = de;
-    updates.datos_extra = de;
-  }catch(e){}
-  try{ await _supaDb.from('jd_usuarios').update(updates).eq('id', _jdCurrentUser.id); }
-  catch(e){ console.warn('[JD-WA] Error guardando teléfono:', e); }
+    await _supaDb.from('jd_usuarios').update({datos_extra: de}).eq('id', _jdCurrentUser.id);
+  }catch(e){ /* datos_extra puede no existir — ignorar */ }
 }
 async function _waGuardarConfigSistema(cfg){
   if(!_supaDb) return false;

@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v6.82 -->
+<!DOCTYPE html><!-- v6.83 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -31613,24 +31613,34 @@ async function _waCargarConfigSistema(){
 }
 function _waGetMiTelefono(){
   if(!_jdCurrentUser) return '';
-  /* Priorizar telefono (columna siempre presente) */
-  return _jdCurrentUser.telefono||(_jdCurrentUser.datos_extra&&_jdCurrentUser.datos_extra.whatsapp)||'';
+  /* 1. Supabase (telefono o datos_extra.whatsapp) */
+  var fromSupa = _jdCurrentUser.telefono||(_jdCurrentUser.datos_extra&&_jdCurrentUser.datos_extra.whatsapp)||'';
+  if(fromSupa) return fromSupa;
+  /* 2. Fallback localStorage (por si Supabase no pudo guardar) */
+  try{ return localStorage.getItem('jd_wa_tel_'+(_jdCurrentUser.id||_jdCurrentUser.email||''))||''; }catch(e){ return ''; }
 }
 async function _waGuardarMiTelefono(tel){
-  if(!_supaDb||!_jdCurrentUser||!_jdCurrentUser.id) return;
+  if(!_jdCurrentUser) return;
   _jdCurrentUser.telefono = tel;
-  /* 1. Guardar solo en telefono (columna que siempre existe) — save independiente */
+  /* 1. localStorage — siempre funciona, persiste en este navegador */
   try{
-    var {error:errTel} = await _supaDb.from('jd_usuarios').update({telefono: tel}).eq('id', _jdCurrentUser.id);
-    if(errTel) console.warn('[JD-WA] Error guardando telefono:', errTel);
-  }catch(e){ console.warn('[JD-WA] Error telefono:', e); }
-  /* 2. Intentar guardar en datos_extra (columna opcional) — fallo no afecta el anterior */
-  try{
-    var de = Object.assign({}, _jdCurrentUser.datos_extra||{});
-    de.whatsapp = tel;
-    _jdCurrentUser.datos_extra = de;
-    await _supaDb.from('jd_usuarios').update({datos_extra: de}).eq('id', _jdCurrentUser.id);
-  }catch(e){ /* datos_extra puede no existir — ignorar */ }
+    var lsKey = 'jd_wa_tel_'+(_jdCurrentUser.id||_jdCurrentUser.email||'');
+    localStorage.setItem(lsKey, tel);
+  }catch(e){}
+  /* 2. Supabase telefono — puede fallar por RLS, no bloquea el flujo */
+  if(_supaDb && _jdCurrentUser.id){
+    try{
+      var {error:errTel} = await _supaDb.from('jd_usuarios').update({telefono: tel}).eq('id', _jdCurrentUser.id);
+      if(errTel) console.warn('[JD-WA] RLS/error guardando telefono:', errTel);
+    }catch(e){ console.warn('[JD-WA] Error telefono Supabase:', e); }
+    /* 3. datos_extra (columna opcional) */
+    try{
+      var de = Object.assign({}, _jdCurrentUser.datos_extra||{});
+      de.whatsapp = tel;
+      _jdCurrentUser.datos_extra = de;
+      await _supaDb.from('jd_usuarios').update({datos_extra: de}).eq('id', _jdCurrentUser.id);
+    }catch(e){}
+  }
 }
 async function _waGuardarConfigSistema(cfg){
   if(!_supaDb) return false;

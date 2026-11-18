@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v6.87 -->
+<!DOCTYPE html><!-- v6.76 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -29,7 +29,7 @@ textarea{resize:vertical;min-height:70px}
 button{cursor:pointer;font-family:var(--font)}
 a{color:inherit;text-decoration:none}
 /* SIDEBAR */
-#sidebar{width:220px;min-width:220px;background:var(--sidebar);display:flex;flex-direction:column;border-right:1px solid var(--border);position:fixed;top:0;left:0;height:100vh;z-index:160;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#sidebar{width:220px;min-width:220px;background:var(--sidebar);display:flex;flex-direction:column;border-right:1px solid var(--border);position:fixed;top:0;left:0;height:100vh;z-index:100;overflow-y:auto}
 .sidebar-logo{padding:20px 16px 14px;border-bottom:1px solid var(--border);text-align:center}
 .sidebar-logo img{width:130px;height:130px;object-fit:contain;display:inline-block;filter:none;box-shadow:none}
 .sidebar-tag{font-size:10px;color:var(--muted);margin-top:6px;letter-spacing:.5px;text-align:center}
@@ -236,7 +236,7 @@ tr.hl td{background:rgba(200,168,75,.06)!important}
   #sb-ham{display:flex}
   #sidebar{left:-240px;width:220px!important;min-width:220px!important}
   #sidebar::after{display:none!important}
-  #sidebar.sb-mob-open{left:0!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;touch-action:pan-y!important}
+  #sidebar.sb-mob-open{left:0!important}
   #main{margin-left:0!important;padding-top:60px}
   body.sb-locked{overflow:hidden}
   #sb-col-btn{display:none!important}
@@ -686,10 +686,9 @@ body.exec-fullscreen #nav-exec-perfil-group { display: block; }
 #nav-exec-modelos-group .nav-item,
 #nav-exec-solicitudes-group .nav-item,
 #nav-exec-perfil-group .nav-item { display: flex !important; }
-/* Gestor oculto para ejecutivo vía JS; Trazabilidad habilitada — nov 2026 */
+/* WIP: ocultar ítems en desarrollo para ejecutivo comercial (doble ID = especificidad 200 > 110) */
+#nav-exec-solicitudes-group #nav-exec-trazabilidad-item,
 #nav-exec-solicitudes-group #nav-exec-gestor-item { display: none !important; }
-/* Mi Agenda oculta en exec section (módulo en construcción) */
-#nav-exec-solicitudes-group .nav-item[onclick*="mi-agenda"] { display: none !important; }
 
 /* ── Barra de sesión ejecutivo ── */
 #fab-session-bar {
@@ -2454,7 +2453,6 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
       <div class="nav-item nav-sub" onclick="goPage('admin-cronograma-cap')"><span class="ico">📅</span>Cronograma Cap.</div>
       <div id="nav-mi-perfil-staff-item" class="nav-item nav-sub" onclick="staffVerMiPerfil()" style="color:#f59e0b;font-weight:600;display:none"><span class="ico">👤</span>Mi Perfil</div>
       <div id="nav-solicitudes-ejec-item" class="nav-item nav-sub" onclick="goPage('solicitudes-ejecutivos')" style="display:none;color:#f59e0b;font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes<span id="admin-sol-badge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:900;margin-left:4px"></span></div>
-      <div id="nav-admin-gestor-item" class="nav-item nav-sub" onclick="goPage('exec-sol-gestor')" style="display:none;color:#34d399;font-weight:700"><span class="ico">🎯</span>Gestor de Solicitudes</div>
       <div class="nav-item nav-sub" onclick="goPage('horarios')"><span class="ico">📅</span>Horarios Modelos</div>
       <div class="nav-item nav-sub" onclick="goPage('horarios-admin')"><span class="ico">🗓️</span>Horarios Administrativos</div>
     </div>
@@ -2478,8 +2476,8 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
       <div class="nav-subgroup open" style="display:block">
         <div id="nav-gestion-comercial-item" class="nav-item nav-sub" onclick="goPage('gestion-comercial');gcInit()" style="color:#f59e0b;font-weight:700;background:rgba(245,158,11,.07);border-left:2px solid rgba(245,158,11,.35);display:none"><span class="ico">💼</span>Gestión Comercial</div>
         <div class="nav-item nav-sub" onclick="goPage('mis-pendientes');misPendientesCargar()" style="color:#34d399;font-weight:700"><span class="ico">📌</span>Mis Pendientes<span class="mp-nav-badge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:900;margin-left:4px"></span></div>
-        <div class="nav-item nav-sub" onclick="goPage('mi-agenda');agInit()" style="color:#818cf8;font-weight:700;background:rgba(99,102,241,.07);border-left:2px solid rgba(99,102,241,.35)"><span class="ico">📋</span>Mi Agenda</div>
-        <div id="nav-mon-trazabilidad-item" class="nav-item nav-sub" onclick="goPage('exec-mis-vinculos')" style="font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes</div>
+        <div class="nav-item nav-sub" onclick="goPage('mi-agenda');agInit()" style="color:#818cf8;font-weight:700;background:rgba(99,102,241,.07);border-left:2px solid rgba(99,102,241,.35);display:none"><span class="ico">📋</span>Mi Agenda</div>
+        <div id="nav-mon-trazabilidad-item" class="nav-item nav-sub" onclick="goPage('exec-mis-vinculos')" style="display:none;font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes</div>
         <div id="nav-mon-gestor-item" class="nav-item nav-sub" onclick="goPage('exec-sol-gestor')" style="display:none;font-weight:700"><span class="ico">🎯</span>Gestor de Solicitudes</div>
         <div class="nav-item nav-sub" onclick="goPage('monitor-multas');multasMonitorInit()" style="font-weight:700;color:#fca5a5"><span class="ico">⚠️</span>Multas de Modelos</div>
         <div id="nav-mon-capacitaciones-item" class="nav-item nav-sub" onclick="goPage('exec-sol-capacitacion')" style="display:none;color:#8b5cf6;font-weight:600"><span class="ico">🎓</span>Mis Capacitaciones</div>
@@ -2588,8 +2586,8 @@ tr:nth-child(even) td{background:rgba(125,211,252,.025)!important}
     <div id="ng-exec-sol" class="nav-subgroup open">
       <div class="nav-item nav-sub" onclick="goPage('gestion-comercial');gcInit()" style="font-weight:700"><span class="ico">💼</span>Gestión Comercial</div>
       <div class="nav-item nav-sub" onclick="goPage('mis-pendientes');misPendientesCargar()" style="font-weight:700"><span class="ico">📌</span>Mis Pendientes<span class="mp-nav-badge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:900;margin-left:4px"></span></div>
-      <div class="nav-item nav-sub" onclick="goPage('mi-agenda');agInit()" style="color:#818cf8;font-weight:700;background:rgba(99,102,241,.07);border-left:2px solid rgba(99,102,241,.35)"><span class="ico">📋</span>Mi Agenda</div>
-      <div id="nav-exec-trazabilidad-item" class="nav-item nav-sub" onclick="goPage('exec-mis-vinculos')" style="font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes</div>
+      <div class="nav-item nav-sub" onclick="goPage('mi-agenda');agInit()" style="color:#818cf8;font-weight:700;background:rgba(99,102,241,.07);border-left:2px solid rgba(99,102,241,.35);display:none"><span class="ico">📋</span>Mi Agenda</div>
+      <div id="nav-exec-trazabilidad-item" class="nav-item nav-sub" onclick="goPage('exec-mis-vinculos')" style="display:none;font-weight:700"><span class="ico">📋</span>Trazabilidad de Solicitudes</div>
       <div id="nav-exec-gestor-item" class="nav-item nav-sub" onclick="goPage('exec-sol-gestor')" style="display:none;font-weight:700"><span class="ico">🎯</span>Gestor de Solicitudes</div>
       <div id="nav-exec-informes-item" class="nav-item nav-sub" onclick="goPage('exec-informes-gestion');execIgInit()" style="display:none;color:#34d399;font-weight:700"><span class="ico">📄</span>Informes de Gestión</div>
     </div>
@@ -14052,15 +14050,18 @@ async function execFacRender(){
               /* POST-CACHÉ GUARD GE: remover modelos GE que no deben estar en Fornax.
                  Protege contra caché contaminada por registros mal clasificados en Supabase.
                  Lista permanente — agregar aquí cualquier modelo GE que haya aparecido en Fornax por error. */
-              var _geExcludeFromFnx=['lucia brown'];
-              _geExcludeFromFnx.forEach(function(n){
-                _e3ModelosFornax.delete(n);
-                _e3ModelosFornaxBase.delete(n);
-                var idx=_e3ModelosAsig.indexOf(n);
-                if(idx>=0) _e3ModelosAsig.splice(idx,1);
-                var idx2=_e3EstsOrig.indexOf(n);
-                if(idx2>=0) _e3EstsOrig.splice(idx2,1);
-                console.warn('[efac3 GE-CACHE-GUARD] '+n+' eliminado de sets Fornax (modelo GE)');
+              var _geExcludeFromFnx=['lucia brown','scarlett_violet','scarlett violet'];
+              _geExcludeFromFnx.forEach(function(excLow){
+                var excL=excLow.toLowerCase();
+                Array.from(_e3ModelosFornax).forEach(function(n){ if((n||'').trim().toLowerCase()===excL){ _e3ModelosFornax.delete(n); } });
+                Array.from(_e3ModelosFornaxBase).forEach(function(n){ if((n||'').trim().toLowerCase()===excL){ _e3ModelosFornaxBase.delete(n); } });
+                for(var _gi=_e3ModelosAsig.length-1;_gi>=0;_gi--){
+                  if((_e3ModelosAsig[_gi]||'').trim().toLowerCase()===excL) _e3ModelosAsig.splice(_gi,1);
+                }
+                for(var _gi2=_e3EstsOrig.length-1;_gi2>=0;_gi2--){
+                  if((_e3EstsOrig[_gi2]||'').trim().toLowerCase()===excL) _e3EstsOrig.splice(_gi2,1);
+                }
+                console.warn('[efac3 GE-CACHE-GUARD] '+excLow+' eliminado de sets Fornax (modelo GE)');
               });
               _e3SupaMods = [];
               _ssRestored = true;
@@ -14433,6 +14434,24 @@ async function _e3CargarMes(){
       if(allRows.length!==_antes){
         console.warn('[efac3 v5.34c] Traslados excluidos de Estadísticas Fornax: '+
           (_antes-allRows.length)+' filas (Lucia Brown >= 2026-09-01). Restantes: '+allRows.length);
+      }
+    })();
+    /* ── FIX GE-row-filter: Excluir filas de modelos GE independientes ──────────
+       Scarlett_Violet factura bajo estudio_nombre=Fornax Studios pero es modelo GE
+       (ejecutivo_id asignado). Sus filas NO deben aparecer en stats del monitor Fornax. */
+    (function(){
+      var _geNamesLower=['scarlett_violet','scarlett violet'];
+      var _antesGE=allRows.length;
+      allRows=allRows.filter(function(r){
+        var _mod=(r.modelo_nombre||'').trim().toLowerCase();
+        for(var _gi=0;_gi<_geNamesLower.length;_gi++){
+          if(_mod.indexOf(_geNamesLower[_gi])!==-1) return false;
+        }
+        return true;
+      });
+      if(allRows.length!==_antesGE){
+        console.warn('[efac3 GE-row-filter] '+(_antesGE-allRows.length)+
+          ' filas de modelo(s) GE excluidas de Estadísticas Fornax. Restantes: '+allRows.length);
       }
     })();
 
@@ -19097,6 +19116,35 @@ async function _e3dCargar(){
       _e3d.rangoActual   = rango;
       console.warn('[e3d CACHE v6.61] ⚡ Dashboard desde caché ('+_e3d.rows.length+
         ' filas | age='+Math.round((Date.now()-_e3dCkEntry.ts)/1000)+'s)');
+      /* GE-cache-filter: eliminar modelos GE (Scarlett_Violet, JackHard19) del cache del Dashboard */
+      (function(){
+        var _geNamesLower=['jackhard19','scarlett violet'];
+        var _prevLen=_e3d.rows.length;
+        _e3d.rows=_e3d.rows.filter(function(r){
+          var _est=(r.estudio_nombre||'').toLowerCase();
+          if(_est.indexOf('fornax')===-1) return true;
+          var _mod=(r.modelo_nombre||'').replace(/_/g,' ').trim().toLowerCase()
+                    .normalize('NFD').replace(/[̀-ͯ]/g,'');
+          for(var _gci=0;_gci<_geNamesLower.length;_gci++){
+            if(_mod.indexOf(_geNamesLower[_gci])!==-1) return false;
+          }
+          return true;
+        });
+        if(_e3d.rows.length<_prevLen){
+          var _geRem=_prevLen-_e3d.rows.length;
+          console.warn('[e3d GE-cache-filter] '+_geRem+' filas GE excluidas del cache Dashboard');
+          if(_e3d.rawTotal!==null && typeof _e3valCr==='function'){
+            var _seenRCk=new Set();
+            var _dedupCk=_e3d.rows.filter(function(r){
+              var k=(r.fecha||'')+'|'+(r.modelo_nombre||'')+'|'+(r.plataforma||'')+'|'+(+(r.valor||0));
+              if(_seenRCk.has(k)) return false; _seenRCk.add(k); return true;
+            });
+            _e3d.rawTotal=_dedupCk.reduce(function(s,r){ return s+_e3valCr(r.plataforma||'',r.valor); },0);
+            _e3d.realAcum=null;
+            console.warn('[e3d GE-cache-filter] rawTotal recalculado:',Math.round(_e3d.rawTotal));
+          }
+        }
+      })();
       _e3dRender(rango, rangoPrev, f);
       _e3dCkHit = true;
     }
@@ -19448,7 +19496,7 @@ async function _e3dCargar(){
        operativamente a Fornax antes de 2026-09-01).
        Agregar más nombres en _ge_excl_fornax para extender la exclusión a otros casos similares. */
     (function(){
-      var _ge_excl_fornax=['jackhard19']; /* nombres en minúscula, sin tilde, sin guión bajo */
+      var _ge_excl_fornax=['jackhard19','scarlett violet']; /* nombres en minúscula, sin tilde; _→espacio ya hecho arriba — deploy:2026-11-18c */
       var _ante_ge=allRows.length;
       allRows=allRows.filter(function(r){
         var _est=(r.estudio_nombre||'').toLowerCase();
@@ -19834,9 +19882,12 @@ async function _e3dCargar(){
           if(_e3ModelosFornaxBase && _e3ModelosFornaxBase.size > 0 && !_e3ModelosFornaxBase.has(nom)) return;
           // Excluir Lucia Brown desde 2026-09-01 (= filtro allRows arriba)
           if((r.fecha||'') >= '2026-09-01'){
-            var _mn = nom.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+            var _mn = nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
             if(_mn.indexOf('lucia') !== -1 && _mn.indexOf('brow') !== -1) return;
           }
+          // Excluir Scarlett_Violet (modelo GE independiente — no pertenece al monitor Fornax)
+          { var _scVn=nom.replace(/_/g,' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+            if(_scVn.indexOf('scarlett')!==-1 && _scVn.indexOf('violet')!==-1) return; }
           _cvAcum += _e3valCr(r.plataforma||'', r.valor);
         });
         _e3d.cwTotal = Math.round(_cvAcum);
@@ -22590,7 +22641,6 @@ function _e3dChartPlat(c, platList){
       <button class="btn btn-ghost btn-sm" onclick="adminCargarSolicitudes()">🔄 Actualizar</button>
       <button onclick="adminRepararRegistrosLegacy()" style="padding:7px 14px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.35);border-radius:7px;color:#60a5fa;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap">🔧 Reparar Legacy</button>
       <button onclick="emailMostrarConfigPanel()" style="padding:7px 14px;background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.3);border-radius:6px;color:#c8a84b;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap">⚙️ Email</button>
-      <button onclick="waMostrarConfigPanel()" style="padding:7px 14px;background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.3);border-radius:6px;color:#25d366;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap">💬 WhatsApp</button>
       <button onclick="adminBorrarTodasSolicitudes()" style="padding:7px 14px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:6px;color:#f87171;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap">🗑️ Limpiar</button>
     </div>
   </div>
@@ -26056,7 +26106,6 @@ async function _jdLoadUserProfile(authUser) {
       }
       // Actualizar último acceso (fire-and-forget)
       _supaDb.from('jd_usuarios').update({ ultimo_acceso: new Date().toISOString() }).eq('email', authUser.email).then(function(){});
-      try{ if(typeof _waCargarConfigSistema==='function') _waCargarConfigSistema(); }catch(e){}
       // Cargar ID de jd_empleados con timeout de 5s
       // modelos.ejecutivo_id almacena IDs de jd_empleados (ej: 'mtu6o1vtqx7'), NO el UUID de jd_usuarios.
       try {
@@ -26110,7 +26159,6 @@ async function _jdRefreshProfileBg(authUser, profKey, empKey) {
       }
       try { sessionStorage.setItem(profKey, JSON.stringify(_r.data)); } catch(_) {}
       _supaDb.from('jd_usuarios').update({ ultimo_acceso: new Date().toISOString() }).eq('id', authUser.id).then(function(){});
-      try{ if(typeof _waCargarConfigSistema==='function') _waCargarConfigSistema(); }catch(e){}
       console.log('[JD bg-refresh] Perfil actualizado OK:', _r.data.email);
       // Refrescar empleado_id si faltaba
       if (!_jdCurrentEmpleadoId) {
@@ -26326,12 +26374,9 @@ function _jdApplyUserUI() {
   const navLiqEjec = document.getElementById('nav-liqs-ejecutivos-item');
   if (navLiqEjec) navLiqEjec.style.display = jdIsSuperAdmin() ? 'flex' : 'none';
 
-  // Mostrar nav item Solicitudes Ejecutivos para super_admin y admin
+  // Mostrar nav item Solicitudes Ejecutivos solo para super_admin
   const navSolEjec = document.getElementById('nav-solicitudes-ejec-item');
-  if (navSolEjec) navSolEjec.style.display = (jdIsSuperAdmin() || (_jdCurrentUser && _jdCurrentUser.rol === 'admin')) ? 'flex' : 'none';
-  // Mostrar nav item Gestor de Solicitudes para super_admin y gerente
-  const navAdminGestor = document.getElementById('nav-admin-gestor-item');
-  if (navAdminGestor) { var _rGest = (_jdCurrentUser && _jdCurrentUser.rol) ? _jdCurrentUser.rol.toLowerCase() : ''; navAdminGestor.style.display = (jdIsSuperAdmin() || _rGest === 'gerente' || _rGest === 'admin') ? 'flex' : 'none'; }
+  if (navSolEjec) navSolEjec.style.display = jdIsSuperAdmin() ? 'flex' : 'none';
   // Sol. Vinculación CEM — ahora unificado en Trazabilidad de Solicitudes, ocultar nav duplicado
   const navSolVincCem = document.getElementById('nav-sol-vinc-cem-item');
   if (navSolVincCem) navSolVincCem.style.display = 'none'; // siempre oculto, fusionado con Trazabilidad
@@ -26446,7 +26491,7 @@ function _jdApplyUserUI() {
     // La clase exec-fullscreen activa los grupos de nav exec vía CSS (sin overrides de overflow).
 
     // Ocultar secciones en desarrollo (WIP) para el ejecutivo comercial
-    var _execWipHide = ['nav-exec-gestor-item']; /* Trazabilidad habilitada — nov 2026 */
+    var _execWipHide = ['nav-exec-trazabilidad-item','nav-exec-gestor-item'];
     _execWipHide.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
     // Concursos e Informes de Gestión: visible solo para Fabio Angrino
     var _execNombreNav = ((_jdCurrentUser&&(_jdCurrentUser.nombre||_jdCurrentUser.name||''))||'').toLowerCase();
@@ -26475,7 +26520,7 @@ function _jdApplyUserUI() {
       _navMonGrp.querySelectorAll('.nav-subgroup.open').forEach(function(el){ el.style.display='block'; });
     }
     // 2. Ocultar ítems específicos dentro de nav-monitor-group que NO deben verse para monitores
-    var _monInternalHide = ['nav-mon-gestor-item','nav-mon-capacitaciones-item','nav-mon-ahorro-item','nav-sol-vinc-cem-item','nav-vinculaciones-item']; /* Trazabilidad habilitada — nov 2026 */
+    var _monInternalHide = ['nav-mon-trazabilidad-item','nav-mon-gestor-item','nav-mon-capacitaciones-item','nav-mon-ahorro-item','nav-sol-vinc-cem-item','nav-vinculaciones-item'];
     _monInternalHide.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
     // ── Ocultar secciones WIP (dinámico) ─────────────────────────
     if(typeof _JD_WIP !== 'undefined' && Array.isArray(_JD_WIP.pages)){
@@ -26487,9 +26532,6 @@ function _jdApplyUserUI() {
     // Sol. de Fotos (sin ID) — ocultar por onclick
     var _solFotos = document.querySelector('#nav-monitor-group [onclick*="solicitudes-fotos"]');
     if(_solFotos) _solFotos.style.display='none';
-    // Mi Agenda oculta (módulo en construcción) — ítem monitor sin ID, ocultar por onclick
-    var _miAgendaMon = document.querySelector('#nav-monitor-group [onclick*="mi-agenda"]');
-    if(_miAgendaMon) _miAgendaMon.style.display='none';
     // Erika Noguera no tiene acceso a Concursos Fornax en el nav de monitor
     var _monCncEmail=((_jdCurrentUser&&(_jdCurrentUser.email||''))||'').toLowerCase();
     if(_monCncEmail==='erika.noguera@grupoempresarialjd.com'){
@@ -26499,9 +26541,9 @@ function _jdApplyUserUI() {
     // Mostrar ítem de Gestión Comercial en el nav del monitor
     var _gcNavItem = document.getElementById('nav-gestion-comercial-item');
     if(_gcNavItem) _gcNavItem.style.display='';
-    // Mostrar Plan Diario para monitores
-    var _pdNavMon = document.getElementById('nav-plan-diario-item');
-    if(_pdNavMon) _pdNavMon.style.display='';
+    // Mi Agenda oculta (módulo en construcción)
+    // var _pdNavMon = document.getElementById('nav-plan-diario-item');
+    // if(_pdNavMon) _pdNavMon.style.display='';
     document.body.classList.add('monitor-mode');
     goPage('exec-facturacion');
     setTimeout(function(){
@@ -26531,9 +26573,9 @@ function _jdApplyUserUI() {
     if (_navAdm3) _navAdm3.style.display = '';
     if (_navMult3) _navMult3.style.display = '';
   }
-  // Mi Agenda — visible para todos los perfiles autenticados (monitor ya la muestra antes del return)
-  var _navPD3 = document.getElementById('nav-plan-diario-item');
-  if (_navPD3) _navPD3.style.display = '';
+  // Mi Agenda — OCULTA (módulo en construcción, no mostrar en producción)
+  // var _navPD3 = document.getElementById('nav-plan-diario-item');
+  // if (_navPD3) _navPD3.style.display = '';
 
   // ── Panel MODO PREVIEW · SECCIONES WIP (solo super_admin / gerente) ──
   var _esSuperAdmin = ['super_admin','superadmin'].indexOf(_rol.toLowerCase()) >= 0;
@@ -28815,16 +28857,15 @@ async function execEnviarSolicitud(){
 
   try{
     var { data: inserted, error: insertErr } = await _supaDb.from('jd_solicitudes_exec').insert([{
-      ejecutivo_id:       sol.ejecutivo_id,
-      ejecutivo_nombre:   sol.ejecutivo_nombre,
-      ejecutivo_telefono: _waGetMiTelefono()||sol.ejecutivo_telefono||null,
-      tipo:               sol.tipo,
-      monto:              sol.monto,
-      descripcion:        sol.descripcion,
-      fecha_extra:        sol.fecha_extra||null,
-      notas:              sol.notas||null,
-      estado:             'pendiente',
-      fecha_solicitud:    sol.fecha_solicitud
+      ejecutivo_id:    sol.ejecutivo_id,
+      ejecutivo_nombre:sol.ejecutivo_nombre,
+      tipo:            sol.tipo,
+      monto:           sol.monto,
+      descripcion:     sol.descripcion,
+      fecha_extra:     sol.fecha_extra||null,
+      notas:           sol.notas||null,
+      estado:          'pendiente',
+      fecha_solicitud: sol.fecha_solicitud
     }]).select().single();
 
     if(insertErr){
@@ -31456,8 +31497,6 @@ function _emailHtmlCambioEstado(sol, nuevoEstado, notasAdmin){
 
 /* --- Hook genérico: notificar creación de solicitud --- */
 function _emailNotificarCreacion(sol){
-  // WhatsApp siempre, independiente del email
-  try{ if(typeof _waNotificarCreacion==='function') _waNotificarCreacion(sol); }catch(e){}
   var cfg = _emailGetCfg();
   if(!cfg.enabled) return;
   (async function(){
@@ -31473,8 +31512,6 @@ function _emailNotificarCreacion(sol){
 
 /* --- Hook genérico: notificar cambio de estado --- */
 function _emailNotificarEstado(sol, nuevoEstado, notasAdmin){
-  // WhatsApp siempre, independiente del email
-  try{ if(typeof _waNotificarEstado==='function') _waNotificarEstado(sol, nuevoEstado, notasAdmin); }catch(e){}
   var cfg = _emailGetCfg();
   if(!cfg.enabled) return;
   (async function(){
@@ -31589,217 +31626,6 @@ async function emailProbarConexion(){
   var ok = await _emailEnviar([to], '🧪 Prueba de Conexión — Grupo J&D',
     _emailBase('Prueba de Email', '<div style="text-align:center;padding:20px"><div style="font-size:48px;margin-bottom:16px">✅</div><div style="font-size:22px;font-weight:800;color:#f1f5f9">¡Conexión exitosa!</div><div style="font-size:14px;color:#94a3b8;margin-top:10px">El sistema de notificaciones por correo está correctamente configurado para el Grupo J&D.</div></div>'), null);
   if(typeof toast==='function') toast(ok ? '✅ Email de prueba enviado a '+to : '❌ Error enviando correo — verifique las credenciales', ok?'ok':'error');
-}
-
-/* ════════════════════════════════════════════════════════════════
-   WHATSAPP — UltraMsg · Config en Supabase · Teléfono por usuario
-   ════════════════════════════════════════════════════════════════ */
-var _waSistemaCfg = null; /* {enabled, instanceId, token} cargado desde jd_configuracion */
-
-async function _waCargarConfigSistema(){
-  if(!_supaDb) return;
-  try{
-    /* v6.87: RPC SECURITY DEFINER para bypassar RLS en SELECT de jd_configuracion */
-    var {data, error} = await _supaDb.rpc('cargar_config_wa');
-    if(error) throw error;
-    if(data && data.length > 0){
-      var cfg = {enabled:false, instanceId:'', token:''};
-      data.forEach(function(r){
-        if(r.clave==='wa_enabled') cfg.enabled = r.valor==='true'||r.valor===true;
-        if(r.clave==='wa_instance_id') cfg.instanceId = r.valor||'';
-        if(r.clave==='wa_token') cfg.token = r.valor||'';
-      });
-      _waSistemaCfg = cfg;
-      console.log('[JD-WA] Config cargada:', cfg.enabled?'ACTIVO':'INACTIVO', cfg.instanceId?'(con instancia)':'(sin instancia)');
-    }
-  }catch(e){ console.warn('[JD-WA] Error cargando config sistema:', e); }
-}
-function _waGetMiTelefono(){
-  if(!_jdCurrentUser) return '';
-  /* 1. datos_extra.whatsapp — guardado por RPC SECURITY DEFINER */
-  var fromDE = _jdCurrentUser.datos_extra && _jdCurrentUser.datos_extra.whatsapp;
-  if(fromDE) return fromDE;
-  /* 2. telefono columna top-level (fallback) */
-  if(_jdCurrentUser.telefono) return _jdCurrentUser.telefono;
-  /* 3. localStorage — fallback offline */
-  try{ return localStorage.getItem('jd_wa_tel_'+(_jdCurrentUser.id||_jdCurrentUser.email||''))||''; }catch(e){ return ''; }
-}
-async function _waGuardarMiTelefono(tel){
-  if(!_jdCurrentUser) return;
-  /* Actualizar en memoria */
-  if(!_jdCurrentUser.datos_extra) _jdCurrentUser.datos_extra = {};
-  _jdCurrentUser.datos_extra.whatsapp = tel;
-  _jdCurrentUser.telefono = tel;
-  /* 1. localStorage — siempre funciona */
-  try{ localStorage.setItem('jd_wa_tel_'+(_jdCurrentUser.id||_jdCurrentUser.email||''), tel); }catch(e){}
-  /* 2. RPC guardar_telefono_wa — SECURITY DEFINER bypasa RLS */
-  if(_supaDb && _jdCurrentUser.id){
-    try{
-      var {error:errRpc} = await _supaDb.rpc('guardar_telefono_wa', {p_tel: tel});
-      if(errRpc) console.warn('[JD-WA] Error RPC guardar_telefono_wa:', errRpc);
-      else console.log('[JD-WA] ✅ Teléfono WhatsApp guardado en Supabase');
-    }catch(e){ console.warn('[JD-WA] Error RPC:', e); }
-  }
-}
-async function _waGuardarConfigSistema(cfg){
-  if(!_supaDb) return false;
-  try{
-    /* v6.86: RPC SECURITY DEFINER para bypassar RLS en jd_configuracion */
-    var {error:errRpc} = await _supaDb.rpc('guardar_config_wa', {
-      p_enabled: cfg.enabled ? true : false,
-      p_instance_id: cfg.instanceId||'',
-      p_token: cfg.token||''
-    });
-    if(errRpc){ console.warn('[JD-WA] Error RPC guardar_config_wa:', errRpc); return false; }
-    _waSistemaCfg = Object.assign({}, cfg);
-    console.log('[JD-WA] ✅ Config sistema guardada en Supabase');
-    return true;
-  }catch(e){ console.warn('[JD-WA] Error guardando config sistema:', e); return false; }
-}
-async function _waEnviar(toPhone, message){
-  var cfg = _waSistemaCfg;
-  if(!cfg||!cfg.enabled||!cfg.instanceId||!cfg.token||!toPhone) return false;
-  var phone = (toPhone||'').replace(/[^0-9]/g,'');
-  if(phone.length < 7) return false;
-  try{
-    var resp = await fetch('https://api.ultramsg.com/'+cfg.instanceId+'/messages/chat', {
-      method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:'token='+encodeURIComponent(cfg.token)+'&to='+encodeURIComponent(phone)+'&body='+encodeURIComponent(message)
-    });
-    var data = await resp.json();
-    if(data && (data.sent==='true'||data.sent===true)) return true;
-    console.warn('[JD-WA] Respuesta UltraMsg:', data);
-    return false;
-  }catch(e){ console.warn('[JD-WA] Error enviando WA:', e); return false; }
-}
-async function _waNotificarAdmins(mensaje){
-  if(!_supaDb||!_waSistemaCfg||!_waSistemaCfg.enabled) return;
-  try{
-    var {data:admins} = await _supaDb.from('jd_usuarios').select('nombre,datos_extra,telefono').in('rol',['admin','super_admin']).eq('estado','activo');
-    if(!admins) return;
-    for(var a of admins){
-      var phone = (a.datos_extra&&a.datos_extra.whatsapp) || a.telefono || '';
-      if(phone) _waEnviar(phone, mensaje);
-    }
-  }catch(e){ console.warn('[JD-WA] Error notificando admins:', e); }
-}
-function _waTipoLabel(tipo){
-  var m={prestamo:'Préstamo',ahorro:'Ahorro',ahorro_retiro:'Retiro de Ahorro',instalaciones:'Instalación',implementos:'Implementos',paginas:'Páginas',carta_laboral:'Carta Laboral',sexshop:'Compra Sex Shop',fotos:'Sesión Fotográfica',capacitacion:'Capacitación',otro:'Otro'};
-  return m[tipo]||tipo||'Solicitud';
-}
-function _waNotificarCreacion(sol){
-  if(!_waSistemaCfg||!_waSistemaCfg.enabled) return;
-  (async function(){
-    var tipo   = _waTipoLabel(sol.tipo);
-    var nombre = sol.ejecutivo_nombre||'Sin nombre';
-    var fecha  = sol.fecha_solicitud||new Date().toISOString().slice(0,10);
-    var monto  = sol.monto ? ' | Monto: $'+Number(sol.monto).toLocaleString('es-CO') : '';
-    var desc   = sol.descripcion ? '\n📝 '+sol.descripcion.substring(0,80) : '';
-    _waNotificarAdmins('🔔 *Nueva Solicitud — Fornax Studios*\n\n'+'👤 '+nombre+'\n'+'📋 Tipo: '+tipo+monto+'\n'+'📅 Fecha: '+fecha+desc+'\n\n'+'Estado: ⏳ Pendiente');
-    var execPhone = (typeof _jdCurrentUser!=='undefined'&&_jdCurrentUser&&_jdCurrentUser.telefono)?_jdCurrentUser.telefono:sol.ejecutivo_telefono||'';
-    if(execPhone){ _waEnviar(execPhone,'✅ *Solicitud Recibida — Fornax Studios*\n\nTu solicitud de *'+tipo+'* fue recibida correctamente.\n📅 Fecha: '+fecha+monto+desc+'\n\nTe notificaremos cuando haya una respuesta. ⏳'); }
-  })().catch(function(e){ console.warn('[JD-WA] Error notificando creación:', e); });
-}
-function _waNotificarEstado(sol, nuevoEstado, notasAdmin){
-  if(!_waSistemaCfg||!_waSistemaCfg.enabled) return;
-  (async function(){
-    var tipo   = _waTipoLabel(sol.tipo);
-    var nombre = sol.ejecutivo_nombre||'Sin nombre';
-    var eicons = {pendiente:'⏳',revision:'🔍',aprobado:'✅',rechazado:'❌',proceso:'🔧',completado:'🎉',en_proceso:'🔄',cerrado:'🔒'};
-    var ei = eicons[nuevoEstado]||'📋';
-    var notas  = notasAdmin ? '\n💬 '+notasAdmin.substring(0,100) : '';
-    _waNotificarAdmins(ei+' *Solicitud '+nuevoEstado.toUpperCase()+'*\n\n'+'👤 '+nombre+'\n'+'📋 Tipo: '+tipo+notas);
-    var execPhone = sol.ejecutivo_telefono||'';
-    /* Si no hay teléfono en la solicitud, buscarlo en jd_usuarios */
-    if(!execPhone && _supaDb && sol.ejecutivo_id){
-      try{ var {data:eu}=await _supaDb.from('jd_usuarios').select('telefono,datos_extra').eq('id',sol.ejecutivo_id).single(); if(eu) execPhone=(eu.datos_extra&&eu.datos_extra.whatsapp)||eu.telefono||''; }catch(e){}
-    }
-    if(!execPhone){ try{ var emps=JSON.parse(localStorage.getItem('jd_empleados')||'[]'); var emp=emps.find(function(e){ return e.nombre&&sol.ejecutivo_nombre&&e.nombre.toLowerCase()===sol.ejecutivo_nombre.toLowerCase(); }); if(emp) execPhone=emp.telefono||''; }catch(e){} }
-    if(execPhone){ _waEnviar(execPhone, ei+' *Actualización de Solicitud — Fornax Studios*\n\nTu solicitud de *'+tipo+'* fue actualizada.\n📌 Estado: *'+nuevoEstado.toUpperCase()+'*'+notas); }
-  })().catch(function(e){ console.warn('[JD-WA] Error notificando estado:', e); });
-}
-async function waMostrarConfigPanel(){
-  var esSuperAdmin = typeof jdIsSuperAdmin==='function' && jdIsSuperAdmin();
-  var esAdmin = _jdCurrentUser && (_jdCurrentUser.rol==='admin'||_jdCurrentUser.rol==='super_admin');
-  if(!esAdmin) return;
-  var existing = document.getElementById('jd-wa-cfg-modal');
-  if(existing){ existing.remove(); return; }
-  /* v6.87: recargar siempre desde Supabase antes de mostrar */
-  await _waCargarConfigSistema();
-  var cfg = _waSistemaCfg || {enabled:false, instanceId:'', token:''};
-  var miTel = _waGetMiTelefono();
-  var htmlInstance = esSuperAdmin ? (
-    '<div style="display:flex;flex-direction:column;gap:14px;margin-bottom:16px">'+
-    '<div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">⚙️ Instancia UltraMsg (compartida)</div>'+
-    '<div style="display:flex;align-items:center;justify-content:space-between;background:#0f172a;border-radius:10px;padding:14px 16px;margin-bottom:4px">'+
-    '<div><div style="font-size:14px;font-weight:700;color:#f1f5f9">Activar notificaciones</div>'+
-    '<div style="font-size:12px;color:#64748b;margin-top:2px">Activa para todo el sistema</div></div>'+
-    '<label style="cursor:pointer;display:flex;align-items:center;gap:8px">'+
-    '<input type="checkbox" id="wa-cfg-enabled" '+(cfg.enabled?'checked':'')+' style="width:18px;height:18px;cursor:pointer">'+
-    '<span style="font-size:13px;color:#25d366;font-weight:700" id="wa-cfg-enabled-label">'+(cfg.enabled?'ACTIVO':'INACTIVO')+'</span>'+
-    '</label></div>'+
-    _emailCfgInput('wa-cfg-instance','Instance ID de UltraMsg','instance12345','Tu Instance ID de UltraMsg',cfg.instanceId)+
-    _emailCfgInput('wa-cfg-token','Token de UltraMsg','xxxxxxxxxxxxxxxx','Token de autenticación de UltraMsg',cfg.token)+
-    '</div>'
-  ) : (
-    '<div style="background:rgba(37,211,102,.06);border:1px solid rgba(37,211,102,.15);border-radius:8px;padding:12px 14px;margin-bottom:16px">'+
-    '<div style="font-size:12px;color:#94a3b8">La instancia de UltraMsg es configurada por el administrador principal.</div>'+
-    '<div style="font-size:12px;color:#25d366;font-weight:600;margin-top:4px">'+(cfg.enabled?'✅ Notificaciones ACTIVAS':'⏸ Notificaciones INACTIVAS')+'</div></div>'
-  );
-  var overlay = document.createElement('div');
-  overlay.id = 'jd-wa-cfg-modal';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px';
-  overlay.innerHTML =
-    '<div style="background:#1e293b;border:1px solid #334155;border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,.7)">'+
-    '<div style="padding:24px 28px;border-bottom:1px solid #334155;display:flex;align-items:center;justify-content:space-between">'+
-    '<div><div style="font-size:18px;font-weight:800;color:#f1f5f9">💬 WhatsApp — Notificaciones</div>'+
-    '<div style="font-size:12px;color:#64748b;margin-top:3px">Vincula tu número · Fornax Studios</div></div>'+
-    '<button onclick="document.getElementById(\'jd-wa-cfg-modal\').remove()" style="padding:6px 12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:8px;color:#f87171;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">✕</button>'+
-    '</div>'+
-    '<div style="padding:24px 28px">'+
-    htmlInstance+
-    '<div style="display:flex;flex-direction:column;gap:14px">'+
-    '<div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px">📱 Mi Número WhatsApp</div>'+
-    _emailCfgInput('wa-cfg-mitel','Mi Teléfono (con código de país)','573001234567','Número donde recibirás notificaciones — sin + ni espacios (ej: 573001234567)',miTel)+
-    '</div>'+
-    '<div style="display:flex;gap:10px;margin-top:24px">'+
-    '<button onclick="waGuardarConfig()" style="flex:1;padding:12px;background:#25d366;color:#0f172a;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;font-family:Outfit,sans-serif">💾 Guardar</button>'+
-    (esSuperAdmin?'<button onclick="waProbarConexion()" style="padding:12px 20px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.35);border-radius:8px;color:#60a5fa;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">🧪 Probar</button>':'')+
-    '</div></div></div>';
-  document.body.appendChild(overlay);
-  var chk=document.getElementById('wa-cfg-enabled');
-  if(chk) chk.onchange=function(){ var lbl=document.getElementById('wa-cfg-enabled-label'); if(lbl) lbl.textContent=this.checked?'ACTIVO':'INACTIVO'; };
-  overlay.addEventListener('click',function(e){ if(e.target===overlay) overlay.remove(); });
-}
-async function waGuardarConfig(){
-  var esSuperAdmin = typeof jdIsSuperAdmin==='function' && jdIsSuperAdmin();
-  var miTel = (document.getElementById('wa-cfg-mitel')?.value||'').replace(/[^0-9]/g,'');
-  await _waGuardarMiTelefono(miTel);
-  if(esSuperAdmin){
-    var cfg = {
-      enabled: document.getElementById('wa-cfg-enabled')?.checked||false,
-      instanceId: (document.getElementById('wa-cfg-instance')?.value||'').trim(),
-      token: (document.getElementById('wa-cfg-token')?.value||'').trim()
-    };
-    await _waGuardarConfigSistema(cfg);
-    if(typeof toast==='function') toast(cfg.enabled?'✅ WhatsApp configurado — notificaciones ACTIVAS':'💾 Configuración guardada — INACTIVO','ok');
-  } else {
-    if(typeof toast==='function') toast(miTel?'✅ Número vinculado — recibirás notificaciones en tu WhatsApp':'💾 Número eliminado','ok');
-  }
-  var modal=document.getElementById('jd-wa-cfg-modal'); if(modal) modal.remove();
-}
-async function waProbarConexion(){
-  var esSuperAdmin = typeof jdIsSuperAdmin==='function' && jdIsSuperAdmin();
-  if(!esSuperAdmin) return;
-  var instancia = (document.getElementById('wa-cfg-instance')?.value||'').trim();
-  var token = (document.getElementById('wa-cfg-token')?.value||'').trim();
-  var miTel = (document.getElementById('wa-cfg-mitel')?.value||'').replace(/[^0-9]/g,'');
-  if(!instancia||!token||!miTel){ if(typeof toast==='function') toast('⚠️ Completa todos los campos primero','warn'); return; }
-  var prevCfg = _waSistemaCfg;
-  _waSistemaCfg = {enabled:true, instanceId:instancia, token:token};
-  var ok = await _waEnviar(miTel,'✅ Prueba exitosa — Fornax Studios\n\nLas notificaciones por WhatsApp están funcionando correctamente.');
-  _waSistemaCfg = prevCfg;
-  if(typeof toast==='function') toast(ok?'✅ Mensaje enviado — revisa tu WhatsApp':'❌ No se pudo enviar — verifica los datos',ok?'ok':'error');
 }
 /* ── FIN SISTEMA DE EMAIL ── */
 
@@ -57801,25 +57627,27 @@ window.addEventListener('load', async () => {
     var _facTs    = 0;               // timestamp
     var _facLoad  = null;            // Promise en vuelo
     var _origFrom = _supaDb.from.bind(_supaDb);
-    // v5.79: solo 3 meses en caché (antes: 24 meses → 20k registros → timeouts)
-    var _hace3m = new Date(); _hace3m.setMonth(_hace3m.getMonth() - 3);
-    var _facCacheStart = _hace3m.toISOString().slice(0,10);
 
     function _loadFac(){
       if(_facLoad) return _facLoad;
+      var hace24m = new Date();
+      hace24m.setMonth(hace24m.getMonth() - 24);
+      var fStr = hace24m.toISOString().slice(0,10);
+      // v5.78-paginado: descarga TODOS los registros en páginas de 1000
+      // para evitar el límite de filas por consulta de Supabase/PostgREST
       var FAC_PAGE = 1000;
       var allRows  = [];
       var off = 0;
       function _fetchPage(){
         return _origFrom('facturacion_diaria')
-          .select('*').gte('fecha', _facCacheStart).order('fecha',{ascending:true})
+          .select('*').gte('fecha', fStr).order('fecha',{ascending:true})
           .range(off, off + FAC_PAGE - 1)
           .then(function(r){
             if(r.error || !r.data || r.data.length === 0) return allRows;
             allRows = allRows.concat(r.data);
-            if(r.data.length < FAC_PAGE) return allRows;
+            if(r.data.length < FAC_PAGE) return allRows; // última página
             off += FAC_PAGE;
-            return _fetchPage();
+            return _fetchPage(); // siguiente página
           });
       }
       _facLoad = _fetchPage()
@@ -57827,7 +57655,7 @@ window.addEventListener('load', async () => {
           _facLoad = null;
           _facData = rows;
           _facTs = Date.now();
-          console.log('[FAC-CACHE v5.79] Cargados ' + _facData.length + ' registros (últimos 3 meses)');
+          console.log('[FAC-CACHE v5.78] Cargados ' + _facData.length + ' registros totales via paginación');
           return _facData;
         })
         .catch(function(){ _facLoad = null; return _facData || []; });
@@ -57907,34 +57735,6 @@ window.addEventListener('load', async () => {
 
     FacBuilder.prototype.then = function(ok, fail){
       var b = this;
-      var needsBypass = false;
-      for(var _bi=0;_bi<b._f.length;_bi++){
-        var _bf=b._f[_bi];
-        if(_bf[0]==='fecha' && (_bf[1]==='gte'||_bf[1]==='gt'||_bf[1]==='lte'||_bf[1]==='lt') && _bf[2] < _facCacheStart){
-          needsBypass = true; break;
-        }
-      }
-      if(needsBypass){
-        var rq = _origFrom('facturacion_diaria').select('*');
-        b._f.forEach(function(ff){
-          if(ff[1]==='eq')    rq=rq.eq(ff[0],ff[2]);
-          else if(ff[1]==='gte')   rq=rq.gte(ff[0],ff[2]);
-          else if(ff[1]==='gt')    rq=rq.gt(ff[0],ff[2]);
-          else if(ff[1]==='lte')   rq=rq.lte(ff[0],ff[2]);
-          else if(ff[1]==='lt')    rq=rq.lt(ff[0],ff[2]);
-          else if(ff[1]==='ilike') rq=rq.ilike(ff[0],ff[2]);
-          else if(ff[1]==='in')    rq=rq.in(ff[0],ff[2]);
-          else if(ff[1]==='is')    rq=rq.is(ff[0],ff[2]);
-          else if(ff[1]==='neq')   rq=rq.neq(ff[0],ff[2]);
-          else if(ff[1]==='like')  rq=rq.like(ff[0],ff[2]);
-        });
-        if(b._ord) rq=rq.order(b._ord,{ascending:b._asc});
-        if(b._lim!==null) rq=rq.limit(b._lim);
-        if(b._rangeFrom!==undefined) rq=rq.range(b._rangeFrom,b._rangeTo);
-        if(b._sng) return rq.single().then(ok,fail);
-        if(b._msng) return rq.maybeSingle().then(ok,fail);
-        return rq.then(ok,fail);
-      }
       var p = new Promise(function(res,rej){
         var finish = function(arr){
           try{
@@ -57964,9 +57764,9 @@ window.addEventListener('load', async () => {
     window._getFacDiariaCache = function(){ return _facData; };
 
     // Pre-cargar en background (sin bloquear UI)
-    setTimeout(function(){ _loadFac().then(function(d){ console.log('[FAC-CACHE v5.79] Pre-cargados',d.length,'registros de facturacion_diaria (últimos 3 meses)'); }); }, 3000);
+    setTimeout(function(){ _loadFac().then(function(d){ console.log('[FAC-CACHE v5.77] Pre-cargados',d.length,'registros de facturacion_diaria'); }); }, 3000);
 
-    console.log('[FAC-CACHE v5.79] Proxy instalado — facturacion_diaria servida desde memoria (TTL 10 min, ventana 3 meses)');
+    console.log('[FAC-CACHE v5.77] Proxy instalado — facturacion_diaria servida desde memoria (TTL 10 min)');
   })();
 
   // Check existing session
@@ -128238,10 +128038,11 @@ function gcInit(){
     var navAdmMult=document.getElementById('nav-admin-multas-item');
     if(navAdmMult) navAdmMult.style.display='';
   }
-  if(_gcIsMonitor()||_gcIsAdmin()){
-    var navPD=document.getElementById('nav-plan-diario-item');
-    if(navPD) navPD.style.display='';
-  }
+  // Mi Agenda oculta (módulo en construcción)
+  // if(_gcIsMonitor()||_gcIsAdmin()){
+  //   var navPD=document.getElementById('nav-plan-diario-item');
+  //   if(navPD) navPD.style.display='';
+  // }
   gcPanelInit('gc-root-page');
 }
 
@@ -129790,7 +129591,7 @@ function _mpRenderizar(data, kpiEl, listaEl, isCreados){
 <!-- ════════════════════════════════════════════════════════════
      PÁGINA — MI AGENDA (Organizador personal de trabajo)
      ════════════════════════════════════════════════════════════ -->
-<div id="page-mi-agenda" class="page" style="padding:0;background:var(--bg)!important">
+<div id="page-mi-agenda" class="page" style="padding:0;background:var(--bg)!important;display:none!important">
   <div style="padding:20px 20px 0">
     <div class="efac3-banner">
       <div class="efac3-banner-left">

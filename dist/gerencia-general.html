@@ -13902,6 +13902,44 @@ async function _efacGetModelosFornaxAll(monitorNombre){
       }catch(_exFd){ console.warn('[efac3 fornaxAll enriquecimiento]',_exFd); }
     }
 
+    /* ── PASO GE-VETO: expulsar del universo Fornax cualquier modelo clasificado
+       como GE independiente en la tabla `modelos` (ejecutivo_id asignado +
+       nivel_fornax nulo + estudio_id ≠ Fornax).  Corrige el caso en que la
+       facturación de un modelo GE aparece registrada bajo estudio_nombre Fornax
+       en facturacion_diaria, lo que lo incorpora vía los pasos 2/2B/3. */
+    try{
+      var _rGEVeto=await _supaDb.from('modelos')
+        .select('nombre,nombre_agencia,estudio_id')
+        .not('ejecutivo_id','is',null)
+        .is('nivel_fornax',null);
+      if(!_rGEVeto.error){
+        var _vetoCnt=0;
+        (_rGEVeto.data||[]).forEach(function(mv){
+          var _sid=(mv.estudio_id||'');
+          if(_sid==='mt8elsuqllk'||_sid==='mt8clsuqlik') return;
+          var _vname=(mv.nombre_agencia||mv.nombre||'').trim();
+          if(!_vname) return;
+          /* Comparación case-insensitive: billing puede tener capitalización distinta a modelos.nombre */
+          var _vnameLow=_vname.toLowerCase();
+          var idx=nombresModelos.findIndex(function(n){ return (n||'').trim().toLowerCase()===_vnameLow; });
+          if(idx!==-1){
+            var _actualNom=nombresModelos[idx]; // nombre real tal como está en billing
+            nombresModelos.splice(idx,1);
+            _e3ModelosFornax.delete(_actualNom);
+            _e3ModelosFornaxBase.delete(_actualNom);
+            /* Limpiar también variante original del DB por si difiere en case */
+            if(_actualNom!==_vname){
+              _e3ModelosFornax.delete(_vname);
+              _e3ModelosFornaxBase.delete(_vname);
+            }
+            _vetoCnt++;
+            console.warn('[efac3 GE-Veto] expulsado del universo Fornax:',_actualNom,'(ejecutivo_id asignado, sin nivel_fornax)');
+          }
+        });
+        if(_vetoCnt) console.warn('[efac3 GE-Veto] '+_vetoCnt+' modelos GE removidos. Total Fornax final: '+nombresModelos.length);
+      }
+    }catch(_exGEV){ console.warn('[efac3 GE-Veto]',_exGEV); }
+
     /* Poblar globales.
        _e3AllEstudios SIEMPRE vacío: NO se usa Q1 por estudio.
        Toda la facturación se trae por modelo_nombre (Q2). */
@@ -14071,15 +14109,28 @@ async function execFacRender(){
               /* POST-CACHÉ GUARD GE: remover modelos GE que no deben estar en Fornax.
                  Protege contra caché contaminada por registros mal clasificados en Supabase.
                  Lista permanente — agregar aquí cualquier modelo GE que haya aparecido en Fornax por error. */
-              var _geExcludeFromFnx=['lucia brown'];
-              _geExcludeFromFnx.forEach(function(n){
-                _e3ModelosFornax.delete(n);
-                _e3ModelosFornaxBase.delete(n);
-                var idx=_e3ModelosAsig.indexOf(n);
-                if(idx>=0) _e3ModelosAsig.splice(idx,1);
-                var idx2=_e3EstsOrig.indexOf(n);
-                if(idx2>=0) _e3EstsOrig.splice(idx2,1);
-                console.warn('[efac3 GE-CACHE-GUARD] '+n+' eliminado de sets Fornax (modelo GE)');
+              var _geExcludeFromFnx=['lucia brown','scarlett_violet'];
+              _geExcludeFromFnx.forEach(function(excLow){
+                /* Limpiar Sets Fornax — iterar para eliminar cualquier variante de mayúsculas */
+                Array.from(_e3ModelosFornax).forEach(function(n){
+                  if((n||'').trim().toLowerCase()===excLow){ _e3ModelosFornax.delete(n); }
+                });
+                Array.from(_e3ModelosFornaxBase).forEach(function(n){
+                  if((n||'').trim().toLowerCase()===excLow){ _e3ModelosFornaxBase.delete(n); }
+                });
+                /* Limpiar array _e3ModelosAsig (case-insensitive) */
+                for(var _gi=_e3ModelosAsig.length-1;_gi>=0;_gi--){
+                  if((_e3ModelosAsig[_gi]||'').trim().toLowerCase()===excLow){
+                    _e3ModelosAsig.splice(_gi,1);
+                  }
+                }
+                /* Limpiar array _e3EstsOrig (case-insensitive) */
+                for(var _gi2=_e3EstsOrig.length-1;_gi2>=0;_gi2--){
+                  if((_e3EstsOrig[_gi2]||'').trim().toLowerCase()===excLow){
+                    _e3EstsOrig.splice(_gi2,1);
+                  }
+                }
+                console.warn('[efac3 GE-CACHE-GUARD] '+excLow+' eliminado de sets Fornax (modelo GE)');
               });
               _e3SupaMods = [];
               _ssRestored = true;
@@ -14452,6 +14503,26 @@ async function _e3CargarMes(){
       if(allRows.length!==_antes){
         console.warn('[efac3 v5.34c] Traslados excluidos de Estadísticas Fornax: '+
           (_antes-allRows.length)+' filas (Lucia Brown >= 2026-09-01). Restantes: '+allRows.length);
+      }
+    })();
+
+    /* ── FIX GE-row-filter: Excluir filas de modelos GE independientes ──────────
+       Modelos GE (ejecutivo_id asignado, sin nivel_fornax) no deben aparecer en
+       estadísticas del monitor Fornax aunque su billing esté registrado bajo
+       estudio_nombre 'Fornax Studios' en facturacion_diaria.
+       Se aplica DESPUÉS del cache de billing (_jdfGet) para limpiar incluso
+       filas que vengan de cache previo al fix. Usar toLowerCase para ser
+       inmune a diferencias de capitalización. */
+    (function(){
+      var _geNamesLower=['scarlett_violet'];
+      var _antesGE=allRows.length;
+      allRows=allRows.filter(function(r){
+        var _mod=(r.modelo_nombre||'').trim().toLowerCase();
+        return _geNamesLower.indexOf(_mod)===-1;
+      });
+      if(allRows.length!==_antesGE){
+        console.warn('[efac3 GE-row-filter] '+(_antesGE-allRows.length)+
+          ' filas de modelo(s) GE excluidas de Estadísticas Fornax. Restantes: '+allRows.length);
       }
     })();
 
@@ -19116,6 +19187,38 @@ async function _e3dCargar(){
       _e3d.rangoActual   = rango;
       console.warn('[e3d CACHE v6.61] ⚡ Dashboard desde caché ('+_e3d.rows.length+
         ' filas | age='+Math.round((Date.now()-_e3dCkEntry.ts)/1000)+'s)');
+      /* GE-row-filter sobre cache: eliminar modelos GE que facturan bajo Fornax.
+         La clave de cache cambia cuando _e3ModelosAsig cambia, pero si la lista
+         aún incluye el modelo GE el cache viejo podría seguir sirviendo sus filas. */
+      (function(){
+        var _geNamesLower=['jackhard19','scarlett violet'];
+        var _prevLen=_e3d.rows.length;
+        _e3d.rows=_e3d.rows.filter(function(r){
+          var _est=(r.estudio_nombre||'').toLowerCase();
+          if(_est.indexOf('fornax')===-1) return true;
+          var _mod=(r.modelo_nombre||'').replace(/_/g,' ').trim().toLowerCase()
+                    .normalize('NFD').replace(/[̀-ͯ]/g,'');
+          for(var _gci=0;_gci<_geNamesLower.length;_gci++){
+            if(_mod.indexOf(_geNamesLower[_gci])!==-1) return false;
+          }
+          return true;
+        });
+        if(_e3d.rows.length<_prevLen){
+          var _geRem=_prevLen-_e3d.rows.length;
+          console.warn('[e3d GE-cache-filter] '+_geRem+' filas GE excluidas del cache Dashboard');
+          /* Recalcular rawTotal sin las filas GE */
+          if(_e3d.rawTotal!==null && typeof _e3valCr==='function'){
+            var _seenRCk=new Set();
+            var _dedupCk=_e3d.rows.filter(function(r){
+              var k=(r.fecha||'')+'|'+(r.modelo_nombre||'')+'|'+(r.plataforma||'')+'|'+(+(r.valor||0));
+              if(_seenRCk.has(k)) return false; _seenRCk.add(k); return true;
+            });
+            _e3d.rawTotal=_dedupCk.reduce(function(s,r){ return s+_e3valCr(r.plataforma||'',r.valor); },0);
+            _e3d.realAcum=null; /* forzar recalculo en _e3dRender */
+            console.warn('[e3d GE-cache-filter] rawTotal recalculado:',Math.round(_e3d.rawTotal));
+          }
+        }
+      })();
       _e3dRender(rango, rangoPrev, f);
       _e3dCkHit = true;
     }
@@ -19467,7 +19570,7 @@ async function _e3dCargar(){
        operativamente a Fornax antes de 2026-09-01).
        Agregar más nombres en _ge_excl_fornax para extender la exclusión a otros casos similares. */
     (function(){
-      var _ge_excl_fornax=['jackhard19']; /* nombres en minúscula, sin tilde, sin guión bajo */
+      var _ge_excl_fornax=['jackhard19','scarlett violet']; /* nombres en minúscula, sin tilde; _→espacio ya hecho arriba */
       var _ante_ge=allRows.length;
       allRows=allRows.filter(function(r){
         var _est=(r.estudio_nombre||'').toLowerCase();

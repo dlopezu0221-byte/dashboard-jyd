@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v6.83 -->
+<!DOCTYPE html><!-- v6.87 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -31599,8 +31599,10 @@ var _waSistemaCfg = null; /* {enabled, instanceId, token} cargado desde jd_confi
 async function _waCargarConfigSistema(){
   if(!_supaDb) return;
   try{
-    var {data} = await _supaDb.from('jd_configuracion').select('clave,valor').in('clave',['wa_enabled','wa_instance_id','wa_token']);
-    if(data){
+    /* v6.87: RPC SECURITY DEFINER para bypassar RLS en SELECT de jd_configuracion */
+    var {data, error} = await _supaDb.rpc('cargar_config_wa');
+    if(error) throw error;
+    if(data && data.length > 0){
       var cfg = {enabled:false, instanceId:'', token:''};
       data.forEach(function(r){
         if(r.clave==='wa_enabled') cfg.enabled = r.valor==='true'||r.valor===true;
@@ -31608,49 +31610,49 @@ async function _waCargarConfigSistema(){
         if(r.clave==='wa_token') cfg.token = r.valor||'';
       });
       _waSistemaCfg = cfg;
+      console.log('[JD-WA] Config cargada:', cfg.enabled?'ACTIVO':'INACTIVO', cfg.instanceId?'(con instancia)':'(sin instancia)');
     }
   }catch(e){ console.warn('[JD-WA] Error cargando config sistema:', e); }
 }
 function _waGetMiTelefono(){
   if(!_jdCurrentUser) return '';
-  /* 1. Supabase (telefono o datos_extra.whatsapp) */
-  var fromSupa = _jdCurrentUser.telefono||(_jdCurrentUser.datos_extra&&_jdCurrentUser.datos_extra.whatsapp)||'';
-  if(fromSupa) return fromSupa;
-  /* 2. Fallback localStorage (por si Supabase no pudo guardar) */
+  /* 1. datos_extra.whatsapp — guardado por RPC SECURITY DEFINER */
+  var fromDE = _jdCurrentUser.datos_extra && _jdCurrentUser.datos_extra.whatsapp;
+  if(fromDE) return fromDE;
+  /* 2. telefono columna top-level (fallback) */
+  if(_jdCurrentUser.telefono) return _jdCurrentUser.telefono;
+  /* 3. localStorage — fallback offline */
   try{ return localStorage.getItem('jd_wa_tel_'+(_jdCurrentUser.id||_jdCurrentUser.email||''))||''; }catch(e){ return ''; }
 }
 async function _waGuardarMiTelefono(tel){
   if(!_jdCurrentUser) return;
+  /* Actualizar en memoria */
+  if(!_jdCurrentUser.datos_extra) _jdCurrentUser.datos_extra = {};
+  _jdCurrentUser.datos_extra.whatsapp = tel;
   _jdCurrentUser.telefono = tel;
-  /* 1. localStorage — siempre funciona, persiste en este navegador */
-  try{
-    var lsKey = 'jd_wa_tel_'+(_jdCurrentUser.id||_jdCurrentUser.email||'');
-    localStorage.setItem(lsKey, tel);
-  }catch(e){}
-  /* 2. Supabase telefono — puede fallar por RLS, no bloquea el flujo */
+  /* 1. localStorage — siempre funciona */
+  try{ localStorage.setItem('jd_wa_tel_'+(_jdCurrentUser.id||_jdCurrentUser.email||''), tel); }catch(e){}
+  /* 2. RPC guardar_telefono_wa — SECURITY DEFINER bypasa RLS */
   if(_supaDb && _jdCurrentUser.id){
     try{
-      var {error:errTel} = await _supaDb.from('jd_usuarios').update({telefono: tel}).eq('id', _jdCurrentUser.id);
-      if(errTel) console.warn('[JD-WA] RLS/error guardando telefono:', errTel);
-    }catch(e){ console.warn('[JD-WA] Error telefono Supabase:', e); }
-    /* 3. datos_extra (columna opcional) */
-    try{
-      var de = Object.assign({}, _jdCurrentUser.datos_extra||{});
-      de.whatsapp = tel;
-      _jdCurrentUser.datos_extra = de;
-      await _supaDb.from('jd_usuarios').update({datos_extra: de}).eq('id', _jdCurrentUser.id);
-    }catch(e){}
+      var {error:errRpc} = await _supaDb.rpc('guardar_telefono_wa', {p_tel: tel});
+      if(errRpc) console.warn('[JD-WA] Error RPC guardar_telefono_wa:', errRpc);
+      else console.log('[JD-WA] ✅ Teléfono WhatsApp guardado en Supabase');
+    }catch(e){ console.warn('[JD-WA] Error RPC:', e); }
   }
 }
 async function _waGuardarConfigSistema(cfg){
   if(!_supaDb) return false;
   try{
-    await _supaDb.from('jd_configuracion').upsert([
-      {clave:'wa_enabled', valor: cfg.enabled?'true':'false'},
-      {clave:'wa_instance_id', valor: cfg.instanceId},
-      {clave:'wa_token', valor: cfg.token}
-    ], {onConflict:'clave'});
+    /* v6.86: RPC SECURITY DEFINER para bypassar RLS en jd_configuracion */
+    var {error:errRpc} = await _supaDb.rpc('guardar_config_wa', {
+      p_enabled: cfg.enabled ? true : false,
+      p_instance_id: cfg.instanceId||'',
+      p_token: cfg.token||''
+    });
+    if(errRpc){ console.warn('[JD-WA] Error RPC guardar_config_wa:', errRpc); return false; }
     _waSistemaCfg = Object.assign({}, cfg);
+    console.log('[JD-WA] ✅ Config sistema guardada en Supabase');
     return true;
   }catch(e){ console.warn('[JD-WA] Error guardando config sistema:', e); return false; }
 }
@@ -31716,12 +31718,14 @@ function _waNotificarEstado(sol, nuevoEstado, notasAdmin){
     if(execPhone){ _waEnviar(execPhone, ei+' *Actualización de Solicitud — Fornax Studios*\n\nTu solicitud de *'+tipo+'* fue actualizada.\n📌 Estado: *'+nuevoEstado.toUpperCase()+'*'+notas); }
   })().catch(function(e){ console.warn('[JD-WA] Error notificando estado:', e); });
 }
-function waMostrarConfigPanel(){
+async function waMostrarConfigPanel(){
   var esSuperAdmin = typeof jdIsSuperAdmin==='function' && jdIsSuperAdmin();
   var esAdmin = _jdCurrentUser && (_jdCurrentUser.rol==='admin'||_jdCurrentUser.rol==='super_admin');
   if(!esAdmin) return;
   var existing = document.getElementById('jd-wa-cfg-modal');
   if(existing){ existing.remove(); return; }
+  /* v6.87: recargar siempre desde Supabase antes de mostrar */
+  await _waCargarConfigSistema();
   var cfg = _waSistemaCfg || {enabled:false, instanceId:'', token:''};
   var miTel = _waGetMiTelefono();
   var htmlInstance = esSuperAdmin ? (
@@ -57797,27 +57801,25 @@ window.addEventListener('load', async () => {
     var _facTs    = 0;               // timestamp
     var _facLoad  = null;            // Promise en vuelo
     var _origFrom = _supaDb.from.bind(_supaDb);
+    // v5.79: solo 3 meses en caché (antes: 24 meses → 20k registros → timeouts)
+    var _hace3m = new Date(); _hace3m.setMonth(_hace3m.getMonth() - 3);
+    var _facCacheStart = _hace3m.toISOString().slice(0,10);
 
     function _loadFac(){
       if(_facLoad) return _facLoad;
-      var hace24m = new Date();
-      hace24m.setMonth(hace24m.getMonth() - 24);
-      var fStr = hace24m.toISOString().slice(0,10);
-      // v5.78-paginado: descarga TODOS los registros en páginas de 1000
-      // para evitar el límite de filas por consulta de Supabase/PostgREST
       var FAC_PAGE = 1000;
       var allRows  = [];
       var off = 0;
       function _fetchPage(){
         return _origFrom('facturacion_diaria')
-          .select('*').gte('fecha', fStr).order('fecha',{ascending:true})
+          .select('*').gte('fecha', _facCacheStart).order('fecha',{ascending:true})
           .range(off, off + FAC_PAGE - 1)
           .then(function(r){
             if(r.error || !r.data || r.data.length === 0) return allRows;
             allRows = allRows.concat(r.data);
-            if(r.data.length < FAC_PAGE) return allRows; // última página
+            if(r.data.length < FAC_PAGE) return allRows;
             off += FAC_PAGE;
-            return _fetchPage(); // siguiente página
+            return _fetchPage();
           });
       }
       _facLoad = _fetchPage()
@@ -57825,7 +57827,7 @@ window.addEventListener('load', async () => {
           _facLoad = null;
           _facData = rows;
           _facTs = Date.now();
-          console.log('[FAC-CACHE v5.78] Cargados ' + _facData.length + ' registros totales via paginación');
+          console.log('[FAC-CACHE v5.79] Cargados ' + _facData.length + ' registros (últimos 3 meses)');
           return _facData;
         })
         .catch(function(){ _facLoad = null; return _facData || []; });
@@ -57905,6 +57907,34 @@ window.addEventListener('load', async () => {
 
     FacBuilder.prototype.then = function(ok, fail){
       var b = this;
+      var needsBypass = false;
+      for(var _bi=0;_bi<b._f.length;_bi++){
+        var _bf=b._f[_bi];
+        if(_bf[0]==='fecha' && (_bf[1]==='gte'||_bf[1]==='gt'||_bf[1]==='lte'||_bf[1]==='lt') && _bf[2] < _facCacheStart){
+          needsBypass = true; break;
+        }
+      }
+      if(needsBypass){
+        var rq = _origFrom('facturacion_diaria').select('*');
+        b._f.forEach(function(ff){
+          if(ff[1]==='eq')    rq=rq.eq(ff[0],ff[2]);
+          else if(ff[1]==='gte')   rq=rq.gte(ff[0],ff[2]);
+          else if(ff[1]==='gt')    rq=rq.gt(ff[0],ff[2]);
+          else if(ff[1]==='lte')   rq=rq.lte(ff[0],ff[2]);
+          else if(ff[1]==='lt')    rq=rq.lt(ff[0],ff[2]);
+          else if(ff[1]==='ilike') rq=rq.ilike(ff[0],ff[2]);
+          else if(ff[1]==='in')    rq=rq.in(ff[0],ff[2]);
+          else if(ff[1]==='is')    rq=rq.is(ff[0],ff[2]);
+          else if(ff[1]==='neq')   rq=rq.neq(ff[0],ff[2]);
+          else if(ff[1]==='like')  rq=rq.like(ff[0],ff[2]);
+        });
+        if(b._ord) rq=rq.order(b._ord,{ascending:b._asc});
+        if(b._lim!==null) rq=rq.limit(b._lim);
+        if(b._rangeFrom!==undefined) rq=rq.range(b._rangeFrom,b._rangeTo);
+        if(b._sng) return rq.single().then(ok,fail);
+        if(b._msng) return rq.maybeSingle().then(ok,fail);
+        return rq.then(ok,fail);
+      }
       var p = new Promise(function(res,rej){
         var finish = function(arr){
           try{
@@ -57934,9 +57964,9 @@ window.addEventListener('load', async () => {
     window._getFacDiariaCache = function(){ return _facData; };
 
     // Pre-cargar en background (sin bloquear UI)
-    setTimeout(function(){ _loadFac().then(function(d){ console.log('[FAC-CACHE v5.77] Pre-cargados',d.length,'registros de facturacion_diaria'); }); }, 3000);
+    setTimeout(function(){ _loadFac().then(function(d){ console.log('[FAC-CACHE v5.79] Pre-cargados',d.length,'registros de facturacion_diaria (últimos 3 meses)'); }); }, 3000);
 
-    console.log('[FAC-CACHE v5.77] Proxy instalado — facturacion_diaria servida desde memoria (TTL 10 min)');
+    console.log('[FAC-CACHE v5.79] Proxy instalado — facturacion_diaria servida desde memoria (TTL 10 min, ventana 3 meses)');
   })();
 
   // Check existing session

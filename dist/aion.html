@@ -19882,9 +19882,12 @@ async function _e3dCargar(){
           if(_e3ModelosFornaxBase && _e3ModelosFornaxBase.size > 0 && !_e3ModelosFornaxBase.has(nom)) return;
           // Excluir Lucia Brown desde 2026-09-01 (= filtro allRows arriba)
           if((r.fecha||'') >= '2026-09-01'){
-            var _mn = nom.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+            var _mn = nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
             if(_mn.indexOf('lucia') !== -1 && _mn.indexOf('brow') !== -1) return;
           }
+          // Excluir Scarlett_Violet (modelo GE independiente — no pertenece al monitor Fornax)
+          { var _scVn=nom.replace(/_/g,' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+            if(_scVn.indexOf('scarlett')!==-1 && _scVn.indexOf('violet')!==-1) return; }
           _cvAcum += _e3valCr(r.plataforma||'', r.valor);
         });
         _e3d.cwTotal = Math.round(_cvAcum);
